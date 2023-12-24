@@ -1,0 +1,11 @@
+{
+  "name": "com.sas.dev-utilities",
+  "version": "1.0.0",
+  "displayName": "SAS Dev Utilities",
+  "unity": "2018.4",
+  "hideInEditor": true,
+  "dependencies": {
+    "com.unity.textmeshpro": "3.0.6",
+    "com.unity.inputsystem": "1.6.3"
+  }
+}
