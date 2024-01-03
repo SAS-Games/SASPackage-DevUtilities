@@ -26,6 +26,11 @@ namespace SAS.Utilities.DeveloperConsole
             }
         }
 
+        private void Awake()
+        {
+            pausedTimeScale = Time.timeScale;
+        }
+
         public void Toggle(CallbackContext context)
         {
             if (!context.action.triggered) { return; }
