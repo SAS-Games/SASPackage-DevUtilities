@@ -15,7 +15,7 @@ namespace SAS
     public static class Debug
     {
         private static LogLevel _logLevel = LogLevel.None;
-        private static LogLevel mLogMask = LogLevel.None;
+        private static LogLevel _logMask = LogLevel.None;
         private static HashSet<string> mAllowedTags = new HashSet<string>();
 
         public static void SetLogLevel(LogLevel level)
@@ -25,7 +25,7 @@ namespace SAS
 
         public static void AddLogMask(LogLevel mask)
         {
-            mLogMask |= mask;
+            _logMask |= mask;
         }
 
         public static void SetAllowedTags(IEnumerable<string> tags)
@@ -36,7 +36,7 @@ namespace SAS
 
         public static void ClearLogMask()
         {
-            mLogMask = LogLevel.None;
+            _logMask = LogLevel.None;
         }
 
         public static void Log(string message, string tag = null, LogLevel level = LogLevel.Info)
@@ -65,7 +65,7 @@ namespace SAS
 
         public static bool CanLog(LogLevel level)
         {
-            if ((_logLevel & level) != 0 && (mLogMask & level) != 0)
+            if ((_logLevel & level) != 0 && (_logMask & level) != 0)
                 return true;
             else
                 return false;
