@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using static PlasticPipe.PlasticProtocol.Messages.Serialization.ItemHandlerMessagesSerialization;
 
 namespace SAS
 {
@@ -14,8 +15,7 @@ namespace SAS
 
     public static class Debug
     {
-        private static LogLevel _logLevel = LogLevel.None;
-        private static LogLevel _logMask = LogLevel.None;
+        private static LogLevel _logLevel = (LogLevel)(1);
         private static HashSet<string> mAllowedTags = new HashSet<string>();
 
         public static void SetLogLevel(LogLevel level)
@@ -23,20 +23,10 @@ namespace SAS
             _logLevel = level;
         }
 
-        public static void AddLogMask(LogLevel mask)
-        {
-            _logMask |= mask;
-        }
-
         public static void SetAllowedTags(IEnumerable<string> tags)
         {
             mAllowedTags.Clear();
             mAllowedTags.UnionWith(tags);
-        }
-
-        public static void ClearLogMask()
-        {
-            _logMask = LogLevel.None;
         }
 
         public static void Log(string message, string tag = null, LogLevel level = LogLevel.Info)
@@ -65,11 +55,9 @@ namespace SAS
 
         public static bool CanLog(LogLevel level)
         {
-            if ((_logLevel & level) != 0 && (_logMask & level) != 0)
-                return true;
-            else
-                return false;
+            return _logLevel.HasFlag(level);
         }
+
 
         private static bool TagPassesFilter(string tag)
         {
