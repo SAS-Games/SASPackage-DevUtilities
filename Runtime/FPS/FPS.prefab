@@ -32,7 +32,6 @@ RectTransform:
   m_Children:
   - {fileID: 1147729744508602165}
   m_Father: {fileID: 7428326002735701155}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
@@ -111,7 +110,6 @@ RectTransform:
   m_Children:
   - {fileID: 3574254913413806374}
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -135,7 +133,9 @@ Canvas:
   m_OverrideSorting: 0
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
+  m_VertexColorAlwaysGammaSpace: 0
   m_AdditionalShaderChannelsFlag: 0
+  m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 10000
   m_TargetDisplay: 0
@@ -188,11 +188,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 4840794096766531456}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ab52eb45ca8ad6a4f987c66533e95058, type: 3}
+  m_Script: {fileID: 11500000, guid: df35b6ee8de73fc42ac8cf2aaef51344, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Display: {fileID: 7919385023625728094}
-  m_UpdateInterval: 1
+  m_UpdateInterval: 0.5
   m_TargetFrameRate: 60
 --- !u!1 &7232403671296343171
 GameObject:
@@ -225,7 +225,6 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 3574254913413806374}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
