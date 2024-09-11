@@ -1,6 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System;
 using System.Linq;
+using UnityEngine;
 
 namespace SAS.Utilities.DeveloperConsole
 {
@@ -29,6 +30,50 @@ namespace SAS.Utilities.DeveloperConsole
             ProcessCommand(commandInput, args, developerConsole);
         }
 
+        public string GetCommandSuggestion(string input)
+        {
+            // Remove the prefix before filtering commands
+            if (input.StartsWith(prefix))
+            {
+                input = input.Remove(0, prefix.Length);
+            }
+
+            // Step 1: Try to find a command that starts with the input
+            var exactMatch = commands
+                .Where(c => c.CommandWord.StartsWith(input, System.StringComparison.OrdinalIgnoreCase))
+                .Select(c => c.CommandWord)
+                .FirstOrDefault();
+
+            if (exactMatch != null)
+            {
+                return exactMatch;
+            }
+
+            // Step 2: If no exact match, find the command with the most matching characters
+            return commands
+                .OrderByDescending(c => GetMatchingCharactersCount(c.CommandWord, input))
+                .Select(c => c.CommandWord)
+                .FirstOrDefault();
+        }
+
+        private int GetMatchingCharactersCount(string command, string input)
+        {
+            int matchingCharacters = 0;
+            int minLength = Mathf.Min(command.Length, input.Length);
+
+            // Count the number of matching characters from the start
+            for (int i = 0; i < minLength; i++)
+            {
+                if (command[i] == input[i])
+                {
+                    matchingCharacters++;
+                }
+            }
+
+            return matchingCharacters;
+        }
+
+
         public void ProcessCommand(string commandInput, string[] args, DeveloperConsoleBehaviour developerConsole)
         {
             foreach (var command in commands)
@@ -38,7 +83,7 @@ namespace SAS.Utilities.DeveloperConsole
                     continue;
                 }
 
-                if (command.Process(args,developerConsole))
+                if (command.Process(args, developerConsole))
                 {
                     return;
                 }

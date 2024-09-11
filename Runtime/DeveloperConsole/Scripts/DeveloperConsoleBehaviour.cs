@@ -12,11 +12,12 @@ namespace SAS.Utilities.DeveloperConsole
         [Header("UI")]
         [SerializeField] private GameObject m_UiCanvas = null;
         [SerializeField] private TMP_InputField m_InputField = null;
+        [SerializeField] private TMP_Text m_SuggestionsText = null;
         [SerializeField] private bool m_PauseOnOpen = false;
 
         private float pausedTimeScale;
-
         private DeveloperConsole developerConsole;
+
         private DeveloperConsole DeveloperConsole
         {
             get
@@ -29,6 +30,9 @@ namespace SAS.Utilities.DeveloperConsole
         private void Awake()
         {
             pausedTimeScale = Time.timeScale;
+
+            if (m_InputField != null)
+                m_InputField.onValueChanged.AddListener(OnInputChanged);
         }
 
         public void Toggle(CallbackContext context)
@@ -57,6 +61,19 @@ namespace SAS.Utilities.DeveloperConsole
         {
             DeveloperConsole.ProcessCommand(inputValue, this);
             m_InputField.text = string.Empty;
+            m_SuggestionsText.text = string.Empty;
+        }
+
+        private void OnInputChanged(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+            {
+                m_SuggestionsText.text = string.Empty;
+                return;
+            }
+
+            var suggestions = DeveloperConsole.GetCommandSuggestion(input);
+            m_SuggestionsText.text = string.Join("\n", suggestions);
         }
     }
 }
