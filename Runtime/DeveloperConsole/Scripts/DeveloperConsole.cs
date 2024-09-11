@@ -21,14 +21,39 @@ namespace SAS.Utilities.DeveloperConsole
             if (!inputValue.StartsWith(prefix)) { return; }
 
             inputValue = inputValue.Remove(0, prefix.Length);
-
             string[] inputSplit = inputValue.Split(' ');
 
             string commandInput = inputSplit[0];
             string[] args = inputSplit.Skip(1).ToArray();
+            if (inputValue.Equals("clear", StringComparison.OrdinalIgnoreCase))
+            {
+                developerConsole.DisplayHelpText("");
+                return; 
+            }
+            // If the input ends with "help", show the command's help text
+            if (args.Length > 0 && args[0].Equals("help", StringComparison.OrdinalIgnoreCase))
+            {
+                ShowHelpText(commandInput, developerConsole);
+                return;
+            }
 
             ProcessCommand(commandInput, args, developerConsole);
         }
+
+        private void ShowHelpText(string commandInput, DeveloperConsoleBehaviour developerConsole)
+        {
+            var command = commands.FirstOrDefault(c => c.CommandWord.Equals(commandInput, StringComparison.OrdinalIgnoreCase));
+
+            if (command != null)
+            {
+                developerConsole.DisplayHelpText(command.HelpText);  // Method to display help text in UI
+            }
+            else
+            {
+                developerConsole.DisplayHelpText($"No command found for '{commandInput}'");
+            }
+        }
+
 
         public string GetCommandSuggestion(string input)
         {

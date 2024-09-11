@@ -13,6 +13,7 @@ namespace SAS.Utilities.DeveloperConsole
         [SerializeField] private GameObject m_UiCanvas = null;
         [SerializeField] private TMP_InputField m_InputField = null;
         [SerializeField] private TMP_Text m_SuggestionsText = null;
+        [SerializeField] private TMP_Text m_HelpText = null;
         [SerializeField] private bool m_PauseOnOpen = false;
 
         private float pausedTimeScale;
@@ -63,6 +64,12 @@ namespace SAS.Utilities.DeveloperConsole
             m_InputField.text = string.Empty;
             m_SuggestionsText.text = string.Empty;
         }
+        public void DisplayHelpText(string helpText)
+        {
+            if (m_HelpText != null)
+                m_HelpText.text = helpText;
+        }
+
 
         private void OnInputChanged(string input)
         {
