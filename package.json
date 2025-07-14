@@ -3,9 +3,14 @@
   "version": "1.2.0",
   "displayName": "SAS Dev Utilities",
   "unity": "2018.4",
+  "author": {
+    "name": "SAS",
+    "email": "sonkar.abhi86@gmail.com"
+  },
   "hideInEditor": true,
   "dependencies": {
     "com.unity.textmeshpro": "3.0.6",
     "com.unity.inputsystem": "1.6.3"
-  }
+  },
+  "_fingerprint": "1077d42b6fba9a26145481b2c2e8c4601a5fa424"
 }
