@@ -2,8 +2,11 @@
 {
     public interface IConsoleCommand
     {
-        string CommandWord { get; }
+        string Name { get; }
+        string[] Presets { get; }
         string HelpText { get; }
-        bool Process(string[] args, DeveloperConsoleBehaviour developerConsole);
+        bool HelpRequest(string command, string[] args, out string message);
+        bool Process(DeveloperConsoleBehaviour developerConsole, string command, string[] args = null);
+        bool Contains(string commandName);
     }
 }

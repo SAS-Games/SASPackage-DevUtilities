@@ -1,69 +1,113 @@
-﻿using TMPro;
+﻿using System;
+using System.Collections;
+using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.Serialization;
+using UnityEngine.UI;
 using static UnityEngine.InputSystem.InputAction;
 
 namespace SAS.Utilities.DeveloperConsole
 {
     public class DeveloperConsoleBehaviour : MonoBehaviour
     {
+        public Action<string> InputChangedEvent;
+        public Action<bool> SuggestionViewChangedEvent;
+        public Action SuggestionAppliedEvent;
+
         [SerializeField] private string m_Prefix = string.Empty;
         [SerializeField] private ConsoleCommand[] m_Commands = new ConsoleCommand[0];
-
-        [Header("UI")]
-        [SerializeField] private GameObject m_UiCanvas = null;
+        [Header("UI")] [SerializeField] private GameObject m_UiCanvas = null;
         [SerializeField] private TMP_InputField m_InputField = null;
-        [SerializeField] private TMP_Text m_SuggestionsText = null;
+        [SerializeField] private Button m_SubmitButton = null;
         [SerializeField] private TMP_Text m_HelpText = null;
         [SerializeField] private bool m_PauseOnOpen = false;
+        [SerializeField] private Toggle m_TreeViewSuggestionToggle;
+        [FormerlySerializedAs("m_SuggestionUITreeView")] [SerializeField] private SuggestionTreeView mSuggestionTreeView;
 
-        private float pausedTimeScale;
-        private DeveloperConsole developerConsole;
+        private float _pausedTimeScale;
+        private DeveloperConsole _developerConsole;
+        private ConsoleInputActions _inputActions;
+        public bool IsTreeViewSuggestion => m_TreeViewSuggestionToggle.isOn;
+        private GameObject _lastSelectedGameObject;
 
-        private DeveloperConsole DeveloperConsole
+
+        internal DeveloperConsole DeveloperConsole
         {
             get
             {
-                if (developerConsole != null) { return developerConsole; }
-                return developerConsole = new DeveloperConsole(m_Prefix, m_Commands);
+                if (_developerConsole != null)
+                {
+                    return _developerConsole;
+                }
+
+                return _developerConsole = new DeveloperConsole(m_Prefix, m_Commands);
             }
         }
 
         private void Awake()
         {
-            pausedTimeScale = Time.timeScale;
+            _pausedTimeScale = Time.timeScale;
+            _inputActions = new ConsoleInputActions();
+            _inputActions.Developer.ToggleConsole.performed += Toggle;
 
             if (m_InputField != null)
                 m_InputField.onValueChanged.AddListener(OnInputChanged);
+
+            m_TreeViewSuggestionToggle.onValueChanged.AddListener(OnTreeViewSuggestion);
+            OnTreeViewSuggestion(m_TreeViewSuggestionToggle.isOn);
         }
 
-        public void Toggle(CallbackContext context)
+        private void OnTreeViewSuggestion(bool treeView)
         {
-            if (!context.action.triggered) { return; }
+            SuggestionViewChangedEvent?.Invoke(treeView);
+        }
 
+        private void OnEnable()
+        {
+            _inputActions.Developer.Enable();
+        }
+
+        private void OnDisable() => _inputActions.Developer.Disable();
+
+        private void Toggle(CallbackContext context)
+        {
             if (m_UiCanvas.activeSelf)
             {
                 if (m_InputField != null)
-                    Time.timeScale = pausedTimeScale;
+                    Time.timeScale = _pausedTimeScale;
                 m_UiCanvas.SetActive(false);
+                EventSystem.current.SetSelectedGameObject(null);
+                EventSystem.current.SetSelectedGameObject(_lastSelectedGameObject);
             }
             else
             {
                 if (m_PauseOnOpen)
                 {
-                    pausedTimeScale = Time.timeScale;
+                    _pausedTimeScale = Time.timeScale;
                     Time.timeScale = 0;
                 }
+
                 m_UiCanvas.SetActive(true);
-                m_InputField.ActivateInputField();
+                _lastSelectedGameObject = EventSystem.current.currentSelectedGameObject;
+                StartCoroutine(FocusInputFieldNextFrame());
             }
         }
 
-        public void ProcessCommand(string inputValue)
+        private IEnumerator FocusInputFieldNextFrame()
         {
-            DeveloperConsole.ProcessCommand(inputValue, this);
-            m_InputField.text = string.Empty;
-            m_SuggestionsText.text = string.Empty;
+            yield return null; // wait one frame
+            m_InputField.ActivateInputField();
+            m_InputField.Select();
         }
+
+        public void ProcessCommand()
+        {
+            DeveloperConsole.ProcessCommand(m_InputField.text, this);
+            m_InputField.text = string.Empty;
+            SuggestionAppliedEvent?.Invoke();
+        }
+
         public void DisplayHelpText(string helpText)
         {
             if (m_HelpText != null)
@@ -73,14 +117,23 @@ namespace SAS.Utilities.DeveloperConsole
 
         private void OnInputChanged(string input)
         {
-            if (string.IsNullOrEmpty(input))
-            {
-                m_SuggestionsText.text = string.Empty;
-                return;
-            }
+            InputChangedEvent?.Invoke(input);
+        }
 
-            var suggestions = DeveloperConsole.GetCommandSuggestion(input);
-            m_SuggestionsText.text = string.Join("\n", suggestions);
+        public void ApplySuggestion(string suggestion)
+        {
+            m_InputField.text = _developerConsole._prefix + suggestion + " ";
+            m_InputField.caretPosition = m_InputField.text.Length;
+            m_InputField.Select();
+            StartCoroutine(SelectGameObjectNextFrame());
+            SuggestionAppliedEvent?.Invoke();
+        }
+
+        private IEnumerator SelectGameObjectNextFrame()
+        {
+            yield return null;
+            EventSystem.current.SetSelectedGameObject(null);
+            EventSystem.current.SetSelectedGameObject(m_SubmitButton.gameObject);
         }
     }
 }

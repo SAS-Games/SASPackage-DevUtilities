@@ -7,9 +7,11 @@ namespace SAS.Utilities.DeveloperConsole
     {
         public override string HelpText => "Usage: Log [value]. Print the provided value on console.";
 
-        public override bool Process(string[] args, DeveloperConsoleBehaviour developerConsole)
+        public override bool Process(DeveloperConsoleBehaviour developerConsole, string command, string[] args)
         {
-            string logText = string.Join(" ", args);
+            string logText = "Temp text to show Log Command";
+            if (args != null)
+                logText = string.Join(" ", args);
 
             Debug.Log(logText);
 

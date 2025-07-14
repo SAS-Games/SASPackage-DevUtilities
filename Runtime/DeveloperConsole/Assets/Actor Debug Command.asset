@@ -9,11 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ef4217f25f9996c4c8b4ac6705fa1300, type: 3}
-  m_Name: Show FPS Command
+  m_Script: {fileID: 11500000, guid: 2f3281378885fb7488f5e465aafa8f59, type: 3}
+  m_Name: Actor Debug Command
   m_EditorClassIdentifier: 
-  <Name>k__BackingField: FPS
-  m_Presets:
-  - FPS true
-  - FPS false
-  m_FpsPrefab: {fileID: 4840794096766531456, guid: fb3a402e3759cbe45813e6578e8d33e5, type: 3}
+  <Name>k__BackingField: ActorDebug
+  <Presets>k__BackingField: []
