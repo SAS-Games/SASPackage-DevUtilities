@@ -23,7 +23,6 @@ namespace SAS.Utilities.DeveloperConsole
         [SerializeField] private TMP_Text m_HelpText = null;
         [SerializeField] private bool m_PauseOnOpen = false;
         [SerializeField] private Toggle m_TreeViewSuggestionToggle;
-        private SuggestionTreeView m_SuggestionUITreeView;
 
         private float _pausedTimeScale;
         private DeveloperConsole _developerConsole;
