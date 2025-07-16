@@ -29,8 +29,15 @@ namespace SAS.Utilities.DeveloperConsole
         {
             base.OnEnable();
             ShowCommands();
+            _developerConsoleUI.SuggestionAppliedEvent += ShowCommands;
         }
-        
+
+        protected override void OnDisable()
+        {
+            base.OnDisable();
+            _developerConsoleUI.SuggestionAppliedEvent -= ShowCommands;
+        }
+
         private void ShowCommands()
         {
             ClearSuggestions();
@@ -149,7 +156,7 @@ namespace SAS.Utilities.DeveloperConsole
         {
             // You can customize how selecting a tree view item works
         }
-        
+
         protected override void ClearSuggestions()
         {
             foreach (var go in _activeCommandObjects)
@@ -162,9 +169,6 @@ namespace SAS.Utilities.DeveloperConsole
         {
             if (!treeView)
                 ClearSuggestions();
-            else
-                ShowCommands();
-
             gameObject.SetActive(treeView);
         }
     }

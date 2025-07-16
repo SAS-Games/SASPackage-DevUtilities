@@ -65,7 +65,7 @@ namespace SAS.Utilities.DeveloperConsole
                 {
                     if (!command.Process(developerConsole, commandInput, args))
                     {
-                        developerConsole.DisplayHelpText($"Failed to execute the Command '{commandInput}'");
+                        developerConsole.DisplayHelpText($"Failed to execute the Command '{commandInput}'  \n{message}");
                         Debug.LogError($"Failed to execute the Command '{commandInput}' \n{message}");
                         return false;
                     }

@@ -17,13 +17,13 @@ namespace SAS.Utilities.DeveloperConsole
 
         [SerializeField] private string m_Prefix = string.Empty;
         [SerializeField] private ConsoleCommand[] m_Commands = new ConsoleCommand[0];
-        [Header("UI")] [SerializeField] private GameObject m_UiCanvas = null;
+        [Header("UI")][SerializeField] private GameObject m_UiCanvas = null;
         [SerializeField] private TMP_InputField m_InputField = null;
         [SerializeField] private Button m_SubmitButton = null;
         [SerializeField] private TMP_Text m_HelpText = null;
         [SerializeField] private bool m_PauseOnOpen = false;
         [SerializeField] private Toggle m_TreeViewSuggestionToggle;
-        [FormerlySerializedAs("m_SuggestionUITreeView")] [SerializeField] private SuggestionTreeView mSuggestionTreeView;
+        private SuggestionTreeView m_SuggestionUITreeView;
 
         private float _pausedTimeScale;
         private DeveloperConsole _developerConsole;
@@ -50,6 +50,7 @@ namespace SAS.Utilities.DeveloperConsole
             _pausedTimeScale = Time.timeScale;
             _inputActions = new ConsoleInputActions();
             _inputActions.Developer.ToggleConsole.performed += Toggle;
+            _inputActions.Developer.Submit.performed += OnSubmit;
 
             if (m_InputField != null)
                 m_InputField.onValueChanged.AddListener(OnInputChanged);
@@ -135,5 +136,16 @@ namespace SAS.Utilities.DeveloperConsole
             EventSystem.current.SetSelectedGameObject(null);
             EventSystem.current.SetSelectedGameObject(m_SubmitButton.gameObject);
         }
+
+        private void OnSubmit(CallbackContext context)
+        {
+            if (!context.performed) return;
+
+            if (m_InputField != null && m_InputField.isFocused)
+            {
+                m_SubmitButton.onClick.Invoke();
+            }
+        }
+
     }
 }

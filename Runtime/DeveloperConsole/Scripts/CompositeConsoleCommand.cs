@@ -28,7 +28,8 @@ namespace SAS.Utilities.DeveloperConsole
             public UnityEvent<string[], CommandResult> Action;
         }
 
-        [FormerlySerializedAs("subCommands")] [SerializeField]
+        [FormerlySerializedAs("subCommands")]
+        [SerializeField]
         private List<SubCommand> m_SubCommands = new();
 
         public override bool HelpRequest(string command, string[] args, out string message)
@@ -52,10 +53,13 @@ namespace SAS.Utilities.DeveloperConsole
             }
         }
 
-        public sealed override bool Process(DeveloperConsoleBehaviour developerConsole, string command,
-            string[] args = null)
+        public sealed override bool Process(DeveloperConsoleBehaviour developerConsole, string command, string[] args = null)
         {
-            string subCommand = command.Split(".")[1];
+            var splitValues = command.Split(".");
+            if (splitValues.Length <= 1)
+                return false;
+
+            string subCommand = splitValues[1];
 
             var sub = m_SubCommands.Find(s => s.Name.Equals(subCommand, StringComparison.OrdinalIgnoreCase));
             if (sub == null)
