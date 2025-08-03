@@ -64,15 +64,21 @@ namespace SAS
         [Conditional(DEBUG)]
         private static void Log(string message, string tag, LogLevel level)
         {
+            Log(message, null, tag, level);
+        }
+        
+        [Conditional(DEBUG)]
+        private static void Log(string message, UnityEngine.Object context, string tag, LogLevel level)
+        {
             if (CanLog(level) && TagPassesFilter(tag))
             {
                 string logMessage = $"Tag: [{tag}] {message}";
                 if (level == LogLevel.Info)
-                    UnityEngine.Debug.Log(logMessage);
+                    UnityEngine.Debug.Log(logMessage,context);
                 else if (level == LogLevel.Warning)
-                    UnityEngine.Debug.LogWarning(logMessage);
+                    UnityEngine.Debug.LogWarning(logMessage,context);
                 else if (level == LogLevel.Error)
-                    UnityEngine.Debug.LogError(logMessage);
+                    UnityEngine.Debug.LogError(logMessage,context);
 
                 AddOnScreenLogEntry(message, tag, level);
             }
@@ -101,6 +107,43 @@ namespace SAS
         {
             Log(message, tag, LogLevel.Error);
         }
+        
+        [Conditional(DEBUG)]
+        public static void Log(object message, UnityEngine.Object context, string tag = null)
+        {
+            Log(message?.ToString() ?? "null", context, tag, LogLevel.Info);
+        }
+
+        [Conditional(DEBUG)]
+        public static void Log(string message, UnityEngine.Object context, string tag = null)
+        {
+            Log(message, context, tag, LogLevel.Info);
+        }
+
+        [Conditional(DEBUG)]
+        public static void LogWarning(object message, UnityEngine.Object context, string tag = null)
+        {
+            LogWarning(message?.ToString() ?? "null", context, tag);
+        }
+
+        [Conditional(DEBUG)]
+        public static void LogWarning(string message, UnityEngine.Object context, string tag = null)
+        {
+            Log(message, context, tag, LogLevel.Warning);
+        }
+
+        [Conditional(DEBUG)]
+        public static void LogError(object message, UnityEngine.Object context, string tag = null)
+        {
+            LogError(message?.ToString() ?? "null", context, tag);
+        }
+
+        [Conditional(DEBUG)]
+        public static void LogError(string message, UnityEngine.Object context, string tag = null)
+        {
+            Log(message, context, tag, LogLevel.Error);
+        }
+
 
         public static void LogException(Exception exception)
         {
