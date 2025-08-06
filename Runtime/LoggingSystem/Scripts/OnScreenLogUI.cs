@@ -14,12 +14,14 @@ namespace SAS
         private float _logEntryLifetime = 0f;
         private readonly Queue<GameObject> _pool = new();
         private readonly List<LogEntry> _activeLogs = new();
+        private readonly Dictionary<int, LogEntry> _slotLogs = new();
 
         private class LogEntry
         {
             public GameObject GameObject;
             public TMP_Text Text;
             public float CreationTime;
+            public int SlotIndex = -1;
         }
 
         private void Awake()
@@ -49,37 +51,84 @@ namespace SAS
             }
         }
 
-        public void AddLog(string message, LogLevel level, string tag = "")
+        public void AddLog(string message, LogLevel level, string tag = "", int slotIndex = -1)
         {
-            if (_activeLogs.Count > 50)
-            {
-                ReturnToPool(_activeLogs[0]);
-                _activeLogs.RemoveAt(0);
-            }
-
-            var entryGO = GetFromPool();
-            entryGO.transform.SetParent(m_ContentParent, false);
-            TMP_Text tmp = entryGO.GetComponent<TMP_Text>();
             string timestamp = DateTime.Now.ToString("HH:mm:ss.fff");
             string tagDisplay = string.IsNullOrEmpty(tag) ? "" : $"[{tag}] ";
+            string finalMessage = $"[{timestamp}] Tag: {tagDisplay} {message}";
             Color baseColor = level switch
             {
                 LogLevel.Warning => Color.yellow,
                 LogLevel.Error => Color.red,
                 _ => Color.white
             };
-            tmp.text = $"[{timestamp}] Tag: {tagDisplay} {message}";
-            tmp.color = baseColor;
-            _activeLogs.Add(new OnScreenLogUI.LogEntry
-                { GameObject = entryGO, Text = tmp, CreationTime = Time.realtimeSinceStartup });
+
+            // Handle Slot Logic
+            if (slotIndex >= 0)
+            {
+                if (_slotLogs.TryGetValue(slotIndex, out var existingEntry))
+                {
+                    existingEntry.Text.text = finalMessage;
+                    existingEntry.Text.color = baseColor;
+                    existingEntry.CreationTime = Time.realtimeSinceStartup;
+                    return;
+                }
+                else
+                {
+                    var entryGO = GetFromPool();
+                    entryGO.transform.SetParent(m_ContentParent, false);
+                    TMP_Text tmp = entryGO.GetComponent<TMP_Text>();
+                    tmp.text = finalMessage;
+                    tmp.color = baseColor;
+
+                    var newEntry = new LogEntry
+                    {
+                        GameObject = entryGO,
+                        Text = tmp,
+                        CreationTime = Time.realtimeSinceStartup,
+                        SlotIndex = slotIndex
+                    };
+
+                    _slotLogs[slotIndex] = newEntry;
+                    _activeLogs.Add(newEntry);
+                    return;
+                }
+            }
+
+            // Default append flow
+            if (_activeLogs.Count > 50)
+            {
+                var oldest = _activeLogs[0];
+                if (oldest.SlotIndex >= 0)
+                    _slotLogs.Remove(oldest.SlotIndex);
+
+                ReturnToPool(oldest);
+                _activeLogs.RemoveAt(0);
+            }
+
+            var obj = GetFromPool();
+            obj.transform.SetParent(m_ContentParent, false);
+            TMP_Text text = obj.GetComponent<TMP_Text>();
+            text.text = finalMessage;
+            text.color = baseColor;
+
+            _activeLogs.Add(new LogEntry
+            {
+                GameObject = obj,
+                Text = text,
+                CreationTime = Time.realtimeSinceStartup
+            });
         }
+
 
         public void ClearLogs()
         {
             foreach (var log in _activeLogs)
                 ReturnToPool(log);
             _activeLogs.Clear();
+            _slotLogs.Clear();
         }
+
 
         public void SetLifetime(float value)
         {

@@ -62,25 +62,31 @@ namespace SAS
         }
 
         [Conditional(DEBUG)]
+        public static void Log(string message, int slotIndex, string tag = null)
+        {
+            Log(message, null, tag, LogLevel.Info, slotIndex);
+        }
+
+        [Conditional(DEBUG)]
         private static void Log(string message, string tag, LogLevel level)
         {
             Log(message, null, tag, level);
         }
-        
+
         [Conditional(DEBUG)]
-        private static void Log(string message, UnityEngine.Object context, string tag, LogLevel level)
+        private static void Log(string message, UnityEngine.Object context, string tag, LogLevel level, int slotIndex = -1)
         {
             if (CanLog(level) && TagPassesFilter(tag))
             {
                 string logMessage = $"Tag: [{tag}] {message}";
                 if (level == LogLevel.Info)
-                    UnityEngine.Debug.Log(logMessage,context);
+                    UnityEngine.Debug.Log(logMessage, context);
                 else if (level == LogLevel.Warning)
-                    UnityEngine.Debug.LogWarning(logMessage,context);
+                    UnityEngine.Debug.LogWarning(logMessage, context);
                 else if (level == LogLevel.Error)
-                    UnityEngine.Debug.LogError(logMessage,context);
+                    UnityEngine.Debug.LogError(logMessage, context);
 
-                AddOnScreenLogEntry(message, tag, level);
+                AddOnScreenLogEntry(message, tag, level, slotIndex);
             }
         }
 
@@ -97,6 +103,12 @@ namespace SAS
         }
 
         [Conditional(DEBUG)]
+        public static void LogWarning(string message, int slotIndex, string tag = null)
+        {
+            Log(message, null, tag, LogLevel.Warning, slotIndex);
+        }
+
+        [Conditional(DEBUG)]
         public static void LogError(object message, string tag = null)
         {
             LogError(message?.ToString() ?? "null", tag);
@@ -107,7 +119,13 @@ namespace SAS
         {
             Log(message, tag, LogLevel.Error);
         }
-        
+
+        [Conditional(DEBUG)]
+        public static void LogError(string message, int slotIndex, string tag = null)
+        {
+            Log(message, null, tag, LogLevel.Error, slotIndex);
+        }
+
         [Conditional(DEBUG)]
         public static void Log(object message, UnityEngine.Object context, string tag = null)
         {
@@ -118,6 +136,12 @@ namespace SAS
         public static void Log(string message, UnityEngine.Object context, string tag = null)
         {
             Log(message, context, tag, LogLevel.Info);
+        }
+
+        [Conditional(DEBUG)]
+        public static void Log(string message, UnityEngine.Object context, int slotIndex = -1, string tag = null)
+        {
+            Log(message, context, tag, LogLevel.Info, slotIndex);
         }
 
         [Conditional(DEBUG)]
@@ -133,6 +157,12 @@ namespace SAS
         }
 
         [Conditional(DEBUG)]
+        public static void LogWarning(string message, UnityEngine.Object context, int slotIndex = -1, string tag = null)
+        {
+            Log(message, context, tag, LogLevel.Warning, slotIndex);
+        }
+
+        [Conditional(DEBUG)]
         public static void LogError(object message, UnityEngine.Object context, string tag = null)
         {
             LogError(message?.ToString() ?? "null", context, tag);
@@ -144,6 +174,11 @@ namespace SAS
             Log(message, context, tag, LogLevel.Error);
         }
 
+        [Conditional(DEBUG)]
+        public static void LogError(string message, UnityEngine.Object context, int slotIndex = -1, string tag = null)
+        {
+            Log(message, context, tag, LogLevel.Error, slotIndex);
+        }
 
         public static void LogException(Exception exception)
         {
@@ -168,6 +203,6 @@ namespace SAS
         }
 
         // Partial method implemented in the other file
-        private static partial void AddOnScreenLogEntry(string message, string tag, LogLevel level);
+        private static partial void AddOnScreenLogEntry(string message, string tag, LogLevel level, int slotIndex = -1);
     }
 }

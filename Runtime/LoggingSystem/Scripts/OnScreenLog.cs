@@ -10,9 +10,9 @@ namespace SAS
             onScreenLogger = logger;
         }
 
-        private static partial void AddOnScreenLogEntry(string message, string tag, LogLevel level)
+        private static partial void AddOnScreenLogEntry(string message, string tag, LogLevel level, int slotIndex)
         {
-            onScreenLogger?.AddLog(message, level, tag);
+            onScreenLogger?.AddLog(message, level, tag, slotIndex);
         }
     }
 }
