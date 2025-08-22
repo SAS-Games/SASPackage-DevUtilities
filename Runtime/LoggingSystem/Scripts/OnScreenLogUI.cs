@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace SAS
 {
@@ -11,7 +10,7 @@ namespace SAS
         [SerializeField] private GameObject m_LogEntryPrefab;
         [SerializeField] private Transform m_ContentParent;
 
-        private float _logEntryLifetime = 0f;
+        private float _logEntryLifetime = 5f;
         private readonly Queue<GameObject> _pool = new();
         private readonly List<LogEntry> _activeLogs = new();
         private readonly Dictionary<int, LogEntry> _slotLogs = new();
