@@ -85,6 +85,47 @@ MonoBehaviour:
             m_StringArgument: 
             m_BoolArgument: 0
           m_CallState: 2
+  - Name: SetLogLifetime
+    HelpText: 'logging.SetLogLifetime <val>  Sets the lifet time of a log entry.
+      \nExample: logging.SetLogLifetime 5'
+    Presets:
+    - SetLogLifetime 2
+    - SetLogLifetime 5
+    Action:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 11400000}
+          m_TargetAssemblyTypeName: LoggingConsoleCommand, DevUltilities
+          m_MethodName: SetLogLifetime
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+  - Name: ClearOnScreenLog
+    HelpText: 'logging.ClearOnScreenLog clears the  log entry. \nExample: logging.ClearOnScreenLog'
+    Presets:
+    - SetLogLifetime 2
+    - SetLogLifetime 5
+    Action:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 11400000}
+          m_TargetAssemblyTypeName: LoggingConsoleCommand, DevUltilities
+          m_MethodName: ClearOnScreenLog
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
   m_HelpText: 'Logging - Controls runtime logging features.\n     \nSubcommands:\n       
     LogLevel <Level> <On|Off>     Enables or disables a specific log level.\n                                    
     Levels: Info, Warning, Error.\n                                     Example:

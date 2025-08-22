@@ -74,4 +74,37 @@ public class LoggingConsoleCommand : CompositeConsoleCommand
         Debug.SetAllowedTags(tags);
         result.Success = true;
     }
+
+    public void SetLogLifetime(string[] args, CommandResult result)
+    {
+        if (args.Length < 1)
+        {
+            result.Success = false;
+            return;
+        }
+
+        if (!float.TryParse(args[0], out float val))
+        {
+            result.Success = false;
+            return;
+        }
+        if (_onScreenLog == null)
+        {
+            result.Success = false;
+            return;
+        }
+        _onScreenLog.GetComponent<OnScreenLogUI>().SetLifetime(val);
+        result.Success = true;
+    }
+
+    public void ClearOnScreenLog(string[] args, CommandResult result)
+    {
+        if (_onScreenLog == null)
+        {
+            result.Success = false;
+            return;
+        }
+        _onScreenLog.GetComponent<OnScreenLogUI>().ClearLogs();
+        result.Success = true;
+    }
 }
