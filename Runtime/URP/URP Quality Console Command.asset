@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9c7fc693a0953ad4ba429a6296949950, type: 3}
-  m_Name: URP Console Command
+  m_Name: URP Quality Console Command
   m_EditorClassIdentifier: 
-  <Name>k__BackingField: URP
+  <Name>k__BackingField: Quality
   m_Presets: []
   m_SubCommands:
   - Name: SetUpscalingFilter
     HelpText: 'etUpscalingFilter <Auto|Linear|Point|FSR|STP> - Changes the upscaling
-      filter used when render scale is below 1.\nExample: URP.SetUpscalingFilter
+      filter used when render scale is below 1.\nExample: Quality.SetUpscalingFilter
       FSR'
     Presets:
     - SetUpscalingFilter Auto
@@ -28,7 +28,7 @@ MonoBehaviour:
   - Name: SetRenderScale
     HelpText: 'SetRenderScale <scale> - Sets the internal render scale (0.1 to 2.0).
       Lower values improve performance, higher values improve quality.\nExample:
-      URP.SetRenderScale 0.75'
+      Quality.SetRenderScale 0.75'
     Presets:
     - SetRenderScale 0.1
     - SetRenderScale 0.25
@@ -36,24 +36,18 @@ MonoBehaviour:
     - SetRenderScale 0.75
     - SetRenderScale 1
     - SetRenderScale 2
-  - Name: SetShadowDistance
-    HelpText: 'SetShadowDistance <distance> - Sets the maximum distance Unity renders
-      real-time shadows.\nExample: URP.SetShadowDistance 50'
-    Presets:
-    - SetShadowDistance 50
   - Name: SetMSAA
     HelpText: 'SetMSAA <0|2|4|8> - Configures Multi-Sample Anti-Aliasing. Use 0 to
-      disable.\nExample: URP.SetMSAA 4'
+      disable.\nExample: Quality.SetMSAA 4'
     Presets:
     - SetMSAA 0
     - SetMSAA 2
     - SetMSAA 4
     - SetMSAA 8
-  - Name: SetLOD
-    HelpText: 'SetLOD <bias> - Sets the Level of Detail bias. Higher values increase
-      detail at a distance, lower values reduce detail.\nExample: URP.SetLOD 1.5'
+  - Name: SetHDR
+    HelpText: 'SetHDR <on|off> - Enables or disables HDR rendering.\nExample: Quality.SetHDR
+      on'
     Presets:
-    - SetLOD 1
-    - SetLOD 1.5
-    - SetLOD 2
+    - SetHDR on
+    - SetHDR off
   m_HelpText: Commands for modifying URP asset settings at runtime.

@@ -22,25 +22,15 @@ public class URPConsoleCommand : CompositeConsoleCommand
 
     protected override void CommandMethodRegistry()
     {
-        Register("SetShadowDistance", SetShadowDistance);
         Register("SetUpscalingFilter", SetUpscalingFilter);
         Register("SetRenderScale", SetRenderScale);
         Register("SetMSAA", SetMSAA);
+        Register("SetHDR", SetHDR);
+        Register("SetShadowDistance", SetShadowDistance);
         Register("SetLOD", SetLOD);
     }
 
-    private bool SetShadowDistance(string[] args)
-    {
-        if (args.Length < 1 || !float.TryParse(args[0], out float val))
-            return false;
-
-        var urp = CurrentURPAsset;
-        if (urp == null) return false;
-
-        urp.shadowDistance = Mathf.Max(0, val);
-        return true;
-    }
-
+   
     private bool SetRenderScale(string[] args)
     {
         if (args.Length < 1 || !float.TryParse(args[0], out float val))
@@ -86,6 +76,42 @@ public class URPConsoleCommand : CompositeConsoleCommand
         urp.msaaSampleCount = val;
         return true;
     }
+
+    private bool SetHDR(string[] args)
+    {
+        if (args.Length < 1)
+            return false;
+
+        var urp = CurrentURPAsset;
+        if (urp == null) return false;
+
+        string arg = args[0].ToLower();
+        if (arg == "on" || arg == "true" || arg == "1")
+        {
+            urp.supportsHDR = true;
+            return true;
+        }
+        else if (arg == "off" || arg == "false" || arg == "0")
+        {
+            urp.supportsHDR = false;
+            return true;
+        }
+
+        return false; // invalid input
+    }
+
+    private bool SetShadowDistance(string[] args)
+    {
+        if (args.Length < 1 || !float.TryParse(args[0], out float val))
+            return false;
+
+        var urp = CurrentURPAsset;
+        if (urp == null) return false;
+
+        urp.shadowDistance = Mathf.Max(0, val);
+        return true;
+    }
+
 
     private bool SetLOD(string[] args)
     {
