@@ -107,7 +107,8 @@ MonoBehaviour:
             m_BoolArgument: 0
           m_CallState: 2
   - Name: ClearOnScreenLog
-    HelpText: 'logging.ClearOnScreenLog clears the  log entry. \nExample: logging.ClearOnScreenLog'
+    HelpText: 'logging.ClearOnScreenLog clears the  on screen log entry. \nExample:
+      logging.ClearOnScreenLog'
     Presets:
     - SetLogLifetime 2
     - SetLogLifetime 5

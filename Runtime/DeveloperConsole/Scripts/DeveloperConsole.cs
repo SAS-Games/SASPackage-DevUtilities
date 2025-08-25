@@ -35,7 +35,7 @@ namespace SAS.Utilities.DeveloperConsole
             }
 
             inputValue = inputValue.Remove(0, _prefix.Length);
-            string[] inputSplit = inputValue.Split(' ');
+            string[] inputSplit = inputValue.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
             string commandInput = inputSplit[0];
             string[] args = inputSplit.Skip(1).ToArray();

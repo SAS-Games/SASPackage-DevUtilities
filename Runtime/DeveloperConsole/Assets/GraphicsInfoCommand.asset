@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf55088f9dd13004e9667000f223e177, type: 3}
+  m_Name: GraphicsInfoCommand
+  m_EditorClassIdentifier: 
+  <Name>k__BackingField: GraphicsInfo
+  m_Presets:
+  - GraphicsInfo
+  - GraphicsInfo true
+  - GraphicsInfo true true
+  - GraphicsInfo false
+  m_GraphicsInfoPrefab: {fileID: 4840794096766531456, guid: bd1979776bb352b4f810c758891710fb, type: 3}
