@@ -12,7 +12,6 @@ public class GraphicsInfo : MonoBehaviour
         m_Display.text = Info(verbose);
         gameObject.SetActive(status);
     }
-
     private string Info(bool verbose)
     {
         // Graphics API & GPU Info
@@ -20,19 +19,29 @@ public class GraphicsInfo : MonoBehaviour
         string gpu = SystemInfo.graphicsDeviceName;
         int vram = SystemInfo.graphicsMemorySize;
 
-        // Quality Settings
+        // Quality Settings (shared)
         string quality = QualitySettings.names[QualitySettings.GetQualityLevel()];
         int vSync = QualitySettings.vSyncCount;
-        var shadows = QualitySettings.shadows;
         float lodBias = QualitySettings.lodBias;
 
         // Application Target FPS
         int fpsTarget = Application.targetFrameRate;
 
-        // Render Scale (URP only)
+        // Defaults (classic pipeline)
+        string shadows = QualitySettings.shadows.ToString();
+        string aa = QualitySettings.antiAliasing > 0 ? $"{QualitySettings.antiAliasing}x MSAA" : "None";
+        bool hdr = Camera.main != null && Camera.main.allowHDR;
         float renderScale = -1f;
+        string anisotropic = QualitySettings.anisotropicFiltering.ToString();
+
+        // If URP is active, override with URP asset values
         if (GraphicsSettings.currentRenderPipeline is UniversalRenderPipelineAsset urp)
+        {
+            shadows = urp.supportsMainLightShadows ? "Enabled" : "Disabled";
             renderScale = urp.renderScale;
+            aa = urp.msaaSampleCount > 1 ? $"{urp.msaaSampleCount}x MSAA" : "None";
+            hdr = urp.supportsHDR;
+        }
 
         // Build base summary
         string info =
@@ -53,10 +62,6 @@ public class GraphicsInfo : MonoBehaviour
             string resolution = $"{Screen.currentResolution.width}x{Screen.currentResolution.height} @ {Screen.currentResolution.refreshRateRatio}Hz";
             string fullscreen = Screen.fullScreen ? "Fullscreen" : "Windowed";
 
-            string anisotropic = QualitySettings.anisotropicFiltering.ToString();
-            string aa = QualitySettings.antiAliasing > 0 ? $"{QualitySettings.antiAliasing}x MSAA" : "None";
-            bool hdr = Camera.main != null && Camera.main.allowHDR;
-
             info +=
                 "\n--- Extended Info ---\n" +
                 $"Resolution: {resolution}\n" +
@@ -67,4 +72,5 @@ public class GraphicsInfo : MonoBehaviour
         }
         return info;
     }
+
 }
