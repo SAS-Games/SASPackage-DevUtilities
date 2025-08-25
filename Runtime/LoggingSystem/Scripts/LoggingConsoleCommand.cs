@@ -1,7 +1,7 @@
-using System;
-using System.Linq;
 using SAS;
 using SAS.Utilities.DeveloperConsole;
+using System;
+using System.Linq;
 using UnityEngine;
 using Debug = SAS.Debug;
 
@@ -11,16 +11,21 @@ public class LoggingConsoleCommand : CompositeConsoleCommand
     [SerializeField] private string m_HelpText;
     [SerializeField] private GameObject m_OnScreenLogPrefab;
     public override string HelpText => m_HelpText;
-
     private GameObject _onScreenLog;
 
-    public void LogLevel(string[] args, CommandResult result)
+    protected override void CommandMethodRegistry()
+    {
+        Register("LogLevel", LogLevel);
+        Register("OnScreenLog", ShowOnScreen);
+        Register("SetTags", SetTags);
+        Register("SetLogLifetime", SetLogLifetime);
+        Register("ClearOnScreenLog", ClearOnScreenLog);
+    }
+
+    private CommandResult LogLevel(string[] args)
     {
         if (args.Length < 2)
-        {
-            result.Success = false;
-            return;
-        }
+            return CommandResult.Fail();
 
         LogLevel logLevel = SAS.LogLevel.None;
         if (args.Contains(SAS.LogLevel.Info.ToString()))
@@ -29,17 +34,17 @@ public class LoggingConsoleCommand : CompositeConsoleCommand
             logLevel = SAS.LogLevel.Warning;
         if (args.Contains(SAS.LogLevel.Error.ToString()))
             logLevel = SAS.LogLevel.Error;
-        Debug.SetLogLevel(logLevel, args[1].Equals("On", StringComparison.OrdinalIgnoreCase) ? true : false);
-        result.Success = true;
+
+        bool enable = args[1].Equals("On", StringComparison.OrdinalIgnoreCase);
+        Debug.SetLogLevel(logLevel, enable);
+
+        return CommandResult.Ok();
     }
 
-    public void ShowOnScreen(string[] args, CommandResult result)
+    private CommandResult ShowOnScreen(string[] args)
     {
         if (args.Length < 1)
-        {
-            result.Success = false;
-            return;
-        }
+            return CommandResult.Fail();
 
         if (args[0].Equals("On", StringComparison.OrdinalIgnoreCase))
         {
@@ -48,18 +53,20 @@ public class LoggingConsoleCommand : CompositeConsoleCommand
             _onScreenLog.SetActive(true);
         }
         else if (args[0].Equals("Off", StringComparison.OrdinalIgnoreCase))
-            _onScreenLog.SetActive(false);
+        {
+            if (_onScreenLog != null)
+                _onScreenLog.SetActive(false);
+        }
+        else
+            return CommandResult.Fail();
 
-        result.Success = true;
+        return CommandResult.Ok();
     }
 
-    public void SetTags(string[] args, CommandResult result)
+    private CommandResult SetTags(string[] args)
     {
         if (args.Length < 1)
-        {
-            result.Success = false;
-            return;
-        }
+            return CommandResult.Fail();
 
         var tags = args[0].Split('|')
             .Select(t => t.Trim())
@@ -67,44 +74,30 @@ public class LoggingConsoleCommand : CompositeConsoleCommand
             .ToArray();
 
         if (tags.Length == 0)
-        {
-            result.Success = false;
-            return;
-        }
+            return CommandResult.Fail();
+
         Debug.SetAllowedTags(tags);
-        result.Success = true;
+        return CommandResult.Ok();
     }
 
-    public void SetLogLifetime(string[] args, CommandResult result)
+    private CommandResult SetLogLifetime(string[] args)
     {
-        if (args.Length < 1)
-        {
-            result.Success = false;
-            return;
-        }
+        if (args.Length < 1 || !float.TryParse(args[0], out float val))
+            return CommandResult.Fail();
 
-        if (!float.TryParse(args[0], out float val))
-        {
-            result.Success = false;
-            return;
-        }
         if (_onScreenLog == null)
-        {
-            result.Success = false;
-            return;
-        }
+            return CommandResult.Fail();
+
         _onScreenLog.GetComponent<OnScreenLogUI>().SetLifetime(val);
-        result.Success = true;
+        return CommandResult.Ok();
     }
 
-    public void ClearOnScreenLog(string[] args, CommandResult result)
+    private CommandResult ClearOnScreenLog(string[] args)
     {
         if (_onScreenLog == null)
-        {
-            result.Success = false;
-            return;
-        }
+            return CommandResult.Fail();
+
         _onScreenLog.GetComponent<OnScreenLogUI>().ClearLogs();
-        result.Success = true;
+        return CommandResult.Ok();
     }
 }

@@ -1,36 +1,54 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.Serialization;
 
 namespace SAS.Utilities.DeveloperConsole
 {
     public abstract class CompositeConsoleCommand : ConsoleCommand
     {
-        [Serializable]
-        public class BoolResultUnityEvent : UnityEvent<string[], CommandResult>
-        {
-        }
-
-        public class CommandResult
+        public struct CommandResult
         {
             public bool Success;
-            public string Message; //todo: need to set this, yet to be evaluated the need of custom message 
+
+            public CommandResult(bool success)
+            {
+                Success = success;
+            }
+
+            public static CommandResult Ok() => new CommandResult(true);
+            public static CommandResult Fail() => new CommandResult(false);
         }
 
         [Serializable]
-        private class SubCommand
+        protected class SubCommand
         {
             public string Name;
             public string HelpText;
             public string[] Presets;
-            public UnityEvent<string[], CommandResult> Action;
+            [NonSerialized] public Func<string[], CommandResult> Action;
         }
 
         [FormerlySerializedAs("subCommands")]
-        [SerializeField]
-        private List<SubCommand> m_SubCommands = new();
+        [SerializeField] protected List<SubCommand> m_SubCommands = new();
+
+        protected void Register(string name, Func<string[], CommandResult> action)
+        {
+            var sub = m_SubCommands.Find(s => s.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+            if (sub == null)
+            {
+                Debug.LogWarning($"No SubCommand metadata for '{name}', creating fallback.");
+                return;
+            }
+            sub.Action = action;
+        }
+
+        private void OnEnable()
+        {
+            foreach (var sub in m_SubCommands)
+                sub.Action = null;
+            CommandMethodRegistry();
+        }
 
         public override bool HelpRequest(string command, string[] args, out string message)
         {
@@ -62,11 +80,10 @@ namespace SAS.Utilities.DeveloperConsole
             string subCommand = splitValues[1];
 
             var sub = m_SubCommands.Find(s => s.Name.Equals(subCommand, StringComparison.OrdinalIgnoreCase));
-            if (sub == null)
+            if (sub == null || sub.Action == null)
                 return false;
 
-            var result = new CommandResult();
-            sub.Action.Invoke(args, result);
+            var result = sub.Action.Invoke(args);
             return result.Success;
         }
 
@@ -97,5 +114,7 @@ namespace SAS.Utilities.DeveloperConsole
             var commandSplit = commandName.Trim().Split(".");
             return base.Contains(commandSplit[0]);
         }
+
+        protected abstract void CommandMethodRegistry();
     }
 }
