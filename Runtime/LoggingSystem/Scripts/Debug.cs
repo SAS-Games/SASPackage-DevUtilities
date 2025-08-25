@@ -16,7 +16,7 @@ namespace SAS
 
     public static partial class Debug
     {
-        const string DEBUG = "DEBUG";
+        const string DEBUG = "ENABLE_DEBUG";
         private static LogLevel LogLevel = (LogLevel)(7);
         private static HashSet<string> AllowedTags = new HashSet<string>();
 
