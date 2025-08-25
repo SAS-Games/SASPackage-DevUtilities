@@ -5,7 +5,7 @@ using System.Linq;
 using UnityEngine;
 using Debug = SAS.Debug;
 
-[CreateAssetMenu(menuName = "SAS/Utilities/DeveloperConsole/Commands/Logging Console Command")]
+[CreateAssetMenu(menuName = "SAS/DeveloperConsole/Commands/Logging Console Command")]
 public class LoggingConsoleCommand : CompositeConsoleCommand
 {
     [SerializeField] private string m_HelpText;
@@ -22,10 +22,10 @@ public class LoggingConsoleCommand : CompositeConsoleCommand
         Register("ClearOnScreenLog", ClearOnScreenLog);
     }
 
-    private CommandResult LogLevel(string[] args)
+    private bool LogLevel(string[] args)
     {
         if (args.Length < 2)
-            return CommandResult.Fail();
+            return false;
 
         LogLevel logLevel = SAS.LogLevel.None;
         if (args.Contains(SAS.LogLevel.Info.ToString()))
@@ -38,13 +38,13 @@ public class LoggingConsoleCommand : CompositeConsoleCommand
         bool enable = args[1].Equals("On", StringComparison.OrdinalIgnoreCase);
         Debug.SetLogLevel(logLevel, enable);
 
-        return CommandResult.Ok();
+        return true;
     }
 
-    private CommandResult ShowOnScreen(string[] args)
+    private bool ShowOnScreen(string[] args)
     {
         if (args.Length < 1)
-            return CommandResult.Fail();
+            return false;
 
         if (args[0].Equals("On", StringComparison.OrdinalIgnoreCase))
         {
@@ -58,15 +58,15 @@ public class LoggingConsoleCommand : CompositeConsoleCommand
                 _onScreenLog.SetActive(false);
         }
         else
-            return CommandResult.Fail();
+            return false;
 
-        return CommandResult.Ok();
+        return true;
     }
 
-    private CommandResult SetTags(string[] args)
+    private bool SetTags(string[] args)
     {
         if (args.Length < 1)
-            return CommandResult.Fail();
+            return false;
 
         var tags = args[0].Split('|')
             .Select(t => t.Trim())
@@ -74,30 +74,30 @@ public class LoggingConsoleCommand : CompositeConsoleCommand
             .ToArray();
 
         if (tags.Length == 0)
-            return CommandResult.Fail();
+            return false;
 
         Debug.SetAllowedTags(tags);
-        return CommandResult.Ok();
+        return true;
     }
 
-    private CommandResult SetLogLifetime(string[] args)
+    private bool SetLogLifetime(string[] args)
     {
         if (args.Length < 1 || !float.TryParse(args[0], out float val))
-            return CommandResult.Fail();
+            return false;
 
         if (_onScreenLog == null)
-            return CommandResult.Fail();
+            return false;
 
         _onScreenLog.GetComponent<OnScreenLogUI>().SetLifetime(val);
-        return CommandResult.Ok();
+        return true;
     }
 
-    private CommandResult ClearOnScreenLog(string[] args)
+    private bool ClearOnScreenLog(string[] args)
     {
         if (_onScreenLog == null)
-            return CommandResult.Fail();
+            return false;
 
         _onScreenLog.GetComponent<OnScreenLogUI>().ClearLogs();
-        return CommandResult.Ok();
+        return true;
     }
 }

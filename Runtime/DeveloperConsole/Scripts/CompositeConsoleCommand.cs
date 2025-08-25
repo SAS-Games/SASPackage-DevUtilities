@@ -7,18 +7,6 @@ namespace SAS.Utilities.DeveloperConsole
 {
     public abstract class CompositeConsoleCommand : ConsoleCommand
     {
-        public struct CommandResult
-        {
-            public bool Success;
-
-            public CommandResult(bool success)
-            {
-                Success = success;
-            }
-
-            public static CommandResult Ok() => new CommandResult(true);
-            public static CommandResult Fail() => new CommandResult(false);
-        }
 
         [Serializable]
         protected class SubCommand
@@ -26,13 +14,13 @@ namespace SAS.Utilities.DeveloperConsole
             public string Name;
             public string HelpText;
             public string[] Presets;
-            [NonSerialized] public Func<string[], CommandResult> Action;
+            [NonSerialized] public Func<string[], bool> Action;
         }
 
         [FormerlySerializedAs("subCommands")]
         [SerializeField] protected List<SubCommand> m_SubCommands = new();
 
-        protected void Register(string name, Func<string[], CommandResult> action)
+        protected void Register(string name, Func<string[], bool> action)
         {
             var sub = m_SubCommands.Find(s => s.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
             if (sub == null)
@@ -84,7 +72,7 @@ namespace SAS.Utilities.DeveloperConsole
                 return false;
 
             var result = sub.Action.Invoke(args);
-            return result.Success;
+            return result;
         }
 
         public sealed override string[] Presets
