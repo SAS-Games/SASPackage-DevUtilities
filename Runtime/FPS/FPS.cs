@@ -29,7 +29,7 @@ public class FPS : UIBehaviour
         {
             float avgFps = _accumulatedFPS / _frames;
             float frameTimeMs = 1000f / Mathf.Max(avgFps, 0.0001f);
-            float targetFrameTime = 1000f / m_TargetFrameRate;
+            float targetFrameTime = 1000f / Application.targetFrameRate;
 
             string Colorize(string label, float value, string unit, Color baseColor)
             {

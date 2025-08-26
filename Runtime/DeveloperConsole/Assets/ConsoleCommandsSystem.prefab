@@ -1274,8 +1274,11 @@ MonoBehaviour:
   m_Prefix: 
   m_Commands:
   - {fileID: 11400000, guid: c18cce79228ccb24d952b07d98a231fb, type: 2}
-  - {fileID: 11400000, guid: cf74c7bfbf2913b4d8ebd23a7a75bc32, type: 2}
   - {fileID: 11400000, guid: 01ca3abc48c5dd34f8984dc953205ed2, type: 2}
+  - {fileID: 11400000, guid: 2866690c879503b4ba21fbd27ea85ea6, type: 2}
+  - {fileID: 11400000, guid: 18595cb41668cba418dcb84741b89a75, type: 2}
+  - {fileID: 11400000, guid: 0191378597bda744cbaab3df80048a57, type: 2}
+  - {fileID: 11400000, guid: 48d97f09db50138488945aa501863402, type: 2}
   m_UiCanvas: {fileID: 1005529010}
   m_InputField: {fileID: 1669160770}
   m_SubmitButton: {fileID: 6405785454008897814}
