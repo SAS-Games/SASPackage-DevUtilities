@@ -27,7 +27,10 @@ public class URPConsoleCommand : CompositeConsoleCommand
         Register("SetMSAA", SetMSAA);
         Register("SetHDR", SetHDR);
         Register("SetShadowDistance", SetShadowDistance);
+        Register("SetShadowCascadeCount", SetShadowCascadeCount);
         Register("SetLOD", SetLOD);
+        Register("SetColorGradingMode", SetColorGradingMode);
+        Register("SetLUTSize", SetLUTSize);
     }
 
    
@@ -112,6 +115,18 @@ public class URPConsoleCommand : CompositeConsoleCommand
         return true;
     }
 
+    private bool SetShadowCascadeCount(string[] args)
+    {
+        if (args.Length < 1 || !int.TryParse(args[0], out int count))
+            return false;
+
+        var urp = CurrentURPAsset;
+        if (urp == null) return false;
+
+        urp.shadowCascadeCount = Mathf.Clamp(count, 1, 4);
+        return true;
+    }
+
 
     private bool SetLOD(string[] args)
     {
@@ -119,6 +134,52 @@ public class URPConsoleCommand : CompositeConsoleCommand
             return false;
 
         QualitySettings.lodBias = Mathf.Max(0.01f, val);
+        return true;
+    }
+
+    private bool SetShadowResolution(string[] args)
+    {
+        if (args.Length < 1) return false;
+
+        var urp = CurrentURPAsset;
+        if (urp == null) return false;
+
+        if (Enum.TryParse<UnityEngine.Rendering.Universal.ShadowResolution>(
+                args[0], true, out var resolution))
+        {
+            urp.mainLightShadowmapResolution = (int)resolution;
+            return true;
+        }
+
+        return false;
+    }
+
+
+    private bool SetColorGradingMode(string[] args)
+    {
+        if (args.Length < 1 || !Enum.TryParse(args[0], true, out UnityEngine.Rendering.Universal.ColorGradingMode mode))
+            return false;
+
+        var urp = CurrentURPAsset;
+        if (urp == null) return false;
+
+        urp.colorGradingMode = mode;
+        return true;
+    }
+
+    private bool SetLUTSize(string[] args)
+    {
+        if (args.Length < 1 || !int.TryParse(args[0], out int val))
+            return false;
+
+        var urp = CurrentURPAsset;
+        if (urp == null) return false;
+
+        // Valid LUT sizes are typically powers of two (16–65)
+        if (val < 16 || val > 65)
+            return false;
+
+        urp.colorGradingLutSize = val;
         return true;
     }
 }

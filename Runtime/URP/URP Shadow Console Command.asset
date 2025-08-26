@@ -20,11 +20,11 @@ MonoBehaviour:
       real-time shadows.\nExample: URP.SetShadowDistance 50'
     Presets:
     - SetShadowDistance 50
-  - Name: SetLOD
-    HelpText: 'SetLOD <bias> - Sets the Level of Detail bias. Higher values increase
-      detail at a distance, lower values reduce detail.\nExample: URP.SetLOD 1.5'
+  - Name: SetShadowCascadeCount
+    HelpText: 'SetShadowCascadeCount <1|2|4> - Sets the number of shadow cascades
+      used in URP.\nExample: Shadow.SetShadowCascadeCount 2'
     Presets:
-    - SetLOD 1
-    - SetLOD 1.5
-    - SetLOD 2
+    - SetShadowCascadeCount 1
+    - SetShadowCascadeCount 2
+    - SetShadowCascadeCount 4
   m_HelpText: Commands for modifying URP asset settings at runtime.
