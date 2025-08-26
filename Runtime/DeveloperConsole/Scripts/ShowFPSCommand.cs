@@ -3,13 +3,18 @@
 namespace SAS.Utilities.DeveloperConsole
 {
     [CreateAssetMenu(fileName = "New Show FPS Command", menuName = "SAS/DeveloperConsole/Commands/Show FPS Command")]
-    public class ShowFPSCommand : ConsoleCommand
+    public class ShowFPSCommand : CompositeConsoleCommand
     {
         [SerializeField] private GameObject m_FpsPrefab;
         private GameObject _fps;
         public override string HelpText => "Usage: FPS [true/false]. Show/Hide FPS UI.";
+        protected override void CommandMethodRegistry()
+        {
+            Register("Show", ShowFPS);
+            Register("SetTargetFrameRate", SetTargetFrameRate);
+        }
 
-        public override bool Process(DeveloperConsoleBehaviour developerConsole, string command, string[] args)
+        private bool ShowFPS(string[] args)
         {
             if (args != null && args.Length > 0)
             {
@@ -24,6 +29,21 @@ namespace SAS.Utilities.DeveloperConsole
             }
 
             return false;
+        }
+
+
+        private bool SetTargetFrameRate(string[] args)
+        {
+            if (args.Length < 1 || !int.TryParse(args[0], out int val))
+                return false;
+
+            // Disable VSync so targetFrameRate takes effect
+            QualitySettings.vSyncCount = 0;
+
+            // Apply frame rate (-1 = platform default)
+            Application.targetFrameRate = Mathf.Max(val, -1);
+
+            return true;
         }
     }
 }

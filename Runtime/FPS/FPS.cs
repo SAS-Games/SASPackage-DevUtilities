@@ -16,7 +16,6 @@ public class FPS : UIBehaviour
     protected override void Start()
     {
         _timeLeft = m_UpdateInterval;
-        Application.targetFrameRate = m_TargetFrameRate;
     }
 
     private void Update()

@@ -193,7 +193,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Display: {fileID: 7919385023625728094}
   m_UpdateInterval: 0.25
-  m_TargetFrameRate: 60
+  m_TargetFrameRate: 200
 --- !u!1 &7232403671296343171
 GameObject:
   m_ObjectHideFlags: 0
