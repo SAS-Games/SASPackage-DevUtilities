@@ -20,14 +20,14 @@ namespace SAS.Utilities.DeveloperConsole
             _developerConsoleUI.SuggestionViewChangedEvent += OnSuggestionViewChanged;
         }
 
-        protected virtual void OnEnable() => _inputActions.Developer.Enable();
+        protected virtual void OnEnable() => _inputActions?.Developer.Enable();
         protected virtual void OnDisable()
         {
-            _inputActions.Developer.Disable();
+            _inputActions?.Developer.Disable();
             ClearSuggestions();
         }
 
-        protected virtual void OnDestroy() => _inputActions.Dispose();
+        protected virtual void OnDestroy() => _inputActions?.Dispose();
 
         protected IEnumerator SelectGameObjectNextFrame(GameObject go)
         {

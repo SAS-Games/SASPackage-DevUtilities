@@ -57,6 +57,7 @@ namespace SAS.Utilities.DeveloperConsole
                 _selectedIndex = (_selectedIndex + 1) % _navigableItems.Count;
 
             HighlightSelection();
+            GetComponentInParent<ScrollToSelection>().FocusOn(_highlightedItem.transform);
         }
 
         private void RebuildNavigableList()
@@ -128,6 +129,7 @@ namespace SAS.Utilities.DeveloperConsole
 
             RebuildNavigableList();
             LayoutRebuilder.ForceRebuildLayoutImmediate(m_BaseCommandContainer);
+            GetComponentInParent<ScrollToSelection>().FocusOn(_highlightedItem.transform);
         }
 
         private void CreatePresetUI(float startPos, RectTransform container, List<string> suggestions)
@@ -143,7 +145,8 @@ namespace SAS.Utilities.DeveloperConsole
                 var presetItem = Instantiate(m_PresetTemplate, container);
                 presetItem.SetActive(true);
                 presetItem.GetComponentInChildren<TMP_Text>().text = suggestion;
-                presetItem.GetComponent<Button>().onClick.AddListener(() => _developerConsoleUI.ApplySuggestion(suggestion));
+                presetItem.GetComponent<Button>().onClick
+                    .AddListener(() => _developerConsoleUI.ApplySuggestion(suggestion));
             }
 
             LayoutRebuilder.ForceRebuildLayoutImmediate(container);

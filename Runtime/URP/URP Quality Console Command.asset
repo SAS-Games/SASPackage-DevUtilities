@@ -16,8 +16,8 @@ MonoBehaviour:
   m_Presets: []
   m_SubCommands:
   - Name: SetUpscalingFilter
-    HelpText: 'etUpscalingFilter <Auto|Linear|Point|FSR|STP> - Changes the upscaling
-      filter used when render scale is below 1.\nExample: Quality.SetUpscalingFilter
+    HelpText: 'Quality.SetUpscalingFilter <Auto|Linear|Point|FSR|STP> - Changes the
+      upscaling filter used when render scale is below 1.\nExample: Quality.SetUpscalingFilter
       FSR'
     Presets:
     - SetUpscalingFilter Auto
@@ -26,8 +26,8 @@ MonoBehaviour:
     - SetUpscalingFilter FSR
     - SetUpscalingFilter STP
   - Name: SetRenderScale
-    HelpText: 'SetRenderScale <scale> - Sets the internal render scale (0.1 to 2.0).
-      Lower values improve performance, higher values improve quality.\nExample:
+    HelpText: 'Quality.SetRenderScale <scale> - Sets the internal render scale (0.1
+      to 2.0). Lower values improve performance, higher values improve quality.\nExample:
       Quality.SetRenderScale 0.75'
     Presets:
     - SetRenderScale 0.1
@@ -37,17 +37,32 @@ MonoBehaviour:
     - SetRenderScale 1
     - SetRenderScale 2
   - Name: SetMSAA
-    HelpText: 'SetMSAA <0|2|4|8> - Configures Multi-Sample Anti-Aliasing. Use 0 to
-      disable.\nExample: Quality.SetMSAA 4'
+    HelpText: 'Quality.SetMSAA <0|2|4|8> - Configures Multi-Sample Anti-Aliasing.
+      Use 0 to disable.\nExample: Quality.SetMSAA 4'
     Presets:
     - SetMSAA 0
     - SetMSAA 2
     - SetMSAA 4
     - SetMSAA 8
   - Name: SetHDR
-    HelpText: 'SetHDR <on|off> - Enables or disables HDR rendering.\nExample: Quality.SetHDR
-      on'
+    HelpText: 'Quality.SetHDR <on|off> - Enables or disables HDR rendering.\nExample:
+      Quality.SetHDR on'
     Presets:
     - SetHDR on
     - SetHDR off
+  - Name: VSync
+    HelpText: Quality.VSync [0-2]. Sets vertical sync count.\n0 = Don't Sync, 1 =
+      Every VBlank, 2 = Every Second VBlank.
+    Presets:
+    - VSync 0
+    - VSync 1
+    - VSync 2
+  - Name: TextureQuality
+    HelpText: Quality.TextureQuality [0-3]. Sets global texture quality. \n     "0
+      = Full Res, 1 = Half Res, 2 = Quarter Res, 3 = Eighth Res.
+    Presets:
+    - TextureQuality 0
+    - TextureQuality 1
+    - TextureQuality 2
+    - TextureQuality 4
   m_HelpText: Commands for modifying URP asset settings at runtime.

@@ -21,15 +21,12 @@ MonoBehaviour:
     - Show true
     - Show false
   - Name: SetTargetFrameRate
-    HelpText: 'Usage: FPS.SetTargetFrameRate <fps> Example: FPS.SetTargetFrameRate
-      60 -1 = Use platform default (usually VSync)  30 = Lock to 30 FPS  60 = Lock
-      to 60 FPS 120 = Lock to 120 FPS'
+    HelpText: 'Usage: FPS.SetTargetFrameRate <fps> \nExample: FPS.SetTargetFrameRate
+      60\n -1 = Use platform default (usually VSync)\n  30 = Lock to 30 FPS\n  60
+      = Lock to 60 FPS\n 120 = Lock to 120 FPS'
     Presets:
     - SetTargetFrameRate -1
     - SetTargetFrameRate 30
     - SetTargetFrameRate 60
     - SetTargetFrameRate 120
   m_FpsPrefab: {fileID: 4840794096766531456, guid: fb3a402e3759cbe45813e6578e8d33e5, type: 3}
-  Help_SetTargetFrameRate: "Usage: FPS.SetTargetFrameRate <fps>\nExample: FPS.SetTargetFrameRate
-    60\n-1 = Use platform default (usually VSync)\n 30 = Lock to 30 FPS\n 60 = Lock
-    to 60 FPS\n120 = Lock to 120 FPS"

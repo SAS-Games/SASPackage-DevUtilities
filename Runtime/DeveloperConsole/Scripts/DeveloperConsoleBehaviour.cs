@@ -65,10 +65,10 @@ namespace SAS.Utilities.DeveloperConsole
 
         private void OnEnable()
         {
-            _inputActions.Developer.Enable();
+            _inputActions?.Developer.Enable();
         }
 
-        private void OnDisable() => _inputActions.Developer.Disable();
+        private void OnDisable() => _inputActions?.Developer.Disable();
 
         private void Toggle(CallbackContext context)
         {

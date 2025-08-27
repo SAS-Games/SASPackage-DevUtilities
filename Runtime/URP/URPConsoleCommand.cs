@@ -31,6 +31,8 @@ public class URPConsoleCommand : CompositeConsoleCommand
         Register("SetLOD", SetLOD);
         Register("SetColorGradingMode", SetColorGradingMode);
         Register("SetLUTSize", SetLUTSize);
+        Register("VSync", SetVSync);
+        Register("TextureQuality", SetTextureQuality);
     }
 
    
@@ -175,11 +177,27 @@ public class URPConsoleCommand : CompositeConsoleCommand
         var urp = CurrentURPAsset;
         if (urp == null) return false;
 
-        // Valid LUT sizes are typically powers of two (16–65)
+        // Valid LUT sizes are typically powers of two (16ï¿½65)
         if (val < 16 || val > 65)
             return false;
 
         urp.colorGradingLutSize = val;
+        return true;
+    }
+    
+    private bool SetVSync(string[] args)
+    {
+        if (args.Length < 1 || !int.TryParse(args[0], out int val))
+            return false;
+        QualitySettings.vSyncCount = Mathf.Clamp(val, 0, 2);
+        return true;
+    }
+    
+    private bool SetTextureQuality(string[] args)
+    {
+        if (args.Length < 1 || !int.TryParse(args[0], out int val))
+            return false;
+        QualitySettings.globalTextureMipmapLimit = Mathf.Clamp(val, 0, 3);
         return true;
     }
 }
