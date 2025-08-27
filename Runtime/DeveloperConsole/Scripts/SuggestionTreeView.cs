@@ -6,6 +6,7 @@ using UnityEngine.UI;
 
 namespace SAS.Utilities.DeveloperConsole
 {
+    [RequireComponent(typeof(ScrollSnapper))]
     public class SuggestionTreeView : SuggestionView
     {
         [SerializeField] private RectTransform m_BaseCommandContainer;
@@ -16,13 +17,15 @@ namespace SAS.Utilities.DeveloperConsole
         private List<GameObject> _navigableItems = new();
         private GameObject _currentlyExpanded;
         private GameObject _highlightedItem;
-
         private DeveloperConsole _developerConsole;
+        private ScrollSnapper _scrollSnapper;
+
 
         protected override void Awake()
         {
             base.Awake();
             _developerConsole = _developerConsoleUI.DeveloperConsole;
+            _scrollSnapper = GetComponent<ScrollSnapper>();
         }
 
         protected override void OnEnable()
@@ -57,7 +60,6 @@ namespace SAS.Utilities.DeveloperConsole
                 _selectedIndex = (_selectedIndex + 1) % _navigableItems.Count;
 
             HighlightSelection();
-            GetComponentInParent<ScrollToSelection>().FocusOn(_highlightedItem.transform);
         }
 
         private void RebuildNavigableList()
@@ -92,6 +94,7 @@ namespace SAS.Utilities.DeveloperConsole
                 _highlightedItem.GetComponentInChildren<TMP_Text>().color = Color.yellow;
                 StartCoroutine(SelectGameObjectNextFrame(_highlightedItem.GetComponentInChildren<Button>().gameObject));
             }
+            _scrollSnapper.FocusOn(_highlightedItem.transform);
         }
 
         private void CreateBaseCommandUI(string baseCommand)
@@ -103,12 +106,12 @@ namespace SAS.Utilities.DeveloperConsole
             var presetContainer = baseItem.transform.Find("PresetContainer").GetComponent<RectTransform>();
             presetContainer.gameObject.SetActive(false);
             baseItem.GetComponentInChildren<Button>().onClick
-                .AddListener(() => OnCommandSelected(label, baseCommand, presetContainer));
+                .AddListener(() => OnCommandSelected(baseItem, label, baseCommand, presetContainer));
             _activeCommandObjects.Add(baseItem);
             LayoutRebuilder.ForceRebuildLayoutImmediate(m_BaseCommandContainer);
         }
 
-        private void OnCommandSelected(TMP_Text label, string baseCommand, RectTransform presetContainer)
+        private void OnCommandSelected(GameObject baseItem, TMP_Text label, string baseCommand, RectTransform presetContainer)
         {
             if (_currentlyExpanded != null && _currentlyExpanded != presetContainer.gameObject)
                 _currentlyExpanded.SetActive(false);
@@ -127,9 +130,11 @@ namespace SAS.Utilities.DeveloperConsole
                 CreatePresetUI(label.renderedWidth, presetContainer, suggestions);
             }
 
+            var baseItemIndex = _activeCommandObjects.IndexOf(baseItem);
+            _selectedIndex = baseItemIndex;
             RebuildNavigableList();
             LayoutRebuilder.ForceRebuildLayoutImmediate(m_BaseCommandContainer);
-            GetComponentInParent<ScrollToSelection>().FocusOn(_highlightedItem.transform);
+            _scrollSnapper.FocusOn(_highlightedItem.transform);
         }
 
         private void CreatePresetUI(float startPos, RectTransform container, List<string> suggestions)

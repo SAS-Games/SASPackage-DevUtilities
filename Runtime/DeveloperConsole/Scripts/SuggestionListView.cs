@@ -5,18 +5,21 @@ using UnityEngine.UI;
 
 namespace SAS.Utilities.DeveloperConsole
 {
+    [RequireComponent(typeof(ScrollSnapper))]
     public class SuggestionListView : SuggestionView
     {
         [SerializeField] private RectTransform m_Container;
         [SerializeField] private GameObject m_SuggestionTemplate;
 
         private List<GameObject> _activeSuggestions = new();
-
+        private ScrollSnapper _scrollSnapper;
+        
         protected override void Awake()
         {
             base.Awake();
             m_SuggestionTemplate.SetActive(false);
             ClearSuggestions();
+            _scrollSnapper = GetComponent<ScrollSnapper>();
         }
 
         private void Start() => OnSuggestionViewChanged(_developerConsoleUI.IsTreeViewSuggestion);
@@ -40,6 +43,8 @@ namespace SAS.Utilities.DeveloperConsole
                 _activeSuggestions.Add(item);
             }
 
+            if (_activeSuggestions.Count > 0)
+                _scrollSnapper.FocusOn(_activeSuggestions[0].transform);
             _selectedIndex = -1;
         }
 
@@ -69,7 +74,10 @@ namespace SAS.Utilities.DeveloperConsole
                 var text = _activeSuggestions[i].GetComponentInChildren<TMP_Text>();
                 text.color = (i == _selectedIndex) ? Color.yellow : Color.white;
                 if (i == _selectedIndex)
+                {
+                    _scrollSnapper.FocusOn(_activeSuggestions[i].transform);
                     StartCoroutine(SelectGameObjectNextFrame(_activeSuggestions[i].GetComponentInChildren<Button>().gameObject));
+                }
             }
         }
 

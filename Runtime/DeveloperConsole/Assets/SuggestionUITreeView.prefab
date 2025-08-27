@@ -10,8 +10,10 @@ GameObject:
   m_Component:
   - component: {fileID: 8502289209354655047}
   - component: {fileID: 5425300068833658832}
+  - component: {fileID: 6533396293502504059}
   - component: {fileID: 4750726784900553950}
   - component: {fileID: 429897413376420582}
+  - component: {fileID: 7413330885996333371}
   m_Layer: 0
   m_Name: SuggestionUITreeView
   m_TagString: Untagged
@@ -47,6 +49,36 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1836276386416893977}
   m_CullTransparentMesh: 1
+--- !u!114 &6533396293502504059
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1836276386416893977}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 0, g: 0, b: 0, a: 0.007843138}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
+  m_Type: 1
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
 --- !u!114 &4750726784900553950
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -92,6 +124,19 @@ MonoBehaviour:
   m_BaseCommandContainer: {fileID: 5494356364600898297}
   m_BaseCommandTemplate: {fileID: 6316357557576557879, guid: b51008c9af6e429458ff441c7e377b4e, type: 3}
   m_PresetTemplate: {fileID: 8185379161567498816, guid: df695f56d933d3646989bc869dad335b, type: 3}
+--- !u!114 &7413330885996333371
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1836276386416893977}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 418f345e52558ce4d8e7a815f80aa113, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Offset: 15
 --- !u!1 &5821284068138193236
 GameObject:
   m_ObjectHideFlags: 0
@@ -127,7 +172,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
   m_AnchoredPosition: {x: -960, y: 140}
-  m_SizeDelta: {x: 1920, y: 5}
+  m_SizeDelta: {x: 1920, y: 0}
   m_Pivot: {x: 0, y: 0}
 --- !u!114 &7361590045190980199
 MonoBehaviour:
