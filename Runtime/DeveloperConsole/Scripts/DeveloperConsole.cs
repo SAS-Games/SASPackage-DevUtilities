@@ -10,8 +10,8 @@ namespace SAS.Utilities.DeveloperConsole
         private readonly CommandSuggester _commandSuggester = new();
         private readonly CommandHistory _commandHistory = new();
         public readonly IEnumerable<IConsoleCommand> ConsoleCommands;
-
-
+        public CommandHistory CommandHistory => _commandHistory;
+        
         public DeveloperConsole(string prefix, IEnumerable<IConsoleCommand> consoleCommands)
         {
             this._prefix = prefix;
@@ -65,11 +65,13 @@ namespace SAS.Utilities.DeveloperConsole
                 {
                     if (!command.Process(developerConsole, commandInput, args))
                     {
-                        developerConsole.DisplayHelpText($"Failed to execute the Command '{commandInput}'  \n{message}");
+                        developerConsole.DisplayHelpText(
+                            $"Failed to execute the Command '{commandInput}'  \n{message}");
                         Debug.LogError($"Failed to execute the Command '{commandInput}' \n{message}");
                         return false;
                     }
                 }
+
                 developerConsole.DisplayHelpText($"");
                 return true;
             }

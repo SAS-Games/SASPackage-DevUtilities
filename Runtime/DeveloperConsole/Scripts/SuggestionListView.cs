@@ -13,6 +13,7 @@ namespace SAS.Utilities.DeveloperConsole
 
         private List<GameObject> _activeSuggestions = new();
         private ScrollSnapper _scrollSnapper;
+        private CommandHistory _commandHistory;
         
         protected override void Awake()
         {
@@ -106,6 +107,7 @@ namespace SAS.Utilities.DeveloperConsole
             {
                 _developerConsoleUI.InputChangedEvent += OnInputChanged;
                 _developerConsoleUI.SuggestionAppliedEvent += ClearSuggestions;
+                _commandHistory = _developerConsoleUI.DeveloperConsole.CommandHistory;
             }
             else
             {

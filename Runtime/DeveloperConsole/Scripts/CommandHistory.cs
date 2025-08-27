@@ -31,8 +31,11 @@ namespace SAS.Utilities.DeveloperConsole
 
         public string GetPrevious()
         {
-            if (_history.Count == 0 || _index <= 0)
+            if (_history.Count == 0)
                 return string.Empty;
+
+            if (_index <= 0)
+                _index = _history.Count;
 
             _index--;
             return _history[_index];
@@ -40,10 +43,13 @@ namespace SAS.Utilities.DeveloperConsole
 
         public string GetNext()
         {
-            if (_history.Count == 0 || _index >= _history.Count - 1)
+            if (_history.Count == 0)
                 return string.Empty;
 
             _index++;
+            if (_index >= _history.Count)
+                _index = 0; 
+
             return _history[_index];
         }
 

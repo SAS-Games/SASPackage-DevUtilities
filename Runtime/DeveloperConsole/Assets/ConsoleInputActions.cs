@@ -98,7 +98,7 @@ public partial class @ConsoleInputActions: IInputActionCollection2, IDisposable
                     ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
-                    ""initialStateCheck"": false
+                    ""initialStateCheck"": true
                 },
                 {
                     ""name"": ""Submit"",
@@ -126,6 +126,24 @@ public partial class @ConsoleInputActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""HistoryNavigationUP"",
+                    ""type"": ""Button"",
+                    ""id"": ""5af8e235-1c39-4c68-8757-7894ceacc7b2"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""HistoryNavigationDown"",
+                    ""type"": ""Button"",
+                    ""id"": ""d9d9ada7-b8fc-44fa-96d6-b33f782fbdaa"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
                 }
             ],
             ""bindings"": [
@@ -414,6 +432,72 @@ public partial class @ConsoleInputActions: IInputActionCollection2, IDisposable
                     ""action"": ""AutoComplete"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""Button With One Modifier"",
+                    ""id"": ""7855a0fc-bc60-42a0-89d3-c367a2917f8b"",
+                    ""path"": ""ButtonWithOneModifier(overrideModifiersNeedToBePressedFirst=true,modifiersOrder=1)"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""HistoryNavigationUP"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""Modifier"",
+                    ""id"": ""4396a6df-7b41-4054-8b5f-290cc5c523f8"",
+                    ""path"": ""<Keyboard>/shift"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Keyboard & Mouse"",
+                    ""action"": ""HistoryNavigationUP"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""Button"",
+                    ""id"": ""2c64d64b-9aeb-475b-9afd-dd43907fc0b5"",
+                    ""path"": ""<Keyboard>/upArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Keyboard & Mouse"",
+                    ""action"": ""HistoryNavigationUP"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""Button With One Modifier"",
+                    ""id"": ""740a2843-f6da-4c5a-aa1d-651c32a32f10"",
+                    ""path"": ""ButtonWithOneModifier(overrideModifiersNeedToBePressedFirst=true,modifiersOrder=1)"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""HistoryNavigationDown"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""Modifier"",
+                    ""id"": ""1e11a9b1-5a8d-4652-aedf-7361b0915908"",
+                    ""path"": ""<Keyboard>/shift"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Keyboard & Mouse"",
+                    ""action"": ""HistoryNavigationDown"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""Button"",
+                    ""id"": ""4ec4df0c-9942-478c-aca6-a4afc31a860e"",
+                    ""path"": ""<Keyboard>/downArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Keyboard & Mouse"",
+                    ""action"": ""HistoryNavigationDown"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
                 }
             ]
         }
@@ -448,6 +532,8 @@ public partial class @ConsoleInputActions: IInputActionCollection2, IDisposable
         m_Developer_Submit = m_Developer.FindAction("Submit", throwIfNotFound: true);
         m_Developer_Navigate = m_Developer.FindAction("Navigate", throwIfNotFound: true);
         m_Developer_AutoComplete = m_Developer.FindAction("AutoComplete", throwIfNotFound: true);
+        m_Developer_HistoryNavigationUP = m_Developer.FindAction("HistoryNavigationUP", throwIfNotFound: true);
+        m_Developer_HistoryNavigationDown = m_Developer.FindAction("HistoryNavigationDown", throwIfNotFound: true);
     }
 
     ~@ConsoleInputActions()
@@ -532,6 +618,8 @@ public partial class @ConsoleInputActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Developer_Submit;
     private readonly InputAction m_Developer_Navigate;
     private readonly InputAction m_Developer_AutoComplete;
+    private readonly InputAction m_Developer_HistoryNavigationUP;
+    private readonly InputAction m_Developer_HistoryNavigationDown;
     /// <summary>
     /// Provides access to input actions defined in input action map "Developer".
     /// </summary>
@@ -559,6 +647,14 @@ public partial class @ConsoleInputActions: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Developer/AutoComplete".
         /// </summary>
         public InputAction @AutoComplete => m_Wrapper.m_Developer_AutoComplete;
+        /// <summary>
+        /// Provides access to the underlying input action "Developer/HistoryNavigationUP".
+        /// </summary>
+        public InputAction @HistoryNavigationUP => m_Wrapper.m_Developer_HistoryNavigationUP;
+        /// <summary>
+        /// Provides access to the underlying input action "Developer/HistoryNavigationDown".
+        /// </summary>
+        public InputAction @HistoryNavigationDown => m_Wrapper.m_Developer_HistoryNavigationDown;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -597,6 +693,12 @@ public partial class @ConsoleInputActions: IInputActionCollection2, IDisposable
             @AutoComplete.started += instance.OnAutoComplete;
             @AutoComplete.performed += instance.OnAutoComplete;
             @AutoComplete.canceled += instance.OnAutoComplete;
+            @HistoryNavigationUP.started += instance.OnHistoryNavigationUP;
+            @HistoryNavigationUP.performed += instance.OnHistoryNavigationUP;
+            @HistoryNavigationUP.canceled += instance.OnHistoryNavigationUP;
+            @HistoryNavigationDown.started += instance.OnHistoryNavigationDown;
+            @HistoryNavigationDown.performed += instance.OnHistoryNavigationDown;
+            @HistoryNavigationDown.canceled += instance.OnHistoryNavigationDown;
         }
 
         /// <summary>
@@ -620,6 +722,12 @@ public partial class @ConsoleInputActions: IInputActionCollection2, IDisposable
             @AutoComplete.started -= instance.OnAutoComplete;
             @AutoComplete.performed -= instance.OnAutoComplete;
             @AutoComplete.canceled -= instance.OnAutoComplete;
+            @HistoryNavigationUP.started -= instance.OnHistoryNavigationUP;
+            @HistoryNavigationUP.performed -= instance.OnHistoryNavigationUP;
+            @HistoryNavigationUP.canceled -= instance.OnHistoryNavigationUP;
+            @HistoryNavigationDown.started -= instance.OnHistoryNavigationDown;
+            @HistoryNavigationDown.performed -= instance.OnHistoryNavigationDown;
+            @HistoryNavigationDown.canceled -= instance.OnHistoryNavigationDown;
         }
 
         /// <summary>
@@ -714,5 +822,19 @@ public partial class @ConsoleInputActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnAutoComplete(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "HistoryNavigationUP" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnHistoryNavigationUP(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "HistoryNavigationDown" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnHistoryNavigationDown(InputAction.CallbackContext context);
     }
 }

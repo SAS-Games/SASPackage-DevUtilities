@@ -17,7 +17,7 @@ namespace SAS.Utilities.DeveloperConsole
 
         [SerializeField] private string m_Prefix = string.Empty;
         [SerializeField] private ConsoleCommand[] m_Commands = new ConsoleCommand[0];
-        [Header("UI")][SerializeField] private GameObject m_UiCanvas = null;
+        [Header("UI")] [SerializeField] private GameObject m_UiCanvas = null;
         [SerializeField] private TMP_InputField m_InputField = null;
         [SerializeField] private Button m_SubmitButton = null;
         [SerializeField] private TMP_Text m_HelpText = null;
@@ -50,6 +50,8 @@ namespace SAS.Utilities.DeveloperConsole
             _inputActions = new ConsoleInputActions();
             _inputActions.Developer.ToggleConsole.performed += Toggle;
             _inputActions.Developer.Submit.performed += OnSubmit;
+            _inputActions.Developer.HistoryNavigationUP.performed += GetNexCommandHistory;
+            _inputActions.Developer.HistoryNavigationDown.performed += GetPrevCommandHistory;
 
             if (m_InputField != null)
                 m_InputField.onValueChanged.AddListener(OnInputChanged);
@@ -146,5 +148,18 @@ namespace SAS.Utilities.DeveloperConsole
             }
         }
 
+        private void GetNexCommandHistory(CallbackContext context)
+        {
+            string command = _developerConsole.CommandHistory.GetNext();
+            m_InputField.text = command;
+            StartCoroutine(SelectGameObjectNextFrame());
+        }
+
+        private void GetPrevCommandHistory(CallbackContext context)
+        {
+            var command = _developerConsole.CommandHistory.GetPrevious();
+            m_InputField.text = command;
+            StartCoroutine(SelectGameObjectNextFrame());
+        }
     }
 }
