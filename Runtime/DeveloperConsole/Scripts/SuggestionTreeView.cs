@@ -94,7 +94,7 @@ namespace SAS.Utilities.DeveloperConsole
                 _highlightedItem.GetComponentInChildren<TMP_Text>().color = Color.yellow;
                 StartCoroutine(SelectGameObjectNextFrame(_highlightedItem.GetComponentInChildren<Button>().gameObject));
             }
-            _scrollSnapper.FocusOn(_highlightedItem.transform);
+            _scrollSnapper.FocusOn(_highlightedItem?.transform);
         }
 
         private void CreateBaseCommandUI(string baseCommand)
