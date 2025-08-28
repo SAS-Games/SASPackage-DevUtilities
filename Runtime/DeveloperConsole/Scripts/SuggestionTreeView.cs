@@ -171,6 +171,7 @@ namespace SAS.Utilities.DeveloperConsole
                 Destroy(go);
             _activeCommandObjects.Clear();
             _currentlyExpanded = null;
+            _selectedIndex = -1;
         }
 
         protected override void OnSuggestionViewChanged(bool treeView)
