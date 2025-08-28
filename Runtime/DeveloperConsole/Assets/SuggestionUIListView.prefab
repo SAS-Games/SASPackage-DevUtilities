@@ -104,7 +104,6 @@ GameObject:
   - component: {fileID: 6462047981853737282}
   - component: {fileID: 6790294823914982825}
   - component: {fileID: 8530745677080235269}
-  - component: {fileID: 533496864733030784}
   m_Layer: 0
   m_Name: SuggestionUIListView
   m_TagString: Untagged
@@ -215,19 +214,6 @@ MonoBehaviour:
   m_Container: {fileID: 4345290330457831804}
   m_SuggestionTemplate: {fileID: 0}
 --- !u!114 &8530745677080235269
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3393005386147637210}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 418f345e52558ce4d8e7a815f80aa113, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Offset: 15
---- !u!114 &533496864733030784
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
