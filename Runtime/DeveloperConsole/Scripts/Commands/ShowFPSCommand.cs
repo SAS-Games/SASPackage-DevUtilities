@@ -18,7 +18,7 @@ namespace SAS.Utilities.DeveloperConsole
         {
             if (args != null && args.Length > 0)
             {
-                if (bool.TryParse(args[0], out var isVisible))
+                if (BoolUtil.TryParse(args[0], out var isVisible))
                 {
                     if (_fps == null)
                         _fps = Instantiate(m_FpsPrefab);

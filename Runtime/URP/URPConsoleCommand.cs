@@ -90,15 +90,9 @@ public class URPConsoleCommand : CompositeConsoleCommand
         var urp = CurrentURPAsset;
         if (urp == null) return false;
 
-        string arg = args[0].ToLower();
-        if (arg == "on" || arg == "true" || arg == "1")
+        if (BoolUtil.TryParse(args[0], out bool value))
         {
-            urp.supportsHDR = true;
-            return true;
-        }
-        else if (arg == "off" || arg == "false" || arg == "0")
-        {
-            urp.supportsHDR = false;
+            urp.supportsHDR = value;
             return true;
         }
 
@@ -159,7 +153,7 @@ public class URPConsoleCommand : CompositeConsoleCommand
 
     private bool SetColorGradingMode(string[] args)
     {
-        if (args.Length < 1 || !Enum.TryParse(args[0], true, out UnityEngine.Rendering.Universal.ColorGradingMode mode))
+        if (args.Length < 1 || !Enum.TryParse(args[0], true, out ColorGradingMode mode))
             return false;
 
         var urp = CurrentURPAsset;

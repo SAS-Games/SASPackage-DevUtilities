@@ -7,6 +7,7 @@ namespace SAS.Utilities.DeveloperConsole
     {
         [SerializeField] private GameObject m_GraphicsInfoPrefab;
         private GameObject _graphics;
+
         public override string HelpText => "Usage: GraphicsInfo [true/false] [verbose: true/false]\n" +
                                            "show current graphics, quality, and rendering settings.\n" +
                                            "Add 'verbose' for extended details.";
@@ -15,14 +16,20 @@ namespace SAS.Utilities.DeveloperConsole
         {
             if (args != null && args.Length > 0)
             {
-                if (bool.TryParse(args[0], out var isVisible))
+                if (BoolUtil.TryParse(args[0], out var isVisible))
                 {
                     if (_graphics == null)
                         _graphics = Instantiate(m_GraphicsInfoPrefab);
                     var verbose = false;
-                    if (args.Length > 1 && args.Length > 1 && bool.TryParse(args[1], out verbose)) { }
+                    if (args.Length > 1 && args.Length > 1)
+                    {
+                        var arg = args[1].ToLowerInvariant();
+                        if (arg == "extended")
+                            verbose = true;
+                    }
 
-                    var info = _graphics.GetComponent<GraphicsInfo>(); ;
+                    var info = _graphics.GetComponent<GraphicsInfo>();
+                    ;
                     info.Show(isVisible, verbose);
                     return true;
                 }

@@ -15,7 +15,7 @@ MonoBehaviour:
   <Name>k__BackingField: GraphicsInfo
   m_Presets:
   - GraphicsInfo
-  - GraphicsInfo true
-  - GraphicsInfo true true
-  - GraphicsInfo false
+  - GraphicsInfo On
+  - GraphicsInfo On Extended
+  - GraphicsInfo Off
   m_GraphicsInfoPrefab: {fileID: 4840794096766531456, guid: bd1979776bb352b4f810c758891710fb, type: 3}

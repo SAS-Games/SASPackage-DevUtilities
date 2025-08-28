@@ -18,8 +18,8 @@ MonoBehaviour:
   - Name: Show
     HelpText: 'Usage:   FPS.Show [true/false]  -> Show or hide FPS UI'
     Presets:
-    - Show true
-    - Show false
+    - Show On
+    - Show Off
   - Name: SetTargetFrameRate
     HelpText: 'Usage: FPS.SetTargetFrameRate <fps> \nExample: FPS.SetTargetFrameRate
       60\n -1 = Use platform default (usually VSync)\n  30 = Lock to 30 FPS\n  60
