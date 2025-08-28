@@ -1,6 +1,8 @@
+using TMPro;
 using UnityEngine;
 
-public static class RectTransformExtensions
+
+public static class ExtensionUtils
 {
     /// <summary>
     /// Returns the screen-space rectangle of a RectTransform.
@@ -36,7 +38,7 @@ public static class RectTransformExtensions
     /// <summary>
     /// Returns the Bounds of a RectTransform relative to a root transform.
     /// </summary>
-    public static Bounds GetRelativeBounds(this RectTransform rt,Transform root)
+    public static Bounds GetRelativeBounds(this RectTransform rt, Transform root)
     {
         Vector3[] corners = new Vector3[4];
         rt.GetWorldCorners(corners);
@@ -50,4 +52,16 @@ public static class RectTransformExtensions
 
         return bounds;
     }
+
+
+    /// <summary>
+    /// Sets the text of the TMP_InputField after a delay using async/await.
+    /// </summary>
+    public static async void SetDelayedText(this TMP_InputField inputField, string newText, int frameDelay = 1)
+    {
+        for (int i = 0; i < frameDelay; i++)
+            await Awaitable.NextFrameAsync();
+        inputField.text = newText;
+    }
+
 }

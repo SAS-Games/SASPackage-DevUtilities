@@ -17,7 +17,7 @@ namespace SAS.Utilities.DeveloperConsole
 
         [SerializeField] private string m_Prefix = string.Empty;
         [SerializeField] private ConsoleCommand[] m_Commands = new ConsoleCommand[0];
-        [Header("UI")] [SerializeField] private GameObject m_UiCanvas = null;
+        [Header("UI")][SerializeField] private GameObject m_UiCanvas = null;
         [SerializeField] private TMP_InputField m_InputField = null;
         [SerializeField] private Button m_SubmitButton = null;
         [SerializeField] private TMP_Text m_HelpText = null;
@@ -150,15 +150,17 @@ namespace SAS.Utilities.DeveloperConsole
 
         private void GetNexCommandHistory(CallbackContext context)
         {
-            string command = _developerConsole.CommandHistory.GetNext();
-            m_InputField.text = command;
-            StartCoroutine(SelectGameObjectNextFrame());
+            SetCommand(_developerConsole.CommandHistory.GetNext());
         }
 
         private void GetPrevCommandHistory(CallbackContext context)
         {
-            var command = _developerConsole.CommandHistory.GetPrevious();
-            m_InputField.text = command;
+            SetCommand(_developerConsole.CommandHistory.GetPrevious());
+        }
+
+        private void SetCommand(string command)
+        {
+            m_InputField.SetDelayedText(command);
             StartCoroutine(SelectGameObjectNextFrame());
         }
     }
