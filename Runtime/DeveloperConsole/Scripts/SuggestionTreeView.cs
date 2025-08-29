@@ -50,13 +50,14 @@ namespace SAS.Utilities.DeveloperConsole
             RebuildNavigableList();
         }
 
-        protected override void Navigate(Vector2 direction)
+        protected override void Navigate(float direction)
         {
+            Debug.Log(direction);
             if (!gameObject.activeInHierarchy || _navigableItems.Count == 0) return;
 
-            if (direction.y > 0)
+            if (direction > 0)
                 _selectedIndex = (_selectedIndex - 1 + _navigableItems.Count) % _navigableItems.Count;
-            else if (direction.y < 0)
+            else if (direction < 0)
                 _selectedIndex = (_selectedIndex + 1) % _navigableItems.Count;
 
             HighlightSelection();

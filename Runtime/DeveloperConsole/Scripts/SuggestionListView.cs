@@ -49,12 +49,12 @@ namespace SAS.Utilities.DeveloperConsole
             _selectedIndex = -1;
         }
 
-        protected override void Navigate(Vector2 direction)
+        protected override void Navigate(float direction)
         {
             if (_activeSuggestions.Count == 0) return;
-            if (direction.y > 0)
+            if (direction > 0)
                 _selectedIndex = Mathf.Max(_selectedIndex - 1, 0);
-            else if (direction.y < 0)
+            else if (direction < 0)
                 _selectedIndex = Mathf.Min(_selectedIndex + 1, _activeSuggestions.Count - 1);
             HighlightSelection();
         }
