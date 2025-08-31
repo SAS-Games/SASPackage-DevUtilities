@@ -21,7 +21,10 @@ namespace SAS.Utilities.DeveloperConsole
                 if (BoolUtil.TryParse(args[0], out var isVisible))
                 {
                     if (_fps == null)
+                    {
                         _fps = Instantiate(m_FpsPrefab);
+                        _fps.name = "FPSCanvas";
+                    }
 
                     _fps.SetActive(isVisible);
                     return true;

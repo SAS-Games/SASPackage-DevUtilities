@@ -18,7 +18,11 @@ namespace SAS.Utilities.DeveloperConsole
                 if (BoolUtil.TryParse(args[0], out var isVisible))
                 {
                     if (_frameStepper == null)
+                    {
                         _frameStepper = Instantiate(m_FrameStepperPrefab);
+                        _frameStepper.name = "FrameStepper";
+                    }
+
                     _frameStepper.Show(isVisible);
                     return true;
                 }

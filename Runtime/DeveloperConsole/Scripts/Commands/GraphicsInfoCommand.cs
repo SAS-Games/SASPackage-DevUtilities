@@ -19,7 +19,11 @@ namespace SAS.Utilities.DeveloperConsole
                 if (BoolUtil.TryParse(args[0], out var isVisible))
                 {
                     if (_graphics == null)
+                    {
                         _graphics = Instantiate(m_GraphicsInfoPrefab);
+                        _graphics.name = "GraphicsInfo";
+                    }
+
                     var verbose = false;
                     if (args.Length > 1 && args.Length > 1)
                     {
