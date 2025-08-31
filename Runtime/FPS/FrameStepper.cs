@@ -1,39 +1,41 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class FrameStepper : MonoBehaviour
 {
-    [SerializeField] private GUISkin m_GuiSkin;
+    [SerializeField] private GameObject m_Play;
+    [SerializeField] private GameObject m_Pause;
+    [SerializeField] private Toggle m_Toggle;
+    [SerializeField] private Button m_FrameStep;
 
     private FrameStepperControls _controls;
-    private bool _isPaused = false;
+    private bool _isPaused = true;
     private float _originalTimeScale = 1f;
-    private Rect _windowRect;
 
     private void Awake()
     {
         _controls = new FrameStepperControls();
 
         _controls.Debug.Pause.performed += _ => TogglePause();
-        _controls.Debug.Step.performed += _ =>
-        {
-            if (_isPaused) StepFrame();
-        };
+        _controls.Debug.Step.performed += _ => { StepFrame(); };
 
-        _windowRect = new Rect(Screen.width - 220, 10, 210, 80);
+        m_Toggle.onValueChanged.AddListener(TogglePause);
+        m_FrameStep.onClick.AddListener(StepFrame);
+        m_Toggle.isOn = _isPaused;
     }
 
     public void Show(bool status) => gameObject.SetActive(status);
-    
-    private void OnEnable() => _controls.Enable();
-    private void OnDisable() => _controls.Disable();
 
-    private void TogglePause()
+    private void OnEnable() => _controls?.Enable();
+    private void OnDisable() => _controls?.Disable();
+
+    private void TogglePause(bool paused)
     {
-        if (_isPaused)
+        if (paused)
         {
             Time.timeScale = _originalTimeScale;
-            _isPaused = false;
+            paused = false;
         }
         else
         {
@@ -41,13 +43,25 @@ public class FrameStepper : MonoBehaviour
             // fall back to 1 when resuming since the intended running scale is unknown.
             _originalTimeScale = Time.timeScale > 0 ? Time.timeScale : 1f;
             Time.timeScale = 0f;
-            _isPaused = true;
+            paused = true;
         }
+
+        m_Pause.SetActive(paused);
+        m_Play.SetActive(!paused);
+        m_FrameStep.interactable = paused;
+        _isPaused = paused;
+    }
+
+    private void TogglePause()
+    {
+        m_Toggle.isOn = !m_Toggle.isOn;
+        //TogglePause(_isPaused);
     }
 
     private void StepFrame()
     {
-        StartCoroutine(StepOneFrameCoroutine());
+        if (_isPaused)
+            StartCoroutine(StepOneFrameCoroutine());
     }
 
     private IEnumerator StepOneFrameCoroutine()
@@ -55,37 +69,5 @@ public class FrameStepper : MonoBehaviour
         Time.timeScale = _originalTimeScale;
         yield return null;
         Time.timeScale = 0f;
-    }
-
-    private void OnGUI()
-    {
-        if (m_GuiSkin != null)
-            GUI.skin = m_GuiSkin;
-
-        _windowRect = GUI.Window(0, _windowRect, DrawUIWindow, "Frame Stepper");
-    }
-
-    private void DrawUIWindow(int windowID)
-    {
-        GUILayout.BeginVertical();
-
-        GUILayout.Label($"Game State: {(_isPaused ? "PAUSED" : "RUNNING")}");
-
-        GUILayout.Space(5);
-
-        GUILayout.BeginHorizontal();
-        if (GUILayout.Button(_isPaused ? "\u25B6" : "\u23F8", GUILayout.Height(30)))
-            TogglePause();
-
-        GUI.enabled = _isPaused;
-        if (GUILayout.Button("Step Frame", GUILayout.Height(30)))
-            StepFrame();
-        GUI.enabled = true;
-        GUILayout.EndHorizontal();
-
-        GUILayout.EndVertical();
-
-        // makes the title bar draggable
-        GUI.DragWindow(new Rect(0, 0, 10000, 20));
     }
 }
