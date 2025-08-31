@@ -11,7 +11,7 @@ namespace SAS.Utilities.DeveloperConsole
         private readonly CommandHistory _commandHistory = new();
         public readonly IEnumerable<IConsoleCommand> ConsoleCommands;
         public CommandHistory CommandHistory => _commandHistory;
-        
+
         public DeveloperConsole(string prefix, IEnumerable<IConsoleCommand> consoleCommands)
         {
             this._prefix = prefix;
@@ -36,7 +36,8 @@ namespace SAS.Utilities.DeveloperConsole
 
             inputValue = inputValue.Remove(0, _prefix.Length);
             string[] inputSplit = inputValue.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-
+            if (inputSplit.Length == 0)
+                return;
             string commandInput = inputSplit[0];
             string[] args = inputSplit.Skip(1).ToArray();
             if (inputValue.Equals("clear", StringComparison.OrdinalIgnoreCase))

@@ -52,7 +52,6 @@ namespace SAS.Utilities.DeveloperConsole
 
         protected override void Navigate(float direction)
         {
-            Debug.Log(direction);
             if (!gameObject.activeInHierarchy || _navigableItems.Count == 0) return;
 
             if (direction > 0)
