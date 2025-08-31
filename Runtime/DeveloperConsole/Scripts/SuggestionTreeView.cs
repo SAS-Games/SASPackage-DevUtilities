@@ -50,13 +50,14 @@ namespace SAS.Utilities.DeveloperConsole
             RebuildNavigableList();
         }
 
-        protected override void Navigate(Vector2 direction)
+        protected override void Navigate(float direction)
         {
+            Debug.Log(direction);
             if (!gameObject.activeInHierarchy || _navigableItems.Count == 0) return;
 
-            if (direction.y > 0)
+            if (direction > 0)
                 _selectedIndex = (_selectedIndex - 1 + _navigableItems.Count) % _navigableItems.Count;
-            else if (direction.y < 0)
+            else if (direction < 0)
                 _selectedIndex = (_selectedIndex + 1) % _navigableItems.Count;
 
             HighlightSelection();
@@ -94,7 +95,7 @@ namespace SAS.Utilities.DeveloperConsole
                 _highlightedItem.GetComponentInChildren<TMP_Text>().color = Color.yellow;
                 StartCoroutine(SelectGameObjectNextFrame(_highlightedItem.GetComponentInChildren<Button>().gameObject));
             }
-            _scrollSnapper.FocusOn(_highlightedItem.transform);
+            _scrollSnapper.FocusOn(_highlightedItem?.transform);
         }
 
         private void CreateBaseCommandUI(string baseCommand)
@@ -171,6 +172,7 @@ namespace SAS.Utilities.DeveloperConsole
                 Destroy(go);
             _activeCommandObjects.Clear();
             _currentlyExpanded = null;
+            _selectedIndex = -1;
         }
 
         protected override void OnSuggestionViewChanged(bool treeView)

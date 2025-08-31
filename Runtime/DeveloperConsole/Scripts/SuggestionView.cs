@@ -13,7 +13,7 @@ namespace SAS.Utilities.DeveloperConsole
         protected virtual void Awake()
         {
             _inputActions = new ConsoleInputActions();
-            _inputActions.Developer.Navigate.performed += ctx => Navigate(ctx.ReadValue<Vector2>());
+            _inputActions.Developer.Navigate.performed += ctx => Navigate(ctx.ReadValue<float>());
             _inputActions.Developer.AutoComplete.performed += _ => SelectCurrent();
 
             _developerConsoleUI = GetComponentInParent<DeveloperConsoleBehaviour>();
@@ -36,7 +36,7 @@ namespace SAS.Utilities.DeveloperConsole
             EventSystem.current.SetSelectedGameObject(go);
         }
 
-        protected abstract void Navigate(Vector2 direction);
+        protected abstract void Navigate(float direction);
         protected abstract void SelectCurrent();
         protected abstract void OnSuggestionViewChanged(bool treeView);
         protected abstract void ClearSuggestions();

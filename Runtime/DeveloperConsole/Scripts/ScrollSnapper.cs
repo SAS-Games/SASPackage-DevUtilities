@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(ScrollRect))]
+[DisallowMultipleComponent]
 public class ScrollSnapper : MonoBehaviour
 {
     [SerializeField] private float m_Offset = 15;
