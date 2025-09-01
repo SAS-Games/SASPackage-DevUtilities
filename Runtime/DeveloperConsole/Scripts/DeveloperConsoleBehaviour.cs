@@ -14,7 +14,7 @@ namespace SAS.Utilities.DeveloperConsole
         public enum Platform
         {
             WINDOWS,
-            PlayStation,
+            PS,
             IOS
         }
 
@@ -81,7 +81,7 @@ namespace SAS.Utilities.DeveloperConsole
 #else
                     return false;
 #endif
-                case Platform.PlayStation:
+                case Platform.PS:
 #if UNITY_PS4 || UNITY_PS5
                     return true;
 #else
