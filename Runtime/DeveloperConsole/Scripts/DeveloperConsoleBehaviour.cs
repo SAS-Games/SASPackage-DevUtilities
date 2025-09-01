@@ -107,7 +107,7 @@ namespace SAS.Utilities.DeveloperConsole
             _inputActions = new ConsoleInputActions();
             _inputActions.Developer.ToggleConsole.performed += Toggle;
             _inputActions.Developer.Submit.performed += OnSubmit;
-            _inputActions.Developer.HistoryNavigationUP.performed += GetNexCommandHistory;
+            _inputActions.Developer.HistoryNavigationUp.performed += GetNextCommandHistory;
             _inputActions.Developer.HistoryNavigationDown.performed += GetPrevCommandHistory;
 
             if (m_InputField != null)
@@ -205,7 +205,7 @@ namespace SAS.Utilities.DeveloperConsole
             }
         }
 
-        private void GetNexCommandHistory(CallbackContext context)
+        private void GetNextCommandHistory(CallbackContext context)
         {
             SetCommand(_developerConsole.CommandHistory.GetNext());
         }
