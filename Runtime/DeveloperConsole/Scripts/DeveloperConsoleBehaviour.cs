@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 using static UnityEngine.InputSystem.InputAction;
 
@@ -11,13 +11,28 @@ namespace SAS.Utilities.DeveloperConsole
 {
     public class DeveloperConsoleBehaviour : MonoBehaviour
     {
+        public enum Platform
+        {
+            WINDOWS,
+            PlayStation,
+            IOS
+        }
+
+        [Serializable]
+        public class PlatformCommand
+        {
+            public Platform platform;
+            public ConsoleCommand[] commands;
+        }
+
         public Action<string> InputChangedEvent;
         public Action<bool> SuggestionViewChangedEvent;
         public Action SuggestionAppliedEvent;
 
         [SerializeField] private string m_Prefix = string.Empty;
         [SerializeField] private ConsoleCommand[] m_Commands = new ConsoleCommand[0];
-        [Header("UI")][SerializeField] private GameObject m_UiCanvas = null;
+        [SerializeField] private PlatformCommand[] m_PlatformCommands;
+        [Header("UI")] [SerializeField] private GameObject m_UiCanvas = null;
         [SerializeField] private TMP_InputField m_InputField = null;
         [SerializeField] private Button m_SubmitButton = null;
         [SerializeField] private TMP_Text m_HelpText = null;
@@ -36,13 +51,55 @@ namespace SAS.Utilities.DeveloperConsole
             get
             {
                 if (_developerConsole != null)
-                {
                     return _developerConsole;
+
+                var allCommands = new List<ConsoleCommand>();
+
+                allCommands.AddRange(m_Commands);
+
+                // Add platform-specific commands
+                foreach (var pc in m_PlatformCommands)
+                {
+                    if (IsCurrentPlatform(pc.platform))
+                    {
+                        allCommands.AddRange(pc.commands);
+                        break;
+                    }
                 }
 
-                return _developerConsole = new DeveloperConsole(m_Prefix, m_Commands);
+                return _developerConsole = new DeveloperConsole(m_Prefix, allCommands);
             }
         }
+
+        bool IsCurrentPlatform(Platform platform)
+        {
+            switch (platform)
+            {
+                case Platform.WINDOWS:
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
+                    return true;
+#else
+                    return false;
+#endif
+                case Platform.PlayStation:
+#if UNITY_PS4 || UNITY_PS5
+                    return true;
+#else
+                    return false;
+#endif
+
+                case Platform.IOS:
+#if UNITY_IOS
+                    return true;
+#else
+                    return false;
+#endif
+                default:
+                    return false;
+            }
+        }
+
+
 
         private void Awake()
         {
