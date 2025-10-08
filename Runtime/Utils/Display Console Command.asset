@@ -14,5 +14,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <Name>k__BackingField: 
   m_Presets: []
-  m_SubCommands: []
+  m_SubCommands:
+  - Name: SetResolution
+    HelpText: 
+    Presets:
+    - SetResolution 1920 1080 false
+    - SetResolution 1600 900 false
+  - Name: SetFullScreen
+    HelpText: 
+    Presets:
+    - SetFullScreen On
+    - SetFullScreen Off
+  - Name: SetWindowMode
+    HelpText: 
+    Presets: []
   m_HelpText: 

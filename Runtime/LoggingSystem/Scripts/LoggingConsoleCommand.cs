@@ -20,6 +20,7 @@ public class LoggingConsoleCommand : CompositeConsoleCommand
         Register("SetTags", SetTags);
         Register("SetLogLifetime", SetLogLifetime);
         Register("ClearOnScreenLog", ClearOnScreenLog);
+        Register("SetStackTrace", SetStackTrace);
     }
 
     private bool LogLevel(string[] args)
@@ -98,6 +99,51 @@ public class LoggingConsoleCommand : CompositeConsoleCommand
             return false;
 
         _onScreenLog.GetComponent<OnScreenLogUI>().ClearLogs();
+        return true;
+    }
+    
+    private bool SetStackTrace(string[] args)
+    {
+        if (args.Length < 2)
+        {
+            Debug.LogWarning("Usage: SetStackTrace <Log|Warning|Error|Exception|All> <0=None, 1=ScriptOnly, 2=Full>");
+            return false;
+        }
+
+        string logTypeArg = args[0];
+        if (!int.TryParse(args[1], out int mode))
+        {
+            Debug.LogWarning("Invalid value. Use 0=None, 1=ScriptOnly, 2=Full");
+            return false;
+        }
+
+        // Convert int to StackTraceLogType
+        StackTraceLogType stackTraceType = mode switch
+        {
+            0 => StackTraceLogType.None,
+            1 => StackTraceLogType.ScriptOnly,
+            2 => StackTraceLogType.Full,
+            _ => StackTraceLogType.ScriptOnly
+        };
+        
+        if (logTypeArg.Equals("All", StringComparison.OrdinalIgnoreCase))
+        {
+            Application.SetStackTraceLogType(LogType.Log, stackTraceType);
+            Application.SetStackTraceLogType(LogType.Warning, stackTraceType);
+            Application.SetStackTraceLogType(LogType.Error, stackTraceType);
+            Application.SetStackTraceLogType(LogType.Exception, stackTraceType);
+
+            Debug.Log($"Stack trace for ALL log types set to {stackTraceType}");
+        }
+        else
+        {
+            if (!Enum.TryParse(logTypeArg, true, out LogType logType))
+                return false;
+            
+            Application.SetStackTraceLogType(logType, stackTraceType);
+            Debug.Log($"Stack trace for {logType} set to {stackTraceType}");
+        }
+
         return true;
     }
 }
