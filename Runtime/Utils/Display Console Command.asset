@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7ea937968001323488afb8a51760d5d2, type: 3}
   m_Name: Display Console Command
   m_EditorClassIdentifier: 
-  <Name>k__BackingField: 
+  <Name>k__BackingField: Screen
   m_Presets: []
   m_SubCommands:
   - Name: SetResolution
