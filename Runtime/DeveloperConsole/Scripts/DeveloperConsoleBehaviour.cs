@@ -44,8 +44,7 @@ namespace SAS.Utilities.DeveloperConsole
         private ConsoleInputActions _inputActions;
         public bool IsTreeViewSuggestion => m_TreeViewSuggestionToggle.isOn;
         private GameObject _lastSelectedGameObject;
-
-
+        
         internal DeveloperConsole DeveloperConsole
         {
             get
@@ -55,15 +54,31 @@ namespace SAS.Utilities.DeveloperConsole
 
                 var allCommands = new List<ConsoleCommand>();
 
-                allCommands.AddRange(m_Commands);
-
-                // Add platform-specific commands
-                foreach (var pc in m_PlatformCommands)
+                if (m_Commands != null)
                 {
-                    if (IsCurrentPlatform(pc.platform))
+                    foreach (var cmd in m_Commands)
                     {
-                        allCommands.AddRange(pc.commands);
-                        break;
+                        if (cmd != null)
+                            allCommands.Add(cmd);
+                    }
+                }
+
+                if (m_PlatformCommands != null)
+                {
+                    foreach (var pc in m_PlatformCommands)
+                    {
+                        if (pc == null || pc.commands == null)
+                            continue;
+
+                        if (IsCurrentPlatform(pc.platform))
+                        {
+                            foreach (var cmd in pc.commands)
+                            {
+                                if (cmd != null)
+                                    allCommands.Add(cmd);
+                            }
+                            break;
+                        }
                     }
                 }
 
