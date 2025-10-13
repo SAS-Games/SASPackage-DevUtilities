@@ -1,3 +1,4 @@
+#if UNITY_RENDER_PIPELINE_UNIVERSAL
 using SAS.Utilities.DeveloperConsole;
 using System;
 using UnityEngine;
@@ -143,7 +144,17 @@ public class URPConsoleCommand : CompositeConsoleCommand
         if (Enum.TryParse<UnityEngine.Rendering.Universal.ShadowResolution>(
                 args[0], true, out var resolution))
         {
-            urp.mainLightShadowmapResolution = (int)resolution;
+            var property = urp.GetType().GetProperty("mainLightShadowmapResolution");
+            if (property != null)
+                property.SetValue(urp, resolution);
+            else
+            {
+                var field = urp.GetType().GetField("mainLightShadowmapResolution");
+                if (field != null)
+                    field.SetValue(urp, resolution);
+                else
+                    return false;
+            }
             return true;
         }
 
@@ -195,3 +206,4 @@ public class URPConsoleCommand : CompositeConsoleCommand
         return true;
     }
 }
+#endif

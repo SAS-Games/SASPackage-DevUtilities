@@ -1,7 +1,10 @@
 ﻿using TMPro;
 using UnityEngine;
 using UnityEngine.Rendering;
+
+#if UNITY_RENDER_PIPELINE_UNIVERSAL
 using UnityEngine.Rendering.Universal;
+#endif
 
 public class GraphicsInfo : MonoBehaviour
 {
@@ -12,6 +15,7 @@ public class GraphicsInfo : MonoBehaviour
         m_Display.text = Info(verbose);
         gameObject.SetActive(status);
     }
+
     private string Info(bool verbose)
     {
         // Graphics API & GPU Info
@@ -27,7 +31,7 @@ public class GraphicsInfo : MonoBehaviour
         // Application Target FPS
         int fpsTarget = Application.targetFrameRate;
 
-        // Defaults (classic pipeline)
+        // Defaults (Built-in)
         string shadows = QualitySettings.shadows.ToString();
         string aa = QualitySettings.antiAliasing > 0 ? $"{QualitySettings.antiAliasing}x MSAA" : "None";
         bool hdr = Camera.main != null && Camera.main.allowHDR;
@@ -35,6 +39,7 @@ public class GraphicsInfo : MonoBehaviour
         string anisotropic = QualitySettings.anisotropicFiltering.ToString();
 
         // If URP is active, override with URP asset values
+#if UNITY_RENDER_PIPELINE_UNIVERSAL
         if (GraphicsSettings.currentRenderPipeline is UniversalRenderPipelineAsset urp)
         {
             shadows = urp.supportsMainLightShadows ? "Enabled" : "Disabled";
@@ -42,6 +47,7 @@ public class GraphicsInfo : MonoBehaviour
             aa = urp.msaaSampleCount > 1 ? $"{urp.msaaSampleCount}x MSAA" : "None";
             hdr = urp.supportsHDR;
         }
+#endif
 
         // Build base summary
         string info =
@@ -70,7 +76,7 @@ public class GraphicsInfo : MonoBehaviour
                 $"HDR: {hdr}\n" +
                 $"Anisotropic: {anisotropic}\n";
         }
+
         return info;
     }
-
 }
