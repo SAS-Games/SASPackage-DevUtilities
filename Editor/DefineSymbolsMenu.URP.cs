@@ -7,11 +7,7 @@ namespace SAS.Utilities.DeveloperConsole.Editor
         [MenuItem("Tools/Defines/UNITY_RENDER_PIPELINE_UNIVERSAL")]
         private static void Toggle_UNITY_RENDER_PIPELINE_UNIVERSAL() => ToggleDefine("UNITY_RENDER_PIPELINE_UNIVERSAL");
 
-<<<<<<< HEAD
         [MenuItem("Tools/Defines/UNITY_RENDER_PIPELINE_UNIVERSAL", true)]
-=======
-        [MenuItem("Tools/Defines/ENABLE_LOG_CATCHER", true)]
->>>>>>> refs/remotes/origin/master
         private static bool Validate_UNITY_RENDER_PIPELINE_UNIVERSAL() => ValidateToggle("UNITY_RENDER_PIPELINE_UNIVERSAL");
     }
 }

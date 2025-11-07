@@ -2,7 +2,6 @@ using TMPro;
 using UnityEngine;
 using System.Collections;
 
-<<<<<<< HEAD
 namespace SAS.Utilities.DeveloperConsole
 {
     public static class ExtensionUtils
@@ -48,44 +47,6 @@ namespace SAS.Utilities.DeveloperConsole
 
             for (int i = 0; i < 4; i++)
                 corners[i] = root.InverseTransformPoint(corners[i]);
-=======
-public static class ExtensionUtils
-{
-    /// <summary>
-    /// Returns the screen-space rectangle of a RectTransform.
-    /// Correctly handles Overlay vs Camera/World canvases.
-    /// </summary>
-    public static Rect GetScreenSpaceRect(this RectTransform rt, Camera cam = null)
-    {
-        Vector3[] worldCorners = new Vector3[4];
-        rt.GetWorldCorners(worldCorners);
-
-        // Determine camera based on canvas mode
-        Camera camToUse = cam;
-        var canvas = rt.GetComponentInParent<Canvas>();
-        if (canvas != null)
-        {
-            if (canvas.renderMode == RenderMode.ScreenSpaceOverlay)
-                camToUse = null; // must be null for overlay
-            else if (camToUse == null)
-                camToUse = canvas.worldCamera != null ? canvas.worldCamera : Camera.main;
-        }
-        else if (camToUse == null)
-        {
-            camToUse = Camera.main;
-        }
-
-        Vector3 bl = RectTransformUtility.WorldToScreenPoint(camToUse, worldCorners[0]); // bottom-left
-        Vector3 tr = RectTransformUtility.WorldToScreenPoint(camToUse, worldCorners[2]); // top-right
-
-        return new Rect(bl, tr - bl);
-    }
-
-    public static Bounds GetWorldBounds(this RectTransform rt)
-    {
-        Vector3[] corners = new Vector3[4];
-        rt.GetWorldCorners(corners);
->>>>>>> refs/remotes/origin/master
 
             var bounds = new Bounds(corners[0], Vector3.zero);
             for (int i = 1; i < 4; i++)
@@ -94,7 +55,6 @@ public static class ExtensionUtils
             return bounds;
         }
 
-<<<<<<< HEAD
 
         /// <summary>
         /// Sets the text of the TMP_InputField after a delay of N frames.
@@ -124,32 +84,9 @@ public static class ExtensionUtils
         for (int i = 0; i < frameDelay; i++)
             await UnityEngine.Awaitable.NextFrameAsync();
         inputField.text = newText;
-=======
-    /// <summary>
-    /// Sets the text of the TMP_InputField after a delay of N frames.
-    /// Uses Awaitable on 2023+, otherwise falls back to a coroutine runner (Unity 2022-friendly).
-    /// </summary>
-    public static void SetDelayedText(this TMP_InputField inputField, string newText, int frameDelay = 1)
-    {
-#if UNITY_2023_1_OR_NEWER
-        // Use Unity's Awaitable on newer versions
-        _ = SetDelayedTextAsync_Awaitable(inputField, newText, frameDelay);
-#else
-        // Unity 2022 fallback via coroutine
-        CoroutineRunner.Run(Delay());
-
-        IEnumerator Delay()
-        {
-            for (int i = 0; i < frameDelay; i++)
-                yield return null;
-            inputField.text = newText;
-        }
-#endif
->>>>>>> refs/remotes/origin/master
     }
 #endif
 
-<<<<<<< HEAD
         /// <summary>
         /// Minimal hidden runner to start coroutines from static context.
         /// </summary>
@@ -172,34 +109,3 @@ public static class ExtensionUtils
 
     }
 }
-=======
-#if UNITY_2023_1_OR_NEWER
-    private static async System.Threading.Tasks.Task SetDelayedTextAsync_Awaitable(TMP_InputField inputField, string newText, int frameDelay)
-    {
-        for (int i = 0; i < frameDelay; i++)
-            await UnityEngine.Awaitable.NextFrameAsync();
-        inputField.text = newText;
-    }
-#endif
-
-    /// <summary>
-    /// Minimal hidden runner to start coroutines from static context.
-    /// </summary>
-    private sealed class CoroutineRunner : MonoBehaviour
-    {
-        private static CoroutineRunner _instance;
-
-        public static void Run(IEnumerator routine)
-        {
-            if (_instance == null)
-            {
-                var go = new GameObject("[ExtensionUtils CoroutineRunner]");
-                go.hideFlags = HideFlags.HideAndDontSave;
-                DontDestroyOnLoad(go);
-                _instance = go.AddComponent<CoroutineRunner>();
-            }
-            _instance.StartCoroutine(routine);
-        }
-    }
-}
->>>>>>> refs/remotes/origin/master

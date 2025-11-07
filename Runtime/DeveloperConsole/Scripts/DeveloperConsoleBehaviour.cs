@@ -45,7 +45,8 @@ namespace SAS.Utilities.DeveloperConsole
         private ConsoleInputActions _inputActions;
         public bool IsTreeViewSuggestion => m_TreeViewSuggestionToggle.isOn;
         private GameObject _lastSelectedGameObject;
-        
+
+
         internal DeveloperConsole DeveloperConsole
         {
             get

@@ -3,11 +3,7 @@ using UnityEngine;
 
 namespace SAS
 {
-<<<<<<< HEAD
     [CreateAssetMenu(fileName = "DebugSettings", menuName = "HP/Debug/Settings")]
-=======
-    [CreateAssetMenu(fileName = "DebugSettings", menuName = "SAS/Debug/Settings")]
->>>>>>> refs/remotes/origin/master
     public class LoggingConfig : ScriptableObject
     {
         [Tooltip("Enable or disable specific log levels.")]
