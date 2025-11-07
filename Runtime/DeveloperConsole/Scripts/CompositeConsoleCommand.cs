@@ -25,7 +25,7 @@ namespace SAS.Utilities.DeveloperConsole
             var sub = m_SubCommands.Find(s => s.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
             if (sub == null)
             {
-                Debug.LogWarning($"No SubCommand metadata for '{name}', creating fallback.");
+                Debug.LogWarning($"No SubCommand metadata for '{name}', under the command config '{this.name}'.");
                 return;
             }
             sub.Action = action;

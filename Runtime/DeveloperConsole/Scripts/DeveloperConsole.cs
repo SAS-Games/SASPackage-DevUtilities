@@ -27,8 +27,9 @@ namespace SAS.Utilities.DeveloperConsole
             }
         }
 
-        public void ProcessCommand(string inputValue, DeveloperConsoleBehaviour developerConsole)
+        public void ProcessCommand(string inputValue, DeveloperConsoleBehaviour developerConsole, out bool close)
         {
+            close = false;
             if (!inputValue.StartsWith(_prefix))
             {
                 return;
@@ -46,12 +47,15 @@ namespace SAS.Utilities.DeveloperConsole
                 return;
             }
 
-            if (ProcessCommand(commandInput, args, developerConsole))
+            if (ProcessCommand(commandInput, args, developerConsole, out close))
+            {
                 _commandHistory.Add(inputValue);
+            }
         }
 
-        private bool ProcessCommand(string commandInput, string[] args, DeveloperConsoleBehaviour developerConsole)
+        private bool ProcessCommand(string commandInput, string[] args, DeveloperConsoleBehaviour developerConsole, out bool close)
         {
+            close = false;
             foreach (var command in ConsoleCommands)
             {
                 if (!command.Contains(commandInput))
@@ -74,6 +78,7 @@ namespace SAS.Utilities.DeveloperConsole
                 }
 
                 developerConsole.DisplayHelpText($"");
+                close = command.CloseOnCompletion;
                 return true;
             }
 

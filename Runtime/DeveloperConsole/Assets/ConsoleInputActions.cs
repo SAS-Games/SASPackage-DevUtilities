@@ -98,7 +98,7 @@ public partial class @ConsoleInputActions: IInputActionCollection2, IDisposable
                     ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
-                    ""initialStateCheck"": true
+                    ""initialStateCheck"": false
                 },
                 {
                     ""name"": ""Submit"",
@@ -128,22 +128,31 @@ public partial class @ConsoleInputActions: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""HistoryNavigationUp"",
+                    ""name"": ""Highlight Input"",
                     ""type"": ""Button"",
-                    ""id"": ""5af8e235-1c39-4c68-8757-7894ceacc7b2"",
+                    ""id"": ""9c75f540-adfe-4bf1-a253-ba3c983101c3"",
                     ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
-                    ""initialStateCheck"": true
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""HistoryNavigationUp"",
+                    ""type"": ""Button"",
+                    ""id"": ""bbe6203d-0114-4044-ad49-b7be038bf8ef"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 },
                 {
                     ""name"": ""HistoryNavigationDown"",
                     ""type"": ""Button"",
-                    ""id"": ""d9d9ada7-b8fc-44fa-96d6-b33f782fbdaa"",
+                    ""id"": ""a4f7a894-2f56-4490-9a7e-bd8b26ffb728"",
                     ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
-                    ""initialStateCheck"": true
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -159,15 +168,48 @@ public partial class @ConsoleInputActions: IInputActionCollection2, IDisposable
                     ""isPartOfComposite"": false
                 },
                 {
-                    ""name"": """",
-                    ""id"": ""ade72db6-7e3f-4d3d-8b28-4d74ea0623df"",
-                    ""path"": ""<Gamepad>/start"",
+                    ""name"": ""Down+L1+South"",
+                    ""id"": ""af2e7236-50d5-430b-a42a-b14067ee2a89"",
+                    ""path"": ""TwoModifiers(overrideModifiersNeedToBePressedFirst=true)"",
+                    ""interactions"": ""Hold(duration=0.4,pressPoint=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Toggle Console"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""modifier1"",
+                    ""id"": ""73f2ba4b-18dd-454f-8f47-d947179abee4"",
+                    ""path"": ""<Gamepad>/dpad/down"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": "";GamePad"",
                     ""action"": ""Toggle Console"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""modifier2"",
+                    ""id"": ""28c39981-6a5a-422a-9d97-986a80ad5ccb"",
+                    ""path"": ""<Gamepad>/leftShoulder"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";GamePad"",
+                    ""action"": ""Toggle Console"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""binding"",
+                    ""id"": ""f9f7f3a4-0b74-420f-998b-4093c2cc3f6e"",
+                    ""path"": ""<Gamepad>/buttonSouth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";GamePad"",
+                    ""action"": ""Toggle Console"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
                 },
                 {
                     ""name"": """",
@@ -184,6 +226,17 @@ public partial class @ConsoleInputActions: IInputActionCollection2, IDisposable
                     ""name"": """",
                     ""id"": ""caa3177c-0ac6-4800-b0d7-f2edb6ad7a9a"",
                     ""path"": ""<Gamepad>/buttonSouth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Submit"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""12640857-6ce7-4203-aaa4-2252e10c8b12"",
+                    ""path"": ""<Keyboard>/numpadEnter"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -225,8 +278,8 @@ public partial class @ConsoleInputActions: IInputActionCollection2, IDisposable
                     ""isPartOfComposite"": true
                 },
                 {
-                    ""name"": ""Left Stick"",
-                    ""id"": ""beb2274c-0938-4025-964c-e65839923468"",
+                    ""name"": ""LeftStick"",
+                    ""id"": ""e088f0c9-a1f0-49fc-99db-3f9936202d37"",
                     ""path"": ""1DAxis"",
                     ""interactions"": """",
                     ""processors"": """",
@@ -236,22 +289,22 @@ public partial class @ConsoleInputActions: IInputActionCollection2, IDisposable
                     ""isPartOfComposite"": false
                 },
                 {
-                    ""name"": ""Positive"",
-                    ""id"": ""f164fd1e-51ba-4867-88e0-dc7c7b4d0833"",
-                    ""path"": ""<Gamepad>/leftStick/up"",
+                    ""name"": ""negative"",
+                    ""id"": ""58be6d70-af4b-4fef-8a51-669c66097820"",
+                    ""path"": ""<Gamepad>/leftStick/down"",
                     ""interactions"": """",
-                    ""processors"": """",
+                    ""processors"": ""BlockIfModifier(modifierKey=6)"",
                     ""groups"": """",
                     ""action"": ""Navigate"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
                 },
                 {
-                    ""name"": ""Negative"",
-                    ""id"": ""0bc3842a-498a-4eec-8e1c-b44abfcce019"",
-                    ""path"": ""<Gamepad>/leftStick/down"",
+                    ""name"": ""positive"",
+                    ""id"": ""4acc5296-b63a-4f67-a74f-c9f89094aa3d"",
+                    ""path"": ""<Gamepad>/leftStick/up"",
                     ""interactions"": """",
-                    ""processors"": """",
+                    ""processors"": ""BlockIfModifier(modifierKey=6)"",
                     ""groups"": """",
                     ""action"": ""Navigate"",
                     ""isComposite"": false,
@@ -259,7 +312,7 @@ public partial class @ConsoleInputActions: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": ""D-Pad"",
-                    ""id"": ""f182f56d-95f8-4338-98c1-5cfe19c94f67"",
+                    ""id"": ""43632825-1e40-4348-9560-d55fd8a2e2fd"",
                     ""path"": ""1DAxis"",
                     ""interactions"": """",
                     ""processors"": """",
@@ -269,22 +322,22 @@ public partial class @ConsoleInputActions: IInputActionCollection2, IDisposable
                     ""isPartOfComposite"": false
                 },
                 {
-                    ""name"": ""Positive"",
-                    ""id"": ""bafbda01-19fb-4790-9636-bdae5d0e6ca1"",
-                    ""path"": ""<Gamepad>/dpad/up"",
+                    ""name"": ""negative"",
+                    ""id"": ""472e5ce3-678d-423b-b4b2-c0e3195a3944"",
+                    ""path"": ""<Gamepad>/dpad/down"",
                     ""interactions"": """",
-                    ""processors"": """",
+                    ""processors"": ""BlockIfModifier(modifierKey=6)"",
                     ""groups"": """",
                     ""action"": ""Navigate"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
                 },
                 {
-                    ""name"": ""Negative"",
-                    ""id"": ""259ee81d-f5b5-460c-9fda-2aee1bd5ffbf"",
-                    ""path"": ""<Gamepad>/dpad/down"",
+                    ""name"": ""positive"",
+                    ""id"": ""4b535a7f-d0ef-4fc9-bfce-27cc39b5886f"",
+                    ""path"": ""<Gamepad>/dpad/up"",
                     ""interactions"": """",
-                    ""processors"": """",
+                    ""processors"": ""BlockIfModifier(modifierKey=6)"",
                     ""groups"": """",
                     ""action"": ""Navigate"",
                     ""isComposite"": false,
@@ -313,64 +366,31 @@ public partial class @ConsoleInputActions: IInputActionCollection2, IDisposable
                     ""isPartOfComposite"": false
                 },
                 {
-                    ""name"": ""Button With One Modifier"",
-                    ""id"": ""7855a0fc-bc60-42a0-89d3-c367a2917f8b"",
-                    ""path"": ""ButtonWithOneModifier(overrideModifiersNeedToBePressedFirst=true,modifiersOrder=1)"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""HistoryNavigationUp"",
-                    ""isComposite"": true,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": ""Modifier"",
-                    ""id"": ""4396a6df-7b41-4054-8b5f-290cc5c523f8"",
+                    ""name"": """",
+                    ""id"": ""a2fc6e0b-7597-458a-a2ae-bb2a2cb51605"",
                     ""path"": ""<Keyboard>/ctrl"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": "";Keyboard & Mouse"",
-                    ""action"": ""HistoryNavigationUp"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": ""Button"",
-                    ""id"": ""2c64d64b-9aeb-475b-9afd-dd43907fc0b5"",
-                    ""path"": ""<Keyboard>/upArrow"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": "";Keyboard & Mouse"",
-                    ""action"": ""HistoryNavigationUp"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""ec75ece9-4218-4638-b8fb-86af59a642ae"",
-                    ""path"": ""<Gamepad>/dpad/up"",
-                    ""interactions"": """",
-                    ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""HistoryNavigationUp"",
+                    ""action"": ""Highlight Input"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
-                    ""id"": ""dad76b34-8c00-4cf6-8d09-61a451a3c617"",
-                    ""path"": ""<Gamepad>/leftStick/up"",
+                    ""id"": ""a3cbd57c-0582-4262-8ab7-21c5f3150f3a"",
+                    ""path"": ""<Gamepad>/buttonNorth"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""HistoryNavigationUp"",
+                    ""action"": ""Highlight Input"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
                 {
-                    ""name"": ""Button With One Modifier"",
-                    ""id"": ""740a2843-f6da-4c5a-aa1d-651c32a32f10"",
-                    ""path"": ""ButtonWithOneModifier(overrideModifiersNeedToBePressedFirst=true,modifiersOrder=1)"",
+                    ""name"": ""Keyboard"",
+                    ""id"": ""b3c87996-5ae0-4111-ae07-5ec6c4aa6115"",
+                    ""path"": ""OneModifier(overrideModifiersNeedToBePressedFirst=true)"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -379,8 +399,8 @@ public partial class @ConsoleInputActions: IInputActionCollection2, IDisposable
                     ""isPartOfComposite"": false
                 },
                 {
-                    ""name"": ""Modifier"",
-                    ""id"": ""1e11a9b1-5a8d-4652-aedf-7361b0915908"",
+                    ""name"": ""modifier"",
+                    ""id"": ""772e1e99-feab-48ea-8d8f-315e0193f978"",
                     ""path"": ""<Keyboard>/ctrl"",
                     ""interactions"": """",
                     ""processors"": """",
@@ -390,8 +410,8 @@ public partial class @ConsoleInputActions: IInputActionCollection2, IDisposable
                     ""isPartOfComposite"": true
                 },
                 {
-                    ""name"": ""Button"",
-                    ""id"": ""4ec4df0c-9942-478c-aca6-a4afc31a860e"",
+                    ""name"": ""binding"",
+                    ""id"": ""8bb22af4-42fb-4988-a0d6-1ea0f69d9eaa"",
                     ""path"": ""<Keyboard>/downArrow"",
                     ""interactions"": """",
                     ""processors"": """",
@@ -401,26 +421,169 @@ public partial class @ConsoleInputActions: IInputActionCollection2, IDisposable
                     ""isPartOfComposite"": true
                 },
                 {
-                    ""name"": """",
-                    ""id"": ""4ef59ebe-723c-491b-8f19-295273eda201"",
-                    ""path"": ""<Gamepad>/dpad/down"",
+                    ""name"": ""LeftStick"",
+                    ""id"": ""58a1d828-8e9b-47c0-aaae-9e6d61837345"",
+                    ""path"": ""OneModifier"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""HistoryNavigationDown"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""modifier"",
+                    ""id"": ""4837b43d-c1ef-4996-9796-fb6a0817873b"",
+                    ""path"": ""<Gamepad>/buttonNorth"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""HistoryNavigationDown"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false
+                    ""isPartOfComposite"": true
                 },
                 {
-                    ""name"": """",
-                    ""id"": ""604d1288-c4b8-4419-a656-699db389a422"",
+                    ""name"": ""binding"",
+                    ""id"": ""fe943256-dfa2-48ea-8df3-c4443c50491e"",
                     ""path"": ""<Gamepad>/leftStick/down"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""HistoryNavigationDown"",
                     ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""D-Pad"",
+                    ""id"": ""7226e067-29fd-439f-b2b2-fabbf21216bb"",
+                    ""path"": ""OneModifier"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""HistoryNavigationDown"",
+                    ""isComposite"": true,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""modifier"",
+                    ""id"": ""d3cc3d7e-b02d-4ee6-a3ef-9a96c7622e1a"",
+                    ""path"": ""<Gamepad>/buttonNorth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""HistoryNavigationDown"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""binding"",
+                    ""id"": ""08639c82-92e7-4ddb-b033-c96027cff4fb"",
+                    ""path"": ""<Gamepad>/dpad/down"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""HistoryNavigationDown"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""Keyboard"",
+                    ""id"": ""52d29499-f45b-4369-8b2a-73f95effd35e"",
+                    ""path"": ""OneModifier(overrideModifiersNeedToBePressedFirst=true)"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""HistoryNavigationUp"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""modifier"",
+                    ""id"": ""9d19cd59-f273-4d4d-9aaf-856728b048c5"",
+                    ""path"": ""<Keyboard>/ctrl"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Keyboard & Mouse"",
+                    ""action"": ""HistoryNavigationUp"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""binding"",
+                    ""id"": ""ae2c4639-82ea-4120-9865-bc1ed2352532"",
+                    ""path"": ""<Keyboard>/upArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Keyboard & Mouse"",
+                    ""action"": ""HistoryNavigationUp"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""D-Pad"",
+                    ""id"": ""dbe724ae-de29-4dfd-8a8c-6e422c789340"",
+                    ""path"": ""OneModifier"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""HistoryNavigationUp"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""modifier"",
+                    ""id"": ""e63ea48c-e486-4066-894d-2710d1bafe22"",
+                    ""path"": ""<Gamepad>/buttonNorth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""HistoryNavigationUp"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""binding"",
+                    ""id"": ""683604dc-91d9-4170-8298-e037a85d754d"",
+                    ""path"": ""<Gamepad>/dpad/up"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""HistoryNavigationUp"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""LeftStick"",
+                    ""id"": ""2c5a814d-d43e-436e-a8bc-fdf87a2aa891"",
+                    ""path"": ""OneModifier"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""HistoryNavigationUp"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""modifier"",
+                    ""id"": ""7d21b4d2-e30b-45ec-ac49-9a268548f7b1"",
+                    ""path"": ""<Gamepad>/buttonNorth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""HistoryNavigationUp"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""binding"",
+                    ""id"": ""86188a6e-bf79-4784-a57d-47f6d6b4655d"",
+                    ""path"": ""<Gamepad>/leftStick/up"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""HistoryNavigationUp"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
                 }
             ]
         }
@@ -455,6 +618,7 @@ public partial class @ConsoleInputActions: IInputActionCollection2, IDisposable
         m_Developer_Submit = m_Developer.FindAction("Submit", throwIfNotFound: true);
         m_Developer_Navigate = m_Developer.FindAction("Navigate", throwIfNotFound: true);
         m_Developer_AutoComplete = m_Developer.FindAction("AutoComplete", throwIfNotFound: true);
+        m_Developer_HighlightInput = m_Developer.FindAction("Highlight Input", throwIfNotFound: true);
         m_Developer_HistoryNavigationUp = m_Developer.FindAction("HistoryNavigationUp", throwIfNotFound: true);
         m_Developer_HistoryNavigationDown = m_Developer.FindAction("HistoryNavigationDown", throwIfNotFound: true);
     }
@@ -541,6 +705,7 @@ public partial class @ConsoleInputActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Developer_Submit;
     private readonly InputAction m_Developer_Navigate;
     private readonly InputAction m_Developer_AutoComplete;
+    private readonly InputAction m_Developer_HighlightInput;
     private readonly InputAction m_Developer_HistoryNavigationUp;
     private readonly InputAction m_Developer_HistoryNavigationDown;
     /// <summary>
@@ -570,6 +735,10 @@ public partial class @ConsoleInputActions: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Developer/AutoComplete".
         /// </summary>
         public InputAction @AutoComplete => m_Wrapper.m_Developer_AutoComplete;
+        /// <summary>
+        /// Provides access to the underlying input action "Developer/HighlightInput".
+        /// </summary>
+        public InputAction @HighlightInput => m_Wrapper.m_Developer_HighlightInput;
         /// <summary>
         /// Provides access to the underlying input action "Developer/HistoryNavigationUp".
         /// </summary>
@@ -616,6 +785,9 @@ public partial class @ConsoleInputActions: IInputActionCollection2, IDisposable
             @AutoComplete.started += instance.OnAutoComplete;
             @AutoComplete.performed += instance.OnAutoComplete;
             @AutoComplete.canceled += instance.OnAutoComplete;
+            @HighlightInput.started += instance.OnHighlightInput;
+            @HighlightInput.performed += instance.OnHighlightInput;
+            @HighlightInput.canceled += instance.OnHighlightInput;
             @HistoryNavigationUp.started += instance.OnHistoryNavigationUp;
             @HistoryNavigationUp.performed += instance.OnHistoryNavigationUp;
             @HistoryNavigationUp.canceled += instance.OnHistoryNavigationUp;
@@ -645,6 +817,9 @@ public partial class @ConsoleInputActions: IInputActionCollection2, IDisposable
             @AutoComplete.started -= instance.OnAutoComplete;
             @AutoComplete.performed -= instance.OnAutoComplete;
             @AutoComplete.canceled -= instance.OnAutoComplete;
+            @HighlightInput.started -= instance.OnHighlightInput;
+            @HighlightInput.performed -= instance.OnHighlightInput;
+            @HighlightInput.canceled -= instance.OnHighlightInput;
             @HistoryNavigationUp.started -= instance.OnHistoryNavigationUp;
             @HistoryNavigationUp.performed -= instance.OnHistoryNavigationUp;
             @HistoryNavigationUp.canceled -= instance.OnHistoryNavigationUp;
@@ -745,6 +920,13 @@ public partial class @ConsoleInputActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnAutoComplete(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Highlight Input" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnHighlightInput(InputAction.CallbackContext context);
         /// <summary>
         /// Method invoked when associated input action "HistoryNavigationUp" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>

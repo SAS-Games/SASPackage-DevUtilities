@@ -2,7 +2,7 @@
 //using System.Collections.Generic;
 //using UnityEngine;
 
-//namespace SAS
+//namespace HP
 //{
 //    public static partial class Debug
 //    {

@@ -1,36 +1,39 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-[RequireComponent(typeof(ScrollRect))]
-[DisallowMultipleComponent]
-public class ScrollSnapper : MonoBehaviour
+namespace SAS.Utilities.DeveloperConsole
 {
-    [SerializeField] private float m_Offset = 15;
-    private ScrollRect _scrollRect;
-
-    void Awake()
+    [RequireComponent(typeof(ScrollRect))]
+    [DisallowMultipleComponent]
+    public class ScrollSnapper : MonoBehaviour
     {
-        if (_scrollRect == null)
-            _scrollRect = GetComponent<ScrollRect>();
-        _scrollRect.horizontal = false;
-        _scrollRect.vertical = true;
-        _scrollRect.movementType = ScrollRect.MovementType.Clamped;
-    }
+        [SerializeField] private float m_Offset = 15;
+        private ScrollRect _scrollRect;
 
-    public void FocusOn(Transform target)
-    {
-        if (target == null)
-            return;
-        RectTransform targetRect = target.GetComponent<RectTransform>();
-        SnapTo(targetRect, _scrollRect.content);
-    }
+        void Awake()
+        {
+            if (_scrollRect == null)
+                _scrollRect = GetComponent<ScrollRect>();
+            _scrollRect.horizontal = false;
+            _scrollRect.vertical = true;
+            _scrollRect.movementType = ScrollRect.MovementType.Clamped;
+        }
 
-    private void SnapTo(RectTransform target, RectTransform content)
-    {
-        Canvas.ForceUpdateCanvases();
-        Vector2 currentPos = content.anchoredPosition;
-        float newY = ((Vector2)_scrollRect.transform.InverseTransformPoint(content.position)
-                      - (Vector2)_scrollRect.transform.InverseTransformPoint(target.position)).y;
-        content.anchoredPosition = new Vector2(currentPos.x, newY + m_Offset);
+        public void FocusOn(Transform target)
+        {
+            if (target == null)
+                return;
+            RectTransform targetRect = target.GetComponent<RectTransform>();
+            SnapTo(targetRect, _scrollRect.content);
+        }
+
+        private void SnapTo(RectTransform target, RectTransform content)
+        {
+            Canvas.ForceUpdateCanvases();
+            Vector2 currentPos = content.anchoredPosition;
+            float newY = ((Vector2)_scrollRect.transform.InverseTransformPoint(content.position)
+                          - (Vector2)_scrollRect.transform.InverseTransformPoint(target.position)).y;
+            content.anchoredPosition = new Vector2(currentPos.x, newY + m_Offset);
+        }
     }
 }

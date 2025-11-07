@@ -54,8 +54,13 @@ namespace SAS.Utilities.DeveloperConsole
         {
             if (!gameObject.activeInHierarchy || _navigableItems.Count == 0) return;
 
+
             if (direction > 0)
+            {
+                if (_selectedIndex == -1)
+                    _selectedIndex = 0;
                 _selectedIndex = (_selectedIndex - 1 + _navigableItems.Count) % _navigableItems.Count;
+            }
             else if (direction < 0)
                 _selectedIndex = (_selectedIndex + 1) % _navigableItems.Count;
 
@@ -94,7 +99,9 @@ namespace SAS.Utilities.DeveloperConsole
                 _highlightedItem.GetComponentInChildren<TMP_Text>().color = Color.yellow;
                 StartCoroutine(SelectGameObjectNextFrame(_highlightedItem.GetComponentInChildren<Button>().gameObject));
             }
-            _scrollSnapper.FocusOn(_highlightedItem?.transform);
+
+            if (_highlightedItem != null)
+                _scrollSnapper.FocusOn(_highlightedItem.transform);
         }
 
         private void CreateBaseCommandUI(string baseCommand)
@@ -134,7 +141,8 @@ namespace SAS.Utilities.DeveloperConsole
             _selectedIndex = baseItemIndex;
             RebuildNavigableList();
             LayoutRebuilder.ForceRebuildLayoutImmediate(m_BaseCommandContainer);
-            _scrollSnapper.FocusOn(_highlightedItem.transform);
+            if (_highlightedItem != null)
+                _scrollSnapper.FocusOn(_highlightedItem.transform);
         }
 
         private void CreatePresetUI(float startPos, RectTransform container, List<string> suggestions)

@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c7fc693a0953ad4ba429a6296949950, type: 3}
+  m_Name: URP Shadow Console Command
+  m_EditorClassIdentifier: 
+  <Name>k__BackingField: Shadow
+  m_Presets: []
+  m_SubCommands:
+  - Name: SetShadowDistance
+    HelpText: 'SetShadowDistance <distance> \nSets the maximum distance Unity renders
+      real-time shadows.\nExample: Shadow.SetShadowDistance 50'
+    Presets:
+    - SetShadowDistance 50
+  - Name: SetShadowCascadeCount
+    HelpText: 'SetShadowCascadeCount <1|2|4> \nSets the number of shadow cascades
+      used in URP.\nExample: Shadow.SetShadowCascadeCount 2'
+    Presets:
+    - SetShadowCascadeCount 1
+    - SetShadowCascadeCount 2
+    - SetShadowCascadeCount 4
+  m_HelpText: Commands for modifying URP shadow settings at runtime.

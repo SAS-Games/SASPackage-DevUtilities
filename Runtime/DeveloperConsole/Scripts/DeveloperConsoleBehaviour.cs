@@ -32,7 +32,8 @@ namespace SAS.Utilities.DeveloperConsole
         [SerializeField] private string m_Prefix = string.Empty;
         [SerializeField] private ConsoleCommand[] m_Commands = new ConsoleCommand[0];
         [SerializeField] private PlatformCommand[] m_PlatformCommands;
-        [Header("UI")] [SerializeField] private GameObject m_UiCanvas = null;
+        [SerializeField] private string[] m_CommandsToExecuteOnLoad;
+        [Header("UI")][SerializeField] private GameObject m_UiCanvas = null;
         [SerializeField] private TMP_InputField m_InputField = null;
         [SerializeField] private Button m_SubmitButton = null;
         [SerializeField] private TMP_Text m_HelpText = null;
@@ -55,15 +56,31 @@ namespace SAS.Utilities.DeveloperConsole
 
                 var allCommands = new List<ConsoleCommand>();
 
-                allCommands.AddRange(m_Commands);
-
-                // Add platform-specific commands
-                foreach (var pc in m_PlatformCommands)
+                if (m_Commands != null)
                 {
-                    if (IsCurrentPlatform(pc.platform))
+                    foreach (var cmd in m_Commands)
                     {
-                        allCommands.AddRange(pc.commands);
-                        break;
+                        if (cmd != null)
+                            allCommands.Add(cmd);
+                    }
+                }
+
+                if (m_PlatformCommands != null)
+                {
+                    foreach (var pc in m_PlatformCommands)
+                    {
+                        if (pc == null || pc.commands == null)
+                            continue;
+
+                        if (IsCurrentPlatform(pc.platform))
+                        {
+                            foreach (var cmd in pc.commands)
+                            {
+                                if (cmd != null)
+                                    allCommands.Add(cmd);
+                            }
+                            break;
+                        }
                     }
                 }
 
@@ -107,6 +124,7 @@ namespace SAS.Utilities.DeveloperConsole
             _inputActions = new ConsoleInputActions();
             _inputActions.Developer.ToggleConsole.performed += Toggle;
             _inputActions.Developer.Submit.performed += OnSubmit;
+            _inputActions.Developer.HighlightInput.canceled += FocusInput;
             _inputActions.Developer.HistoryNavigationUp.performed += GetNextCommandHistory;
             _inputActions.Developer.HistoryNavigationDown.performed += GetPrevCommandHistory;
 
@@ -115,6 +133,9 @@ namespace SAS.Utilities.DeveloperConsole
 
             m_TreeViewSuggestionToggle.onValueChanged.AddListener(OnTreeViewSuggestion);
             OnTreeViewSuggestion(m_TreeViewSuggestionToggle.isOn);
+
+            foreach (var commands in m_CommandsToExecuteOnLoad)
+                DeveloperConsole.ProcessCommand(commands, this, out _);
         }
 
         private void OnTreeViewSuggestion(bool treeView)
@@ -122,10 +143,7 @@ namespace SAS.Utilities.DeveloperConsole
             SuggestionViewChangedEvent?.Invoke(treeView);
         }
 
-        private void OnEnable()
-        {
-            _inputActions?.Developer.Enable();
-        }
+        private void OnEnable() => _inputActions?.Developer.Enable();
 
         private void OnDisable() => _inputActions?.Developer.Disable();
 
@@ -149,8 +167,13 @@ namespace SAS.Utilities.DeveloperConsole
 
                 m_UiCanvas.SetActive(true);
                 _lastSelectedGameObject = EventSystem.current.currentSelectedGameObject;
+                EventSystem.current.SetSelectedGameObject(null);
+#if UNITY_EDITOR || !UNITY_PS5
                 StartCoroutine(FocusInputFieldNextFrame());
+#endif
             }
+
+            DisplayHelpText("");
         }
 
         private IEnumerator FocusInputFieldNextFrame()
@@ -158,13 +181,31 @@ namespace SAS.Utilities.DeveloperConsole
             yield return null; // wait one frame
             m_InputField.ActivateInputField();
             m_InputField.Select();
+            SuggestionAppliedEvent?.Invoke();
+        }
+
+        private IEnumerator FocusSubmitNextFrame()
+        {
+            yield return null; // wait one frame
+            m_SubmitButton.Select();
+        }
+
+        private IEnumerator ClearFocusNextFrame()
+        {
+            yield return null; // wait one frame
+            EventSystem.current.SetSelectedGameObject(null);
         }
 
         public void ProcessCommand()
         {
-            DeveloperConsole.ProcessCommand(m_InputField.text, this);
+            DeveloperConsole.ProcessCommand(m_InputField.text, this, out var close);
             m_InputField.text = string.Empty;
+#if !UNITY_EDITOR && UNITY_PS5
+            StartCoroutine(ClearFocusNextFrame());
+#endif
             SuggestionAppliedEvent?.Invoke();
+            if (close)
+                Toggle(default);
         }
 
         public void DisplayHelpText(string helpText)
@@ -177,6 +218,9 @@ namespace SAS.Utilities.DeveloperConsole
         private void OnInputChanged(string input)
         {
             InputChangedEvent?.Invoke(input);
+#if !UNITY_EDITOR && UNITY_PS5
+            StartCoroutine(FocusSubmitNextFrame());
+#endif
         }
 
         public void ApplySuggestion(string suggestion)
@@ -204,6 +248,18 @@ namespace SAS.Utilities.DeveloperConsole
                 m_SubmitButton.onClick.Invoke();
             }
         }
+
+        private void FocusInput(CallbackContext context)
+        {
+            if (!context.performed) return;
+
+            if (m_InputField != null)
+            {
+                EventSystem.current.SetSelectedGameObject(null);
+                StartCoroutine(FocusInputFieldNextFrame());
+            }
+        }
+
 
         private void GetNextCommandHistory(CallbackContext context)
         {

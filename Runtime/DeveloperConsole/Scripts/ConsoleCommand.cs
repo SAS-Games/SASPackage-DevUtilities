@@ -10,6 +10,8 @@ namespace SAS.Utilities.DeveloperConsole
         public abstract string HelpText { get; }
         public virtual string[] Presets => m_Presets;
 
+        [field: SerializeField] public bool CloseOnCompletion { get; private set; } = true;
+
         public virtual bool HelpRequest(string command, string[] args, out string message)
         {
             message = HelpText;

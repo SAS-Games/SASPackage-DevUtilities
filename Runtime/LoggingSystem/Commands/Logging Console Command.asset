@@ -1,0 +1,76 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ffa96df76c86814882169c868710202, type: 3}
+  m_Name: Logging Console Command
+  m_EditorClassIdentifier: 
+  <Name>k__BackingField: Logging
+  m_Presets:
+  - Logging Help
+  m_SubCommands:
+  - Name: LogLevel
+    HelpText: 'Usage: LogLevel <Level> <On|Off> \nEnables or disables a specific
+      log level.  \nAvailable levels: Info, Warning, Error. \nExample: Logging.LogLevel
+      Info On'
+    Presets:
+    - LogLevel Info On
+    - LogLevel Warning On
+    - LogLevel Error On
+    - LogLevel Info Off
+    - LogLevel Warning Off
+    - LogLevel Error Off
+  - Name: OnScreenLog
+    HelpText: 'Usage: ShowOnScreen <On|Off> \n Toggles the on-screen logging display.
+      \nExample: Logging.ShowOnScreen O'
+    Presets:
+    - OnScreenLog On
+    - OnScreenLog Off
+  - Name: SetTags
+    HelpText: 'Usage: SetTags <tag1|tag2|...> \nSets the allowed log tags to filter
+      console output.\nProvide one or more tags separated by the pipe symbol ''|''.
+      Only logs with these tags will be shown. \nExample: Logging.setTags Gameplay|UI|Network'
+    Presets: []
+  - Name: ClearTags
+    HelpText: 'ClearTags \nRemove all the Tags and prints all logs. \nExample: Logging.ClearTags'
+    Presets:
+    - ClearTags
+  - Name: SetLogLifetime
+    HelpText: 'SetLogLifetime <val> \nSets the lifetime of a log entry. \nExample:
+      Logging.SetLogLifetime 5'
+    Presets:
+    - SetLogLifetime 2
+    - SetLogLifetime 5
+  - Name: ClearOnScreenLog
+    HelpText: 'logging.ClearOnScreenLog clears the  on screen log entry. \nExample:
+      Logging.ClearOnScreenLog'
+    Presets:
+    - SetLogLifetime 2
+    - SetLogLifetime 5
+  - Name: SetStackTrace
+    HelpText: 'logging.SetStackTrace Sets the log stack trace. \nExample: Logging.SetStackTrace
+      <Log|Warning|Error|Exception|All> <0=None, 1=ScriptOnly, 2=Full>'
+    Presets:
+    - SetStackTrace Log 0
+    - SetStackTrace Log 1
+    - SetStackTrace Log 2
+    - SetStackTrace Warning 0
+    - SetStackTrace Warning 1
+    - SetStackTrace Warning 2
+    - SetStackTrace Error 0
+    - SetStackTrace Error 1
+    - SetStackTrace Error 2
+  m_HelpText: 'Logging - Controls runtime logging features.\n     \nSubcommands:\n       
+    LogLevel <Level> <On|Off>     Enables or disables a specific log level.\n                                    
+    Levels: Info, Warning, Error.\n                                     Example:
+    Logging.LogLevel Info On\n\n       ShowOnScreen <On|Off>         Toggles the
+    on-screen log display.\n                                     Example: Logging.ShowOnScreen
+    On;'
+  m_OnScreenLogPrefab: {fileID: 8162142777781139144, guid: 47313525747476e43adaefd09fce542c, type: 3}

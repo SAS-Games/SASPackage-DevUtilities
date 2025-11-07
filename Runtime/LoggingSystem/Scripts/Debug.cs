@@ -49,6 +49,11 @@ namespace SAS
             AllowedTags.UnionWith(tags);
         }
 
+        public static void ClearTags()
+        {
+            AllowedTags.Clear();
+        }
+
         [Conditional(DEBUG)]
         public static void Log(object message, string tag = null)
         {

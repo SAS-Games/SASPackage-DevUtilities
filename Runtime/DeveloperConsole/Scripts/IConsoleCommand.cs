@@ -8,5 +8,6 @@
         bool HelpRequest(string command, string[] args, out string message);
         bool Process(DeveloperConsoleBehaviour developerConsole, string command, string[] args = null);
         bool Contains(string commandName);
+        bool CloseOnCompletion { get; }
     }
 }
