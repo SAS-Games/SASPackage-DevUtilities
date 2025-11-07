@@ -1,4 +1,5 @@
 fileFormatVersion: 2
+<<<<<<< HEAD
 guid: af47bc326d44c864fa8103178c8770e7
 MonoImporter:
   externalObjects: {}
@@ -9,3 +10,6 @@ MonoImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+=======
+guid: ed420de0261969b45b5667e2f99b4f28
+>>>>>>> refs/remotes/origin/master
