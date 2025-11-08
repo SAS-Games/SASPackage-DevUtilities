@@ -1,11 +1,7 @@
 ﻿using System.Text;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.Profiling;
 using UnityEngine.UI;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 public class FPS : UIBehaviour
 {
@@ -20,11 +16,7 @@ public class FPS : UIBehaviour
 
     private float _framesAvgTick;
     private float _framesAvg;
-    private readonly StringBuilder tx = new StringBuilder(512);
-
-    // FrameTiming array for render thread measurements
-    private readonly FrameTiming[] _frameTimings = new FrameTiming[1];
-
+    
     protected override void Start()
     {
         _timeLeft = m_UpdateInterval;
@@ -54,16 +46,8 @@ public class FPS : UIBehaviour
             Color fpsColor = avgFps < 30 ? (avgFps < 10 ? Color.red : Color.yellow) : Color.green;
             string fpsHex = ColorUtility.ToHtmlStringRGB(fpsColor);
             string fpsLine = $"<color=#{fpsHex}>FPS: {avgFps:F1}</color>";
-
-            tx.Length = 0;
-
-            tx.AppendFormat("Allocated: {0:F3} GB\nReserved: {1:F3} GB\nUnused: {2:F3} GB\n",
-                Profiler.GetTotalAllocatedMemoryLong() / 1073741824f,
-                Profiler.GetTotalReservedMemoryLong() / 1073741824f,
-                Profiler.GetTotalUnusedReservedMemoryLong() / 1073741824f);
-
-
-            m_Display.text = $"{fpsLine}\n" + $"{Colorize("Frame Time", frameTimeMs, "ms", Color.white)}\n{tx}";
+            
+            m_Display.text = $"{fpsLine}\n" + $"{Colorize("Frame Time", frameTimeMs, "ms", Color.white)}";
 
             _accumulatedFPS = 0;
             _frames = 0;
