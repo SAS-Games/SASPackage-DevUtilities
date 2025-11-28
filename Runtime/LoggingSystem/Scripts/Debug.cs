@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace SAS
@@ -55,32 +56,132 @@ namespace SAS
         }
 
         [Conditional(DEBUG)]
-        public static void Log(object message, string tag = null)
+        public static void Log(object message, string tag = null, [CallerFilePath] string caller = "")
         {
-            Log(message?.ToString() ?? "null", tag, LogLevel.Info);
+            LogInternal(message?.ToString() ?? "null", null, tag, LogLevel.Info, -1, caller);
         }
 
         [Conditional(DEBUG)]
-        public static void Log(string message, string tag = null)
+        public static void Log(string message, string tag = null, [CallerFilePath] string caller = "")
         {
-            Log(message, tag, LogLevel.Info);
+            LogInternal(message, null, tag, LogLevel.Info, -1, caller);
         }
 
         [Conditional(DEBUG)]
-        public static void Log(string message, int slotIndex, string tag = null)
+        public static void Log(string message, int slotIndex, string tag = null, [CallerFilePath] string caller = "")
         {
-            Log(message, null, tag, LogLevel.Info, slotIndex);
+            LogInternal(message, null, tag, LogLevel.Info, slotIndex, caller);
         }
 
         [Conditional(DEBUG)]
-        private static void Log(string message, string tag, LogLevel level)
+        private static void Log(string message, string tag, LogLevel level, [CallerFilePath] string caller = "")
         {
-            Log(message, null, tag, level);
+            LogInternal(message, null, tag, level, -1, caller);
         }
 
         [Conditional(DEBUG)]
-        private static void Log(string message, UnityEngine.Object context, string tag, LogLevel level, int slotIndex = -1)
+        public static void Log(object message, UnityEngine.Object context, string tag = null, [CallerFilePath] string caller = "")
         {
+            LogInternal(message?.ToString() ?? "null", context, tag, LogLevel.Info, -1, caller);
+        }
+
+        [Conditional(DEBUG)]
+        public static void Log(string message, UnityEngine.Object context, string tag = null, [CallerFilePath] string caller = "")
+        {
+            LogInternal(message, context, tag, LogLevel.Info, -1, caller);
+        }
+
+        [Conditional(DEBUG)]
+        public static void Log(string message, UnityEngine.Object context, int slotIndex = -1, string tag = null,[CallerFilePath] string caller = "")
+        {
+            LogInternal(message, context, tag, LogLevel.Info, slotIndex, caller);
+        }
+        
+
+        [Conditional(DEBUG)]
+        public static void LogWarning(object message, string tag = null, [CallerFilePath] string caller = "")
+        {
+            LogInternal(message?.ToString() ?? "null", null, tag, LogLevel.Warning,-1, caller);
+        }
+
+        [Conditional(DEBUG)]
+        public static void LogWarning(object message, UnityEngine.Object context, string tag = null, [CallerFilePath] string caller = "")
+        {
+            LogInternal(message?.ToString() ?? "null", context, tag, LogLevel.Warning, -1, caller);
+        }
+        
+        [Conditional(DEBUG)]
+        public static void LogWarning(string message, string tag = null, [CallerFilePath] string caller = "")
+        {
+            LogInternal(message, null, tag, LogLevel.Warning, -1, caller);
+        }
+
+        [Conditional(DEBUG)]
+        public static void LogWarning(string message, int slotIndex, string tag = null, [CallerFilePath] string caller = "")
+        {
+            LogInternal(message, null, tag, LogLevel.Warning, slotIndex, caller);
+        }
+
+        [Conditional(DEBUG)]
+        public static void LogWarning(string message, UnityEngine.Object context, string tag = null, [CallerFilePath] string caller = "")
+        {
+            LogInternal(message, context, tag, LogLevel.Warning, -1, caller);
+        }
+        
+        [Conditional(DEBUG)]
+        public static void LogWarning(string message, UnityEngine.Object context, int slotIndex = -1, string tag = null,[CallerFilePath] string caller = "")
+        {
+            LogInternal(message, context, tag, LogLevel.Warning, slotIndex, caller);
+        }
+
+        [Conditional(DEBUG)]
+        public static void LogError(object message, string tag = null, [CallerFilePath] string caller = "")
+        {
+            LogInternal(message?.ToString() ?? "null", null, tag, LogLevel.Error, -1, caller);
+        }
+        
+        [Conditional(DEBUG)]
+        public static void LogError(object message, UnityEngine.Object context, string tag = null, [CallerFilePath] string caller = "")
+        {
+            LogInternal(message?.ToString() ?? "null", context, tag, LogLevel.Error, -1, caller);
+        }
+
+        [Conditional(DEBUG)]
+        public static void LogError(string message, string tag = null, [CallerFilePath] string caller = "")
+        {
+            LogInternal(message, null, tag, LogLevel.Error, -1, caller);
+        }
+
+        [Conditional(DEBUG)]
+        public static void LogError(string message, int slotIndex, string tag = null, [CallerFilePath] string caller = "")
+        {
+            LogInternal(message, null, tag, LogLevel.Error, slotIndex, caller);
+        }
+
+        [Conditional(DEBUG)]
+        public static void LogError(string message, UnityEngine.Object context, string tag = null, [CallerFilePath] string caller = "")
+        {
+            LogInternal(message, context, tag, LogLevel.Error, -1, caller);
+        }
+        
+        [Conditional(DEBUG)]
+        public static void LogError(string message, UnityEngine.Object context, int slotIndex = -1, string tag = null,[CallerFilePath] string caller = "")
+        {
+            LogInternal(message, context, tag, LogLevel.Error, slotIndex, caller);
+        }
+        
+        public static void LogException(Exception exception)
+        {
+            UnityEngine.Debug.LogException(exception);
+            AddOnScreenLogEntry(exception.ToString(), "EXCEPTION", LogLevel.Error);
+        }
+        
+        [Conditional(DEBUG)]
+        private static void LogInternal(string message, UnityEngine.Object context, string tag, LogLevel level, int slotIndex, string callerFilePath = "")
+        {
+            if (string.IsNullOrEmpty(tag))
+                tag = System.IO.Path.GetFileNameWithoutExtension(callerFilePath);
+            
             if (CanLog(level) && TagPassesFilter(tag))
             {
                 string logMessage = $"Tag: [{tag}] {message}";
@@ -93,102 +194,6 @@ namespace SAS
 
                 AddOnScreenLogEntry(message, tag, level, slotIndex);
             }
-        }
-
-        [Conditional(DEBUG)]
-        public static void LogWarning(object message, string tag = null)
-        {
-            LogWarning(message?.ToString() ?? "null", tag);
-        }
-
-        [Conditional(DEBUG)]
-        public static void LogWarning(string message, string tag = null)
-        {
-            Log(message, tag, LogLevel.Warning);
-        }
-
-        [Conditional(DEBUG)]
-        public static void LogWarning(string message, int slotIndex, string tag = null)
-        {
-            Log(message, null, tag, LogLevel.Warning, slotIndex);
-        }
-
-        [Conditional(DEBUG)]
-        public static void LogError(object message, string tag = null)
-        {
-            LogError(message?.ToString() ?? "null", tag);
-        }
-
-        [Conditional(DEBUG)]
-        public static void LogError(string message, string tag = null)
-        {
-            Log(message, tag, LogLevel.Error);
-        }
-
-        [Conditional(DEBUG)]
-        public static void LogError(string message, int slotIndex, string tag = null)
-        {
-            Log(message, null, tag, LogLevel.Error, slotIndex);
-        }
-
-        [Conditional(DEBUG)]
-        public static void Log(object message, UnityEngine.Object context, string tag = null)
-        {
-            Log(message?.ToString() ?? "null", context, tag, LogLevel.Info);
-        }
-
-        [Conditional(DEBUG)]
-        public static void Log(string message, UnityEngine.Object context, string tag = null)
-        {
-            Log(message, context, tag, LogLevel.Info);
-        }
-
-        [Conditional(DEBUG)]
-        public static void Log(string message, UnityEngine.Object context, int slotIndex = -1, string tag = null)
-        {
-            Log(message, context, tag, LogLevel.Info, slotIndex);
-        }
-
-        [Conditional(DEBUG)]
-        public static void LogWarning(object message, UnityEngine.Object context, string tag = null)
-        {
-            LogWarning(message?.ToString() ?? "null", context, tag);
-        }
-
-        [Conditional(DEBUG)]
-        public static void LogWarning(string message, UnityEngine.Object context, string tag = null)
-        {
-            Log(message, context, tag, LogLevel.Warning);
-        }
-
-        [Conditional(DEBUG)]
-        public static void LogWarning(string message, UnityEngine.Object context, int slotIndex = -1, string tag = null)
-        {
-            Log(message, context, tag, LogLevel.Warning, slotIndex);
-        }
-
-        [Conditional(DEBUG)]
-        public static void LogError(object message, UnityEngine.Object context, string tag = null)
-        {
-            LogError(message?.ToString() ?? "null", context, tag);
-        }
-
-        [Conditional(DEBUG)]
-        public static void LogError(string message, UnityEngine.Object context, string tag = null)
-        {
-            Log(message, context, tag, LogLevel.Error);
-        }
-
-        [Conditional(DEBUG)]
-        public static void LogError(string message, UnityEngine.Object context, int slotIndex = -1, string tag = null)
-        {
-            Log(message, context, tag, LogLevel.Error, slotIndex);
-        }
-
-        public static void LogException(Exception exception)
-        {
-            UnityEngine.Debug.LogException(exception);
-            AddOnScreenLogEntry(exception.ToString(), "EXCEPTION", LogLevel.Error);
         }
 
         public static bool CanLog(LogLevel level)
