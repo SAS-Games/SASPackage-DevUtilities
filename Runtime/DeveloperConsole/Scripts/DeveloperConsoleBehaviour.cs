@@ -33,7 +33,7 @@ namespace SAS.Utilities.DeveloperConsole
         [SerializeField] private ConsoleCommand[] m_Commands = new ConsoleCommand[0];
         [SerializeField] private PlatformCommand[] m_PlatformCommands;
         [SerializeField] private string[] m_CommandsToExecuteOnLoad;
-        [Header("UI")][SerializeField] private GameObject m_UiCanvas = null;
+        [Header("UI")] [SerializeField] private GameObject m_UiCanvas = null;
         [SerializeField] private TMP_InputField m_InputField = null;
         [SerializeField] private Button m_SubmitButton = null;
         [SerializeField] private TMP_Text m_HelpText = null;
@@ -45,7 +45,7 @@ namespace SAS.Utilities.DeveloperConsole
         private ConsoleInputActions _inputActions;
         public bool IsTreeViewSuggestion => m_TreeViewSuggestionToggle.isOn;
         private GameObject _lastSelectedGameObject;
-
+        public static DeveloperConsoleBehaviour Instance { get; private set; }
 
         internal DeveloperConsole DeveloperConsole
         {
@@ -79,6 +79,7 @@ namespace SAS.Utilities.DeveloperConsole
                                 if (cmd != null)
                                     allCommands.Add(cmd);
                             }
+
                             break;
                         }
                     }
@@ -88,7 +89,7 @@ namespace SAS.Utilities.DeveloperConsole
             }
         }
 
-        bool IsCurrentPlatform(Platform platform)
+        public static bool IsCurrentPlatform(Platform platform)
         {
             switch (platform)
             {
@@ -117,9 +118,15 @@ namespace SAS.Utilities.DeveloperConsole
         }
 
 
-
         private void Awake()
         {
+            if (Instance != null)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
+            Instance = this;
             _pausedTimeScale = Time.timeScale;
             _inputActions = new ConsoleInputActions();
             _inputActions.Developer.ToggleConsole.performed += Toggle;
@@ -136,6 +143,8 @@ namespace SAS.Utilities.DeveloperConsole
 
             foreach (var commands in m_CommandsToExecuteOnLoad)
                 DeveloperConsole.ProcessCommand(commands, this, out _);
+
+            DontDestroyOnLoad(this.gameObject);
         }
 
         private void OnTreeViewSuggestion(bool treeView)
@@ -153,9 +162,9 @@ namespace SAS.Utilities.DeveloperConsole
             {
                 if (m_InputField != null)
                     Time.timeScale = _pausedTimeScale;
-                m_UiCanvas.SetActive(false);
                 EventSystem.current.SetSelectedGameObject(null);
                 EventSystem.current.SetSelectedGameObject(_lastSelectedGameObject);
+                m_UiCanvas.SetActive(false);
             }
             else
             {

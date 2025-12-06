@@ -2,7 +2,7 @@
 
 namespace SAS.Utilities.DeveloperConsole
 {
-    [CreateAssetMenu(fileName = "New Show FPS Command", menuName = "HP/DeveloperConsole/Commands/Show FPS Command")]
+    [CreateAssetMenu(fileName = "New Show FPS Command", menuName = "SAS/DeveloperConsole/Commands/Show FPS Command")]
     public class ShowFPSCommand : CompositeConsoleCommand
     {
         [SerializeField] private GameObject m_FpsPrefab;

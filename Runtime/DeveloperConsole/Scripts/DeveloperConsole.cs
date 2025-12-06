@@ -9,31 +9,21 @@ namespace SAS.Utilities.DeveloperConsole
         public readonly string _prefix;
         private readonly CommandSuggester _commandSuggester = new();
         private readonly CommandHistory _commandHistory = new();
-        public readonly IEnumerable<IConsoleCommand> ConsoleCommands;
+        public readonly List<IConsoleCommand> ConsoleCommands = new List<IConsoleCommand>();
         public CommandHistory CommandHistory => _commandHistory;
 
         public DeveloperConsole(string prefix, IEnumerable<IConsoleCommand> consoleCommands)
         {
             this._prefix = prefix;
-            this.ConsoleCommands = consoleCommands;
-            foreach (var consoleCommand in this.ConsoleCommands)
-            {
-                _commandSuggester.Insert($"{this._prefix}{consoleCommand.Name}");
-
-                foreach (var preset in consoleCommand.Presets)
-                {
-                    _commandSuggester.Insert($"{this._prefix}{preset}");
-                }
-            }
+            foreach (var consoleCommand in consoleCommands)
+                AddCommand(consoleCommand);
         }
 
         public void ProcessCommand(string inputValue, DeveloperConsoleBehaviour developerConsole, out bool close)
         {
             close = false;
             if (!inputValue.StartsWith(_prefix))
-            {
                 return;
-            }
 
             inputValue = inputValue.Remove(0, _prefix.Length);
             string[] inputSplit = inputValue.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
@@ -48,12 +38,11 @@ namespace SAS.Utilities.DeveloperConsole
             }
 
             if (ProcessCommand(commandInput, args, developerConsole, out close))
-            {
                 _commandHistory.Add(inputValue);
-            }
         }
 
-        private bool ProcessCommand(string commandInput, string[] args, DeveloperConsoleBehaviour developerConsole, out bool close)
+        private bool ProcessCommand(string commandInput, string[] args, DeveloperConsoleBehaviour developerConsole,
+            out bool close)
         {
             close = false;
             foreach (var command in ConsoleCommands)
@@ -89,6 +78,24 @@ namespace SAS.Utilities.DeveloperConsole
         public List<string> GetCommandSuggestions(string input)
         {
             return _commandSuggester.GetAllWithPrefix(input);
+        }
+
+        public void AddCommand(IConsoleCommand cmd)
+        {
+            if (cmd == null || ConsoleCommands.Contains(cmd))
+                return;
+
+            ConsoleCommands.Add(cmd);
+            _commandSuggester.Insert($"{this._prefix}{cmd.Name}");
+            foreach (var preset in cmd.Presets)
+                _commandSuggester.Insert($"{this._prefix}{preset}");
+        }
+
+        public void RemoveCommand(IConsoleCommand cmd)
+        {
+            if (cmd == null)
+                return;
+            ConsoleCommands.Remove(cmd);
         }
     }
 }
