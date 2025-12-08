@@ -5,14 +5,14 @@ namespace SAS.Utilities.DeveloperConsole
 {
     public class DeveloperConsoleCommandRegistrar : MonoBehaviour
     {
-        [Header("Commands")] [SerializeField] private ConsoleCommand[] m_Commands;
+        [SerializeField] private ConsoleCommand[] m_Commands;
         [SerializeField] private DeveloperConsoleBehaviour.PlatformCommand[] m_PlatformCommands;
         [SerializeField] private string[] m_CommandsToExecuteOnLoad;
 
         private readonly List<ConsoleCommand> _registeredCommands = new();
         private DeveloperConsoleBehaviour _developerConsoleBehaviour;
 
-        private void Awake()
+        private void Start()
         {
             _developerConsoleBehaviour = DeveloperConsoleBehaviour.Instance;
             if (_developerConsoleBehaviour == null)
