@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 4458009698218427333}
   - component: {fileID: 1159876266928737853}
   m_Layer: 5
-  m_Name: FPSText
+  m_Name: AnimatorText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -35,7 +35,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: -165, y: -30}
+  m_AnchoredPosition: {x: -165, y: -192}
   m_SizeDelta: {x: 300, y: 165}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4458009698218427333
@@ -88,10 +88,9 @@ GameObject:
   - component: {fileID: 5836109799629292761}
   - component: {fileID: 5181882616318872658}
   - component: {fileID: 5015909938340262309}
-  - component: {fileID: 9082245390930172511}
-  - component: {fileID: -6136017348891098970}
+  - component: {fileID: 4609079454717472447}
   m_Layer: 5
-  m_Name: FPS
+  m_Name: AnimatorStats
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -180,7 +179,7 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
---- !u!114 &9082245390930172511
+--- !u!114 &4609079454717472447
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -189,26 +188,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 4840794096766531456}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: df35b6ee8de73fc42ac8cf2aaef51344, type: 3}
+  m_Script: {fileID: 11500000, guid: a556e8e0bb7438542baf24c328a9bb0f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Display: {fileID: 7919385023625728094}
-  m_UpdateInterval: 0.1
-  m_TargetFrameRate: 200
---- !u!114 &-6136017348891098970
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4840794096766531456}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a66c1d980470d1b49bd6c3e974bf0e05, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Display: {fileID: 7919385023625728094}
-  m_UpdateInterval: 0.1
+  m_UpdateInterval: 1
 --- !u!1 &7232403671296343171
 GameObject:
   m_ObjectHideFlags: 0
