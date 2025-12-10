@@ -22,6 +22,10 @@ MonoBehaviour:
     Presets:
     - ShowStats On
     - ShowStats Off
+  - Name: Refresh
+    HelpText: 'Usage:\n Animator.Refresh, Refresh AnimatorStats UI '
+    Presets:
+    - Refresh
   - Name: SetCulling
     HelpText: Usage:\n Animator.SetCulling <always|cullupdate|cull>
     Presets:

@@ -3,10 +3,9 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class AnimatorStats: UIBehaviour
+public class AnimatorStats : UIBehaviour
 {
     [SerializeField] private Text m_Display;
-    [SerializeField] private float m_UpdateInterval = 1f;
 
     private readonly StringBuilder sb = new StringBuilder(256);
     private Animator[] _animators;
@@ -20,11 +19,7 @@ public class AnimatorStats: UIBehaviour
 
     private void RefreshList()
     {
-        _animators = FindObjectsByType<Animator>(FindObjectsSortMode.None);
-    }
-
-    private void Update()
-    {
+        _animators = FindObjectsByType<Animator>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         int activeAlways = 0;
         int activeCullUpdate = 0;
         int activeCull = 0;
@@ -60,7 +55,7 @@ public class AnimatorStats: UIBehaviour
 
         sb.Length = 0;
         sb.AppendLine("<color=#00FFFF><b>ANIMATORS</b></color>");
-      
+
         sb.AppendLine("<color=#00FF00>Active:</color>");
         sb.AppendFormat("  Always: {0}\n", activeAlways);
         sb.AppendFormat("  CullUpdate: {0}\n", activeCullUpdate);

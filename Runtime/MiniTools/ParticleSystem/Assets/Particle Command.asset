@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c41fe51decc571c458889c98206822cd, type: 3}
+  m_Name: Particle Command
+  m_EditorClassIdentifier: 
+  <Name>k__BackingField: Particle
+  m_Presets: []
+  <CloseOnCompletion>k__BackingField: 1
+  m_SubCommands:
+  - Name: ShowStats
+    HelpText: 'Usage: \nParticle.ShowStats <On|Off> \n Show or hide ParticleStats
+      UI'
+    Presets:
+    - ShowStats On
+    - ShowStats Off
+  - Name: Refresh
+    HelpText: 'Usage: \nParticle.Refresh  \n Refresh ParticleStats UI'
+    Presets:
+    - Refresh
+  - Name: CullOffscreen
+    HelpText: 'Usage: \nParticle.CullOffscreen  \n Disable off-screen Particles'
+    Presets:
+    - CullOffscreen
+  - Name: ResetCull
+    HelpText: 'Usage: \nParticle.ResetCull  \n Resets culled Particles by CullOffscreen
+      command'
+    Presets:
+    - ResetCull
+  - Name: SetAll
+    HelpText: 'Usage: \nParticle.SetAll <On|Off>.  \n Activate/Deactivate Particles
+      gameobjects '
+    Presets:
+    - SetAll On
+    - SetAll Off
+  m_ParticleStatsPrefab: {fileID: 4840794096766531456, guid: 349bd7a9842c13f4c88a4ddcb0ed1602, type: 3}

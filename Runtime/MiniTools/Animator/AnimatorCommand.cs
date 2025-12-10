@@ -2,17 +2,18 @@ using UnityEngine;
 
 namespace SAS.Utilities.DeveloperConsole
 {
-    [CreateAssetMenu(fileName = "New Animator Command",menuName = "SAS/DeveloperConsole/Commands/Animator Command")]
+    [CreateAssetMenu(fileName = "New Animator Command", menuName = "SAS/DeveloperConsole/Commands/Animator Command")]
     public class AnimatorCommand : CompositeConsoleCommand
     {
         [SerializeField] private GameObject m_AnimatorStatsPrefab;
         private GameObject _statsInstance;
-        public override string HelpText => "Animator Commands:\n" + "  Animator SetCulling <always|cullupdate|cull>\n";
-        
+        public override string HelpText => "";
+
         protected override void CommandMethodRegistry()
         {
             Register("ShowStats", ShowStats);
             Register("SetCulling", SetCulling);
+            Register("Refresh", Refresh);
         }
 
         private bool ShowStats(string[] args)
@@ -58,11 +59,27 @@ namespace SAS.Utilities.DeveloperConsole
                     Debug.LogError("Unknown mode. Use: always | cullupdate | cull");
                     return false;
             }
-            Animator[] animatorsInScene = FindObjectsByType<Animator>(FindObjectsSortMode.None);
+            Animator[] animatorsInScene = FindObjectsByType<Animator>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             foreach (var animator in animatorsInScene)
                 animator.cullingMode = mode;
 
             Debug.Log($"AnimatorCull: Set mode = {mode} on {animatorsInScene.Length} animators");
+            return true;
+        }
+
+        private bool Refresh(string[] args)
+        {
+
+            if (_statsInstance == null)
+            {
+                _statsInstance = Instantiate(m_AnimatorStatsPrefab);
+                _statsInstance.name = "ParticleStatsUI";
+            }
+
+            _statsInstance.SetActive(false);
+            _statsInstance.SetActive(true);
+            Debug.Log("Particle Stats UI Refreshed.");
+
             return true;
         }
     }
