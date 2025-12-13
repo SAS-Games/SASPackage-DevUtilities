@@ -19,9 +19,9 @@ MonoBehaviour:
   - Name: Offset
     HelpText: 'Usage: Light.Offset <x> <y> <z>\n Example: Light.Offset 0 5 0'
     Presets:
-    - Light.Offset 0 0 10000
-    - Light.Offset 0 0 -10000
+    - Offset 0 0 10000
+    - Offset 0 0 -10000
   - Name: ResetOffset
     HelpText: 'Usage: Light.ResetOffset \n Example: Light.ResetOffset'
     Presets:
-    - Light.ResetOffset
+    - ResetOffset
