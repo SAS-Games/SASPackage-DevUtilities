@@ -3,8 +3,7 @@ using UnityEngine;
 
 namespace SAS.Utilities.DeveloperConsole
 {
-
-    [CreateAssetMenu(fileName = "New Particle Command", menuName = "SAS/DeveloperConsole/Commands/Particle Command")]
+    [CreateAssetMenu(fileName = "New Particle Command", menuName =  DeveloperConsole.CommandBasePath + "Particle Command")]
     public class ParticleCommand : CompositeConsoleCommand
     {
         private class ParticleBackupState
@@ -20,6 +19,8 @@ namespace SAS.Utilities.DeveloperConsole
         private bool _isCulled = false;
 
         public override string HelpText => "";
+        private readonly TransformOffsetManager _offsetManager = new();
+
 
         protected override void CommandMethodRegistry()
         {
@@ -28,6 +29,8 @@ namespace SAS.Utilities.DeveloperConsole
             Register("CullOffscreen", CullOffscreen);
             Register("ResetCull", ResetCull);
             Register("SetAll", ToggleAll);
+            Register("Offset", OffsetParticles);
+            Register("ResetOffset", ResetOffset);
         }
 
         private bool ShowStats(string[] args)
@@ -52,7 +55,6 @@ namespace SAS.Utilities.DeveloperConsole
 
         private bool Refresh(string[] args)
         {
-
             if (_particleStatsInstance == null)
             {
                 _particleStatsInstance = Instantiate(m_ParticleStatsPrefab);
@@ -77,7 +79,8 @@ namespace SAS.Utilities.DeveloperConsole
 
             _backupStates.Clear();
 
-            ParticleSystem[] systems = FindObjectsByType<ParticleSystem>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            ParticleSystem[] systems =
+                FindObjectsByType<ParticleSystem>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             int culled = 0;
 
             foreach (var ps in systems)
@@ -142,7 +145,8 @@ namespace SAS.Utilities.DeveloperConsole
             {
                 if (BoolUtil.TryParse(args[0], out var turnOn))
                 {
-                    ParticleSystem[] systems = FindObjectsByType<ParticleSystem>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+                    ParticleSystem[] systems =
+                        FindObjectsByType<ParticleSystem>(FindObjectsInactive.Include, FindObjectsSortMode.None);
 
                     int affected = 0;
 
@@ -169,13 +173,47 @@ namespace SAS.Utilities.DeveloperConsole
 
                     _isCulled = !turnOn;
 
-                    Debug.Log($"ToggleAll: {(turnOn ? "Enabled" : "Disabled")} {affected}/{systems.Length} particle GameObjects.");
+                    Debug.Log(
+                        $"ToggleAll: {(turnOn ? "Enabled" : "Disabled")} {affected}/{systems.Length} particle GameObjects.");
                     return true;
                 }
             }
 
             Debug.LogError("ToggleAll: Invalid parameter. Usage: ToggleAll on/off or true/false");
             return false;
+        }
+
+        private bool OffsetParticles(string[] args)
+        {
+            if (args == null || args.Length < 3)
+            {
+                Debug.LogError("Offset usage: Offset x y z");
+                return false;
+            } 
+            
+            if (!VectorParseUtil.TryParseVector3(args[0], args[1], args[2], out var offset))
+            {
+                Debug.LogError("Offset parsing error");
+                return false;
+            }
+
+            var systems = FindObjectsByType<ParticleSystem>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+
+            var transforms = new List<Transform>(systems.Length);
+            foreach (var ps in systems)
+                transforms.Add(ps.transform);
+
+            _offsetManager.ApplyOffset(transforms, offset);
+
+            Debug.Log($"Particle Offset applied: {offset}");
+            return true;
+        }
+
+        private bool ResetOffset(string[] args)
+        {
+            _offsetManager.Reset();
+            Debug.Log("Particle Offset reset.");
+            return true;
         }
     }
 }

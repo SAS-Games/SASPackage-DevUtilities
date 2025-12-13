@@ -1298,7 +1298,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 93465742319232649afaf598f84c1392, type: 2}
   - {fileID: 11400000, guid: 8a9261cafefbe2a4d88cab5f6b6b9e12, type: 2}
   - {fileID: 11400000, guid: 0446de86b4ca04040b2855e11d9e920b, type: 2}
-  - {fileID: 0}
+  - {fileID: 11400000, guid: f5bfd1ed31e686b46b965aa2bedcc7b3, type: 2}
   m_PlatformCommands:
   - platform: 0
     commands:
@@ -1313,7 +1313,7 @@ MonoBehaviour:
   m_InputField: {fileID: 1669160770}
   m_SubmitButton: {fileID: 6405785454008897814}
   m_HelpText: {fileID: 2200534256221178484}
-  m_PauseOnOpen: 1
+  m_PauseOnOpen: 0
   m_TreeViewSuggestionToggle: {fileID: 706384162952235771}
 --- !u!114 &8880836135833229900
 MonoBehaviour:

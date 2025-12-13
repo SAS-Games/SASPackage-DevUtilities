@@ -1,13 +1,10 @@
-using SAS;
-using SAS.Utilities.DeveloperConsole;
 using System;
 using System.Linq;
 using UnityEngine;
-using Debug = SAS.Debug;
 
 namespace SAS.Utilities.DeveloperConsole
 {
-    [CreateAssetMenu(menuName = "HP/DeveloperConsole/Commands/Logging Console Command")]
+    [CreateAssetMenu(menuName =  DeveloperConsole.CommandBasePath + "Logging Console Command")]
     public class LoggingConsoleCommand : CompositeConsoleCommand
     {
         [SerializeField] private string m_HelpText;

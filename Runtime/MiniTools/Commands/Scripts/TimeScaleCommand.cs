@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace SAS.Utilities.DeveloperConsole
 {
-    [CreateAssetMenu(fileName = "New SetTimeScale Command", menuName = "HP/DeveloperConsole/Commands/SetTimeScale")]
+    [CreateAssetMenu(fileName = "New SetTimeScale Command", menuName =  DeveloperConsole.CommandBasePath + "SetTimeScale")]
     public class TimeScaleCommand : ConsoleCommand
     {
         public override string HelpText => "Usage: SetTimeScale <float> \n Sets the game's time scale.";

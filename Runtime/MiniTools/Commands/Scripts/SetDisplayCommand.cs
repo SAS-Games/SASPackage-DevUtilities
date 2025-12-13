@@ -3,7 +3,7 @@ using UnityEngine.SceneManagement;
 
 namespace SAS.Utilities.DeveloperConsole
 {
-    [CreateAssetMenu(fileName = "New SetDisplay Command", menuName = "HP/DeveloperConsole/Commands/SetDisplay Command")]
+    [CreateAssetMenu(fileName = "New SetDisplay Command", menuName =  DeveloperConsole.CommandBasePath + "SetDisplay Command")]
     public class SetDisplayCommand : ConsoleCommand
     {
         public override string HelpText =>

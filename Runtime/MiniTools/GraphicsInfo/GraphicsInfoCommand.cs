@@ -2,7 +2,7 @@
 
 namespace SAS.Utilities.DeveloperConsole
 {
-    [CreateAssetMenu(fileName = "GraphicsInfoCommand", menuName = "HP/DeveloperConsole/Commands/GraphicsInfo")]
+    [CreateAssetMenu(fileName = "GraphicsInfoCommand", menuName =  DeveloperConsole.CommandBasePath + "GraphicsInfo")]
     public class GraphicsInfoCommand : ConsoleCommand
     {
         [SerializeField] private GameObject m_GraphicsInfoPrefab;

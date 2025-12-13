@@ -2,7 +2,7 @@
 
 namespace SAS.Utilities.DeveloperConsole
 {
-    [CreateAssetMenu(fileName = "New Show FPS Command", menuName = "HP/DeveloperConsole/Commands/Show FPS Command PS")]
+    [CreateAssetMenu(fileName = "New Show FPS Command", menuName =  DeveloperConsole.CommandBasePath + "Show FPS Command PS")]
     public class ShowFPSCommandPS : ShowFPSCommand
     {
         protected override bool SetTargetFrameRate(string[] args)

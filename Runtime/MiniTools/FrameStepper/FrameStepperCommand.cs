@@ -2,11 +2,12 @@
 
 namespace SAS.Utilities.DeveloperConsole
 {
-    [CreateAssetMenu(fileName = "FrameStepperCommand", menuName = "HP/DeveloperConsole/Commands/FrameStepper")]
+    [CreateAssetMenu(fileName = "FrameStepperCommand", menuName = DeveloperConsole.CommandBasePath + "FrameStepper")]
     public class FrameStepperCommand : ConsoleCommand
     {
         [SerializeField] private FrameStepper m_FrameStepperPrefab;
         private FrameStepper _frameStepper;
+
         public override string HelpText => "Usage: FrameStepper <On|Off>\n" +
                                            "Show or hide the Frame Stepper UI at runtime.";
 

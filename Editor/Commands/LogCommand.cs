@@ -2,7 +2,7 @@
 
 namespace SAS.Utilities.DeveloperConsole
 {
-    [CreateAssetMenu(fileName = "New Log Command", menuName = "HP/DeveloperConsole/Commands/Log Command")]
+    [CreateAssetMenu(fileName = "New Log Command", menuName =  DeveloperConsole.CommandBasePath + "Log Command")]
     public class LogCommand : ConsoleCommand
     {
         public override string HelpText => "Usage: Log <value>.\n Print the provided value on console.";

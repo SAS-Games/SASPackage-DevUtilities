@@ -41,4 +41,13 @@ MonoBehaviour:
     Presets:
     - SetAll On
     - SetAll Off
+  - Name: Offset
+    HelpText: 'Usage: \nParticle.Offset <x y z>.  \n Positioned the particles '
+    Presets:
+    - Offset 0 0 10000
+    - Offset 0 0 -10000
+  - Name: ResetOffset
+    HelpText: 'Usage: \nParticle.ResetOffset  \n Repositioned to original'
+    Presets:
+    - ResetOffset
   m_ParticleStatsPrefab: {fileID: 4840794096766531456, guid: 349bd7a9842c13f4c88a4ddcb0ed1602, type: 3}

@@ -6,6 +6,7 @@ namespace SAS.Utilities.DeveloperConsole
 {
     public class DeveloperConsole
     {
+        public const string CommandBasePath = "SAS/DeveloperConsole/Commands/";
         public readonly string _prefix;
         private readonly CommandSuggester _commandSuggester = new();
         private readonly CommandHistory _commandHistory = new();

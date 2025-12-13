@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace SAS.Utilities.DeveloperConsole
 {
-    [CreateAssetMenu(fileName = "New Game Info Command", menuName = "HP/DeveloperConsole/Commands/Game Info Command")]
+    [CreateAssetMenu(fileName = "New Game Info Command", menuName =  DeveloperConsole.CommandBasePath + "Game Info Command")]
     public class GameInfoCommand : ConsoleCommand
     {
         [SerializeField] private string m_HelpText;
