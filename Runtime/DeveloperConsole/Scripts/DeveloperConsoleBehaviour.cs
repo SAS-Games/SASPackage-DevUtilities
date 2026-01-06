@@ -144,6 +144,8 @@ namespace SAS.Utilities.DeveloperConsole
             foreach (var commands in m_CommandsToExecuteOnLoad)
                 DeveloperConsole.ProcessCommand(commands, this, out _);
 
+            ExecuteCommandsFromCommandLine();
+
             DontDestroyOnLoad(this.gameObject);
         }
 
@@ -285,5 +287,26 @@ namespace SAS.Utilities.DeveloperConsole
             m_InputField.SetDelayedText(command);
             StartCoroutine(SelectGameObjectNextFrame());
         }
+
+        private void ExecuteCommandsFromCommandLine()
+        {
+            string[] args = Environment.GetCommandLineArgs();
+
+            for (int i = 0; i < args.Length; i++)
+            {
+                if (args[i] == "-consoleCmd" && i + 1 < args.Length)
+                {
+                    string raw = args[i + 1];
+                    string[] commands = raw.Split(';');
+
+                    foreach (var cmd in commands)
+                    {
+                        if (!string.IsNullOrWhiteSpace(cmd))
+                            DeveloperConsole.ProcessCommand(cmd.Trim(), this, out _);
+                    }
+                }
+            }
+        }
+
     }
 }
