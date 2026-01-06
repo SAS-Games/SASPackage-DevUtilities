@@ -4,9 +4,9 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-namespace HP.Utilities.DeveloperConsole
+namespace SAS.Utilities.DeveloperConsole
 {
-    [CreateAssetMenu(menuName = "HP/DeveloperConsole/Commands/URP Console Command")]
+    [CreateAssetMenu(menuName = "SAS/DeveloperConsole/Commands/URP Console Command")]
     public class URPConsoleCommand : CompositeConsoleCommand
     {
         [SerializeField] private string m_HelpText = "Commands for modifying URP asset settings at runtime.";
