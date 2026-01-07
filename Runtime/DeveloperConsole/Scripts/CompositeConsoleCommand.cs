@@ -75,7 +75,7 @@ namespace SAS.Utilities.DeveloperConsole
             return result;
         }
 
-        public sealed override string[] Presets
+        public override string[] Presets
         {
             get
             {

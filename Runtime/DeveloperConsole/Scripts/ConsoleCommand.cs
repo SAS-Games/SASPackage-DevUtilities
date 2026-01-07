@@ -5,7 +5,7 @@ namespace SAS.Utilities.DeveloperConsole
 {
     public abstract class ConsoleCommand : ScriptableObject, IConsoleCommand
     {
-        [field: SerializeField] public string Name { get; private set; }
+        [field: SerializeField] public virtual string Name { get; private set; }
         [SerializeField] private string[] m_Presets;
         public abstract string HelpText { get; }
         public virtual string[] Presets => m_Presets;

@@ -1,4 +1,3 @@
-#if UNITY_RENDER_PIPELINE_UNIVERSAL
 using System;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -11,7 +10,7 @@ namespace SAS.Utilities.DeveloperConsole
     {
         [SerializeField] private string m_HelpText = "Commands for modifying URP asset settings at runtime.";
         public override string HelpText => m_HelpText;
-
+#if UNITY_RENDER_PIPELINE_UNIVERSAL
         private UniversalRenderPipelineAsset CurrentURPAsset
         {
             get
@@ -21,9 +20,10 @@ namespace SAS.Utilities.DeveloperConsole
                 return null;
             }
         }
-
+#endif
         protected override void CommandMethodRegistry()
         {
+#if UNITY_RENDER_PIPELINE_UNIVERSAL
             Register("SetUpscalingFilter", SetUpscalingFilter);
             Register("SetRenderScale", SetRenderScale);
             Register("SetMSAA", SetMSAA);
@@ -35,9 +35,10 @@ namespace SAS.Utilities.DeveloperConsole
             Register("SetLUTSize", SetLUTSize);
             Register("VSync", SetVSync);
             Register("TextureQuality", SetTextureQuality);
+#endif
         }
 
-
+#if UNITY_RENDER_PIPELINE_UNIVERSAL
         private bool SetRenderScale(string[] args)
         {
             if (args.Length < 1 || !float.TryParse(args[0], out float val))
@@ -179,6 +180,9 @@ namespace SAS.Utilities.DeveloperConsole
             QualitySettings.globalTextureMipmapLimit = Mathf.Clamp(val, 0, 3);
             return true;
         }
+#else
+        public override string Name => String.Empty;
+        public override string[] Presets { get; } = new string[] { "" };
+#endif
     }
 }
-#endif
