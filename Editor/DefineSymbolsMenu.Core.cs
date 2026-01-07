@@ -6,10 +6,11 @@ namespace SAS.Utilities.DeveloperConsole.Editor
 {
     public static partial class DefineSymbolsMenu
     {
-        private static void ToggleDefine(string symbol)
+        private static bool ToggleDefine(string symbol)
         {
             bool has = HasSymbol(symbol);
             ModifyDefineSymbols(symbol, !has);
+            return !has;
         }
 
         private static bool ValidateToggle(string symbol)
