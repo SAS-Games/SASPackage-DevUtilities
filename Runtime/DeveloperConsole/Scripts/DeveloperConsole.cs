@@ -83,7 +83,7 @@ namespace SAS.Utilities.DeveloperConsole
 
         public void AddCommand(IConsoleCommand cmd)
         {
-            if (cmd == null || ConsoleCommands.Contains(cmd))
+            if (cmd == null || ConsoleCommands.Contains(cmd) || string.IsNullOrEmpty(cmd.Name))
                 return;
 
             ConsoleCommands.Add(cmd);
