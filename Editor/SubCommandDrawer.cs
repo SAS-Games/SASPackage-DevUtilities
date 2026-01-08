@@ -13,8 +13,25 @@ public class SubCommandDrawer : PropertyDrawer
 
     public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
     {
-        return EditorGUIUtility.singleLineHeight * 5 + 6;
+        float height = 0f;
+        float line = EditorGUIUtility.singleLineHeight;
+        float spacing = 2f;
+
+        var nameProp = property.FindPropertyRelative("Name");
+        var helpProp = property.FindPropertyRelative("HelpText");
+        var presetsProp = property.FindPropertyRelative("Presets");
+        var methodProp = property.FindPropertyRelative("MethodName");
+
+        height += line + spacing; // Name
+        height += line + spacing; // Method popup
+        height += line + spacing; // Help
+
+        // IMPORTANT: dynamic height for array
+        height += EditorGUI.GetPropertyHeight(presetsProp, true) + spacing;
+
+        return height;
     }
+
 
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
@@ -39,29 +56,45 @@ public class SubCommandDrawer : PropertyDrawer
 
     private void Draw(ref float y, Rect pos, SerializedProperty prop, string label)
     {
-        EditorGUI.PropertyField(new Rect(pos.x, y, pos.width, EditorGUIUtility.singleLineHeight), prop, new GUIContent(label));
-        y += EditorGUIUtility.singleLineHeight + 2;
+        float h = EditorGUI.GetPropertyHeight(prop, true);
+
+        EditorGUI.PropertyField(new Rect(pos.x, y, pos.width, h), prop, new GUIContent(label), true);
+
+        y += h + 2;
     }
+
 
     private void DrawMethodPopup(ref float y, Rect pos, SerializedProperty property, SerializedProperty methodProp)
     {
         var target = property.serializedObject.targetObject;
-        var methods = GetValidMethods(target.GetType());
+        var type = target.GetType();
 
-        var names = methods.Select(m => m.Name).ToArray();
-        var currentIndex = Mathf.Max(0, Array.IndexOf(names, methodProp.stringValue));
+        var methods = GetValidMethods(type);
+        var validNames = methods.Select(m => m.Name).ToArray();
+
+        bool isValid = IsMethodValid(type, methodProp.stringValue);
+
+        int currentIndex = Mathf.Max(-1, Array.IndexOf(validNames, methodProp.stringValue));
+
+        var prevColor = GUI.color;
+        if (!isValid && !string.IsNullOrEmpty(methodProp.stringValue))
+            GUI.color = Color.red;
 
         EditorGUI.BeginChangeCheck();
 
-        var newIndex = EditorGUI.Popup(new Rect(pos.x, y, pos.width, EditorGUIUtility.singleLineHeight), "Method", currentIndex, names);
+        int newIndex = EditorGUI.Popup(new Rect(pos.x, y, pos.width, EditorGUIUtility.singleLineHeight), "Method", currentIndex, validNames);
 
-        if (EditorGUI.EndChangeCheck())
+        if (EditorGUI.EndChangeCheck() && newIndex != -1)
         {
-            methodProp.stringValue = names.Length > 0 ? names[newIndex] : string.Empty;
+            methodProp.stringValue = validNames[newIndex];
         }
 
+        GUI.color = prevColor;
         y += EditorGUIUtility.singleLineHeight + 2;
     }
+
+
+
 
     private static MethodInfo[] GetValidMethods(Type type)
     {
@@ -75,4 +108,19 @@ public class SubCommandDrawer : PropertyDrawer
             .OrderBy(m => m.Name)
             .ToArray();
     }
+
+    private static bool IsMethodValid(Type type, string methodName)
+    {
+        if (string.IsNullOrEmpty(methodName))
+            return false;
+
+        return type.GetMethods(FLAGS).Any(m =>
+            m.Name == methodName &&
+            m.ReturnType == typeof(bool) &&
+            m.GetParameters().Length == 1 &&
+            m.GetParameters()[0].ParameterType == typeof(string[]) &&
+            !m.IsGenericMethod &&
+            !m.IsAbstract);
+    }
+
 }

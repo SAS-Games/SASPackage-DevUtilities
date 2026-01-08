@@ -17,11 +17,11 @@ MonoBehaviour:
   <CloseOnCompletion>k__BackingField: 1
   m_SubCommands:
   - Name: SetColorGradingMode
-    HelpText: 
+    HelpText: SetColorGradingMode <LowDynamicRange|HighDynamicRange>
     Presets:
     - SetColorGradingMode LowDynamicRange
     - SetColorGradingMode HighDynamicRange
-    MethodName: 
+    MethodName: SetLOD
   - Name: SetLUTSize
     HelpText: SetLUTSize <16|32|64>
     Presets:
