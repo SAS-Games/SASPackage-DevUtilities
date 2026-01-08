@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <Name>k__BackingField: Quality
   m_Presets: []
+  <CloseOnCompletion>k__BackingField: 1
   m_SubCommands:
   - Name: SetUpscalingFilter
     HelpText: 'Quality.SetUpscalingFilter <Auto|Linear|Point|FSR|STP>  \nChanges
@@ -25,6 +26,7 @@ MonoBehaviour:
     - SetUpscalingFilter Point
     - SetUpscalingFilter FSR
     - SetUpscalingFilter STP
+    MethodName: SetUpscalingFilter
   - Name: SetRenderScale
     HelpText: 'Quality.SetRenderScale <scale> \nSets the internal render scale (0.1
       to 2.0). Lower values improve performance, higher values improve quality.\nExample:
@@ -36,6 +38,7 @@ MonoBehaviour:
     - SetRenderScale 0.75
     - SetRenderScale 1
     - SetRenderScale 2
+    MethodName: SetRenderScale
   - Name: SetMSAA
     HelpText: 'Quality.SetMSAA <0|2|4|8> \nConfigures Multi-Sample Anti-Aliasing.
       Use 0 to disable.\nExample: Quality.SetMSAA 4'
@@ -44,12 +47,14 @@ MonoBehaviour:
     - SetMSAA 2
     - SetMSAA 4
     - SetMSAA 8
+    MethodName: SetMSAA
   - Name: SetHDR
     HelpText: 'Quality.SetHDR <On|Off> \nEnables or disables HDR rendering.\nExample:
       Quality.SetHDR On'
     Presets:
     - SetHDR on
     - SetHDR off
+    MethodName: SetHDR
   - Name: VSync
     HelpText: Quality.VSync <[0-2]>. \nSets vertical sync count.\n0 = Don't Sync,
       1 = Every VBlank, 2 = Every Second VBlank.
@@ -57,6 +62,7 @@ MonoBehaviour:
     - VSync 0
     - VSync 1
     - VSync 2
+    MethodName: SetVSync
   - Name: TextureQuality
     HelpText: Quality.TextureQuality <[0-3]>. \nSets global texture quality. \n    
       "0 = Full Res, 1 = Half Res, 2 = Quarter Res, 3 = Eighth Res.
@@ -65,4 +71,5 @@ MonoBehaviour:
     - TextureQuality 1
     - TextureQuality 2
     - TextureQuality 4
+    MethodName: 
   m_HelpText: Commands for modifying URP quality settings at runtime.

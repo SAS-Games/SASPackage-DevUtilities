@@ -14,16 +14,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <Name>k__BackingField: PP
   m_Presets: []
+  <CloseOnCompletion>k__BackingField: 1
   m_SubCommands:
   - Name: SetColorGradingMode
     HelpText: 
     Presets:
     - SetColorGradingMode LowDynamicRange
     - SetColorGradingMode HighDynamicRange
+    MethodName: 
   - Name: SetLUTSize
     HelpText: SetLUTSize <16|32|64>
     Presets:
     - SetLUTSize 16
     - SetLUTSize 32
     - SetLUTSize 64
+    MethodName: SetLUTSize
   m_HelpText: Commands for modifying URP post-processing settings at runtime.

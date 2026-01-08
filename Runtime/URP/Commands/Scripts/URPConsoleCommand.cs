@@ -24,17 +24,17 @@ namespace SAS.Utilities.DeveloperConsole
         protected override void CommandMethodRegistry()
         {
 #if UNITY_RENDER_PIPELINE_UNIVERSAL
-            Register("SetUpscalingFilter", SetUpscalingFilter);
-            Register("SetRenderScale", SetRenderScale);
-            Register("SetMSAA", SetMSAA);
-            Register("SetHDR", SetHDR);
-            Register("SetShadowDistance", SetShadowDistance);
-            Register("SetShadowCascadeCount", SetShadowCascadeCount);
-            Register("SetLOD", SetLOD);
-            Register("SetColorGradingMode", SetColorGradingMode);
-            Register("SetLUTSize", SetLUTSize);
-            Register("VSync", SetVSync);
-            Register("TextureQuality", SetTextureQuality);
+            // Register("SetUpscalingFilter", SetUpscalingFilter);
+            // Register("SetRenderScale", SetRenderScale);
+            // Register("SetMSAA", SetMSAA);
+            // Register("SetHDR", SetHDR);
+            // Register("SetShadowDistance", SetShadowDistance);
+            // Register("SetShadowCascadeCount", SetShadowCascadeCount);
+            // Register("SetLOD", SetLOD);
+            // Register("SetColorGradingMode", SetColorGradingMode);
+            // Register("SetLUTSize", SetLUTSize);
+            // Register("VSync", SetVSync);
+            // Register("TextureQuality", SetTextureQuality);
 #endif
         }
 

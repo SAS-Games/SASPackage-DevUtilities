@@ -2,18 +2,19 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
+using System.Reflection;
 
 namespace SAS.Utilities.DeveloperConsole
 {
     public abstract class CompositeConsoleCommand : ConsoleCommand
     {
-
         [Serializable]
-        protected class SubCommand
+        public class SubCommand
         {
             public string Name;
             public string HelpText;
             public string[] Presets;
+            public string MethodName;
             [NonSerialized] public Func<string[], bool> Action;
         }
 
@@ -35,6 +36,7 @@ namespace SAS.Utilities.DeveloperConsole
         {
             foreach (var sub in m_SubCommands)
                 sub.Action = null;
+            BindSubCommands();
             CommandMethodRegistry();
         }
 
@@ -104,5 +106,37 @@ namespace SAS.Utilities.DeveloperConsole
         }
 
         protected abstract void CommandMethodRegistry();
+        
+
+        protected void BindSubCommands()
+        {
+            var type = GetType();
+
+            foreach (var cmd in m_SubCommands)
+            {
+                cmd.Action = null;
+
+                if (string.IsNullOrEmpty(cmd.MethodName))
+                    continue;
+
+                var method = type.GetMethod(cmd.MethodName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+                if (method == null)
+                {
+                    Debug.LogError($"[Console] Method not found: {cmd.MethodName}");
+                    continue;
+                }
+
+                var parameters = method.GetParameters();
+                if (parameters.Length != 1 || parameters[0].ParameterType != typeof(string[]) || method.ReturnType != typeof(bool))
+                {
+                    Debug.LogError($"[Console] Invalid signature on '{cmd.MethodName}'. " + $"Expected: bool Method(string[] args)");
+                    continue;
+                }
+
+                cmd.Action = (Func<string[], bool>)Delegate.CreateDelegate(typeof(Func<string[], bool>), this, method);
+            }
+        }
+
     }
 }
