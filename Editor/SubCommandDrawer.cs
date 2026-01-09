@@ -22,11 +22,10 @@ public class SubCommandDrawer : PropertyDrawer
         var presetsProp = property.FindPropertyRelative("Presets");
         var methodProp = property.FindPropertyRelative("MethodName");
 
-        height += line + spacing; // Name
-        height += line + spacing; // Method popup
-        height += line + spacing; // Help
+        height += line + spacing; 
+        height += line + spacing; 
+        height += line + spacing; 
 
-        // IMPORTANT: dynamic height for array
         height += EditorGUI.GetPropertyHeight(presetsProp, true) + spacing;
 
         return height;

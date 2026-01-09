@@ -5,7 +5,8 @@ namespace SAS.Utilities.DeveloperConsole
 {
     public abstract class ConsoleCommand : ScriptableObject, IConsoleCommand
     {
-        [field: SerializeField] public virtual string Name { get; private set; }
+        [SerializeField] private string m_CommandName;
+        public virtual string Name => m_CommandName;
         [SerializeField] private string[] m_Presets;
         public abstract string HelpText { get; }
         public virtual string[] Presets => m_Presets;
@@ -20,7 +21,7 @@ namespace SAS.Utilities.DeveloperConsole
 
         public virtual bool Contains(string commandName)
         {
-            return commandName.Equals(Name, StringComparison.OrdinalIgnoreCase);
+            return !string.IsNullOrEmpty(Name) && commandName.Equals(Name, StringComparison.OrdinalIgnoreCase);
         }
 
         public abstract bool Process(DeveloperConsoleBehaviour developerConsole, string command, string[] args = null);

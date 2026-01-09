@@ -34,9 +34,12 @@ namespace SAS.Utilities.DeveloperConsole
 
         private void OnEnable()
         {
-            foreach (var sub in m_SubCommands)
-                sub.Action = null;
-            CommandMethodRegistry();
+            if (Application.isPlaying)
+            {
+                foreach (var sub in m_SubCommands)
+                    sub.Action = null;
+                CommandMethodRegistry();
+            }
         }
 
         public override bool HelpRequest(string command, string[] args, out string message)
@@ -104,7 +107,7 @@ namespace SAS.Utilities.DeveloperConsole
             return base.Contains(commandSplit[0]);
         }        
 
-        protected void CommandMethodRegistry()
+        private void CommandMethodRegistry()
         {
             var type = GetType();
 
