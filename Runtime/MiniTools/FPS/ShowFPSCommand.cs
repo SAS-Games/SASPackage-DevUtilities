@@ -8,13 +8,8 @@ namespace SAS.Utilities.DeveloperConsole
         [SerializeField] private GameObject m_FpsPrefab;
         private GameObject _fps;
         public override string HelpText => "Usage: FPS <On|Off>. \nShow/Hide FPS UI.";
-        protected override void CommandMethodRegistry()
-        {
-            Register("Show", ShowFPS);
-            Register("SetTargetFrameRate", SetTargetFrameRate);
-        }
 
-        private bool ShowFPS(string[] args)
+        protected bool ShowFPS(string[] args)
         {
             if (args != null && args.Length > 0)
             {

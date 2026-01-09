@@ -21,22 +21,22 @@ namespace SAS.Utilities.DeveloperConsole
             }
         }
 #endif
-        protected override void CommandMethodRegistry()
-        {
-#if UNITY_RENDER_PIPELINE_UNIVERSAL
-            // Register("SetUpscalingFilter", SetUpscalingFilter);
-            // Register("SetRenderScale", SetRenderScale);
-            // Register("SetMSAA", SetMSAA);
-            // Register("SetHDR", SetHDR);
-            // Register("SetShadowDistance", SetShadowDistance);
-            // Register("SetShadowCascadeCount", SetShadowCascadeCount);
-            // Register("SetLOD", SetLOD);
-            // Register("SetColorGradingMode", SetColorGradingMode);
-            // Register("SetLUTSize", SetLUTSize);
-            // Register("VSync", SetVSync);
-            // Register("TextureQuality", SetTextureQuality);
-#endif
-        }
+//        protected override void CommandMethodRegistry()
+//        {
+//#if UNITY_RENDER_PIPELINE_UNIVERSAL
+//            // Register("SetUpscalingFilter", SetUpscalingFilter);
+//            // Register("SetRenderScale", SetRenderScale);
+//            // Register("SetMSAA", SetMSAA);
+//            // Register("SetHDR", SetHDR);
+//            // Register("SetShadowDistance", SetShadowDistance);
+//            // Register("SetShadowCascadeCount", SetShadowCascadeCount);
+//            // Register("SetLOD", SetLOD);
+//            // Register("SetColorGradingMode", SetColorGradingMode);
+//            // Register("SetLUTSize", SetLUTSize);
+//            // Register("VSync", SetVSync);
+//            // Register("TextureQuality", SetTextureQuality);
+//#endif
+//        }
 
 #if UNITY_RENDER_PIPELINE_UNIVERSAL
         private bool SetRenderScale(string[] args)

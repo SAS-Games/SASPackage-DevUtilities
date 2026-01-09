@@ -22,32 +22,39 @@ MonoBehaviour:
     Presets:
     - ShowStats On
     - ShowStats Off
+    MethodName: ShowStats
   - Name: Refresh
     HelpText: 'Usage: \nParticle.Refresh  \n Refresh ParticleStats UI'
     Presets:
     - Refresh
+    MethodName: Refresh
   - Name: CullOffscreen
     HelpText: 'Usage: \nParticle.CullOffscreen  \n Disable off-screen Particles'
     Presets:
     - CullOffscreen
+    MethodName: CullOffscreen
   - Name: ResetCull
     HelpText: 'Usage: \nParticle.ResetCull  \n Resets culled Particles by CullOffscreen
       command'
     Presets:
     - ResetCull
+    MethodName: ResetCull
   - Name: SetAll
     HelpText: 'Usage: \nParticle.SetAll <On|Off>.  \n Activate/Deactivate Particles
       gameobjects '
     Presets:
     - SetAll On
     - SetAll Off
+    MethodName: ToggleAll
   - Name: Offset
     HelpText: 'Usage: \nParticle.Offset <x y z>.  \n Positioned the particles '
     Presets:
     - Offset 0 0 10000
     - Offset 0 0 -10000
+    MethodName: OffsetParticles
   - Name: ResetOffset
     HelpText: 'Usage: \nParticle.ResetOffset  \n Repositioned to original'
     Presets:
     - ResetOffset
+    MethodName: ResetOffset
   m_ParticleStatsPrefab: {fileID: 4840794096766531456, guid: 349bd7a9842c13f4c88a4ddcb0ed1602, type: 3}

@@ -12,17 +12,6 @@ namespace SAS.Utilities.DeveloperConsole
         public override string HelpText => m_HelpText;
         private GameObject _onScreenLog;
 
-        protected override void CommandMethodRegistry()
-        {
-            Register("LogLevel", LogLevel);
-            Register("OnScreenLog", ShowOnScreen);
-            Register("SetTags", SetTags);
-            Register("ClearTags", ClearTags);
-            Register("SetLogLifetime", SetLogLifetime);
-            Register("ClearOnScreenLog", ClearOnScreenLog);
-            Register("SetStackTrace", SetStackTrace);
-        }
-
         private bool LogLevel(string[] args)
         {
             if (args.Length < 2)

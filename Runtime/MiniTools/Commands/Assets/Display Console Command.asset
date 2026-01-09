@@ -21,11 +21,13 @@ MonoBehaviour:
     Presets:
     - SetResolution 1920 1080 false
     - SetResolution 1600 900 false
+    MethodName: SetResolution
   - Name: SetFullScreen
     HelpText: 
     Presets:
     - SetFullScreen On
     - SetFullScreen Off
+    MethodName: SetFullScreen
   - Name: SetWindowMode
     HelpText: 
     Presets:
@@ -33,10 +35,5 @@ MonoBehaviour:
     - SetWindowMode FullScreenWindow
     - SetWindowMode ExclusiveFullScreen
     - SetWindowMode MaximizedWindow
-  - Name: SetWindowMode
-    HelpText: 
-    Presets:
-    - SetWindowMode Windowed
-    - SetWindowMode Windowed
-    - SetWindowMode Windowed
+    MethodName: SetWindowMode
   m_HelpText: 

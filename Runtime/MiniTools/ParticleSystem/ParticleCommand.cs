@@ -21,18 +21,6 @@ namespace SAS.Utilities.DeveloperConsole
         public override string HelpText => "";
         private readonly TransformOffsetManager _offsetManager = new();
 
-
-        protected override void CommandMethodRegistry()
-        {
-            Register("ShowStats", ShowStats);
-            Register("Refresh", Refresh);
-            Register("CullOffscreen", CullOffscreen);
-            Register("ResetCull", ResetCull);
-            Register("SetAll", ToggleAll);
-            Register("Offset", OffsetParticles);
-            Register("ResetOffset", ResetOffset);
-        }
-
         private bool ShowStats(string[] args)
         {
             if (args != null && args.Length > 0)

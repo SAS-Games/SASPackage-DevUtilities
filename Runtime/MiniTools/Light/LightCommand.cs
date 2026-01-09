@@ -10,12 +10,6 @@ namespace SAS.Utilities.DeveloperConsole
 
         public override string HelpText => "";
 
-        protected override void CommandMethodRegistry()
-        {
-            Register("Offset", OffsetLights);
-            Register("ResetOffset", ResetOffset);
-        }
-
         private bool OffsetLights(string[] args)
         {
             if (args == null || args.Length < 3)

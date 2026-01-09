@@ -36,7 +36,6 @@ namespace SAS.Utilities.DeveloperConsole
         {
             foreach (var sub in m_SubCommands)
                 sub.Action = null;
-            BindSubCommands();
             CommandMethodRegistry();
         }
 
@@ -103,12 +102,9 @@ namespace SAS.Utilities.DeveloperConsole
         {
             var commandSplit = commandName.Trim().Split(".");
             return base.Contains(commandSplit[0]);
-        }
+        }        
 
-        protected abstract void CommandMethodRegistry();
-        
-
-        protected void BindSubCommands()
+        protected void CommandMethodRegistry()
         {
             var type = GetType();
 

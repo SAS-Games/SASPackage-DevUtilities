@@ -15,6 +15,7 @@ MonoBehaviour:
   <Name>k__BackingField: Logging
   m_Presets:
   - Logging Help
+  <CloseOnCompletion>k__BackingField: 1
   m_SubCommands:
   - Name: LogLevel
     HelpText: 'Usage: LogLevel <Level> <On|Off> \nEnables or disables a specific
@@ -27,33 +28,39 @@ MonoBehaviour:
     - LogLevel Info Off
     - LogLevel Warning Off
     - LogLevel Error Off
+    MethodName: LogLevel
   - Name: OnScreenLog
     HelpText: 'Usage: ShowOnScreen <On|Off> \n Toggles the on-screen logging display.
       \nExample: Logging.ShowOnScreen O'
     Presets:
     - OnScreenLog On
     - OnScreenLog Off
+    MethodName: ShowOnScreen
   - Name: SetTags
     HelpText: 'Usage: SetTags <tag1|tag2|...> \nSets the allowed log tags to filter
       console output.\nProvide one or more tags separated by the pipe symbol ''|''.
       Only logs with these tags will be shown. \nExample: Logging.setTags Gameplay|UI|Network'
     Presets: []
+    MethodName: SetTags
   - Name: ClearTags
     HelpText: 'ClearTags \nRemove all the Tags and prints all logs. \nExample: Logging.ClearTags'
     Presets:
     - ClearTags
+    MethodName: ClearTags
   - Name: SetLogLifetime
     HelpText: 'SetLogLifetime <val> \nSets the lifetime of a log entry. \nExample:
       Logging.SetLogLifetime 5'
     Presets:
     - SetLogLifetime 2
     - SetLogLifetime 5
+    MethodName: SetLogLifetime
   - Name: ClearOnScreenLog
     HelpText: 'logging.ClearOnScreenLog clears the  on screen log entry. \nExample:
       Logging.ClearOnScreenLog'
     Presets:
     - SetLogLifetime 2
     - SetLogLifetime 5
+    MethodName: ClearOnScreenLog
   - Name: SetStackTrace
     HelpText: 'logging.SetStackTrace Sets the log stack trace. \nExample: Logging.SetStackTrace
       <Log|Warning|Error|Exception|All> <0=None, 1=ScriptOnly, 2=Full>'
@@ -67,6 +74,7 @@ MonoBehaviour:
     - SetStackTrace Error 0
     - SetStackTrace Error 1
     - SetStackTrace Error 2
+    MethodName: SetStackTrace
   m_HelpText: 'Logging - Controls runtime logging features.\n     \nSubcommands:\n       
     LogLevel <Level> <On|Off>     Enables or disables a specific log level.\n                                    
     Levels: Info, Warning, Error.\n                                     Example:

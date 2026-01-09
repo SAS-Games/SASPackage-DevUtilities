@@ -21,7 +21,9 @@ MonoBehaviour:
     Presets:
     - Offset 0 0 10000
     - Offset 0 0 -10000
+    MethodName: OffsetLights
   - Name: ResetOffset
     HelpText: 'Usage: Light.ResetOffset \n Example: Light.ResetOffset'
     Presets:
     - ResetOffset
+    MethodName: ResetOffset

@@ -9,13 +9,6 @@ namespace SAS.Utilities.DeveloperConsole
         private GameObject _statsInstance;
         public override string HelpText => "";
 
-        protected override void CommandMethodRegistry()
-        {
-            Register("ShowStats", ShowStats);
-            Register("SetCulling", SetCulling);
-            Register("Refresh", Refresh);
-        }
-
         private bool ShowStats(string[] args)
         {
             if (args != null && args.Length > 0)

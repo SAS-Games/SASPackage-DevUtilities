@@ -22,14 +22,17 @@ MonoBehaviour:
     Presets:
     - ShowStats On
     - ShowStats Off
+    MethodName: ShowStats
   - Name: Refresh
     HelpText: 'Usage:\n Animator.Refresh, Refresh AnimatorStats UI '
     Presets:
     - Refresh
+    MethodName: Refresh
   - Name: SetCulling
     HelpText: Usage:\n Animator.SetCulling <always|cullupdate|cull>
     Presets:
     - SetCulling always
     - SetCulling cullupdate
     - SetCulling cull
+    MethodName: SetCulling
   m_AnimatorStatsPrefab: {fileID: 4840794096766531456, guid: b23a1c717f6ed764a94321be448074c7, type: 3}
