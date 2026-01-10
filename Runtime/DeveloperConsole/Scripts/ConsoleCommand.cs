@@ -13,6 +13,8 @@ namespace SAS.Utilities.DeveloperConsole
 
         [field: SerializeField] public bool CloseOnCompletion { get; private set; } = true;
 
+        public virtual void Init() { }
+
         public virtual bool HelpRequest(string command, string[] args, out string message)
         {
             message = HelpText;

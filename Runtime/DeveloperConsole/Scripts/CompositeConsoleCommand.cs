@@ -18,8 +18,8 @@ namespace SAS.Utilities.DeveloperConsole
             [NonSerialized] public Func<string[], bool> Action;
         }
 
-        [FormerlySerializedAs("subCommands")]
-        [SerializeField] protected List<SubCommand> m_SubCommands = new();
+        [FormerlySerializedAs("subCommands")] [SerializeField]
+        protected List<SubCommand> m_SubCommands = new();
 
         protected void Register(string name, Func<string[], bool> action)
         {
@@ -29,17 +29,15 @@ namespace SAS.Utilities.DeveloperConsole
                 Debug.LogWarning($"No SubCommand metadata for '{name}', under the command config '{this.name}'.");
                 return;
             }
+
             sub.Action = action;
         }
 
-        private void OnEnable()
+        public override void Init()
         {
-            if (Application.isPlaying)
-            {
-                foreach (var sub in m_SubCommands)
-                    sub.Action = null;
-                CommandMethodRegistry();
-            }
+            foreach (var sub in m_SubCommands)
+                sub.Action = null;
+            CommandMethodRegistry();
         }
 
         public override bool HelpRequest(string command, string[] args, out string message)
@@ -63,7 +61,8 @@ namespace SAS.Utilities.DeveloperConsole
             }
         }
 
-        public sealed override bool Process(DeveloperConsoleBehaviour developerConsole, string command, string[] args = null)
+        public sealed override bool Process(DeveloperConsoleBehaviour developerConsole, string command,
+            string[] args = null)
         {
             var splitValues = command.Split(".");
             if (splitValues.Length <= 1)
@@ -105,7 +104,7 @@ namespace SAS.Utilities.DeveloperConsole
         {
             var commandSplit = commandName.Trim().Split(".");
             return base.Contains(commandSplit[0]);
-        }        
+        }
 
         private void CommandMethodRegistry()
         {
@@ -118,7 +117,8 @@ namespace SAS.Utilities.DeveloperConsole
                 if (string.IsNullOrEmpty(cmd.MethodName))
                     continue;
 
-                var method = type.GetMethod(cmd.MethodName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                var method = type.GetMethod(cmd.MethodName,
+                    BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
                 if (method == null)
                 {
@@ -127,15 +127,16 @@ namespace SAS.Utilities.DeveloperConsole
                 }
 
                 var parameters = method.GetParameters();
-                if (parameters.Length != 1 || parameters[0].ParameterType != typeof(string[]) || method.ReturnType != typeof(bool))
+                if (parameters.Length != 1 || parameters[0].ParameterType != typeof(string[]) ||
+                    method.ReturnType != typeof(bool))
                 {
-                    Debug.LogError($"[Console] Invalid signature on '{cmd.MethodName}'. " + $"Expected: bool Method(string[] args)");
+                    Debug.LogError($"[Console] Invalid signature on '{cmd.MethodName}'. " +
+                                   $"Expected: bool Method(string[] args)");
                     continue;
                 }
 
                 cmd.Action = (Func<string[], bool>)Delegate.CreateDelegate(typeof(Func<string[], bool>), this, method);
             }
         }
-
     }
 }
