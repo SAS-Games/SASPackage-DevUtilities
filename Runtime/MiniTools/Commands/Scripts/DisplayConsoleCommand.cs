@@ -8,6 +8,7 @@ namespace SAS.Utilities.DeveloperConsole
         [SerializeField] private string m_HelpText;
         public override string HelpText => m_HelpText;
 
+        
         private bool SetResolution(string[] args)
         {
             if (args.Length < 2) return false;

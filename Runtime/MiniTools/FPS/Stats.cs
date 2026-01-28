@@ -6,26 +6,27 @@ using UnityEngine.UI;
 
 public class Stats : UIBehaviour
 {
-    [SerializeField] private Text m_Display;
+    [Header("Display")][SerializeField] private Text m_Display = default;
     [SerializeField] private float m_UpdateInterval = 0.5f;
 
     private float _timeLeft;
     private int _frames;
     private double _accumulatedFps;
 
-    private readonly StringBuilder _sb = new StringBuilder(512);
+    private readonly StringBuilder tx = new StringBuilder(512);
     private readonly FrameTiming[] _frameTimings = new FrameTiming[1];
-
-    private static readonly string FPS_RED = "<color=#FF0000>FPS: ";
-    private static readonly string FPS_YELLOW = "<color=#FFFF00>FPS: ";
-    private static readonly string FPS_GREEN = "<color=#00FF00>FPS: ";
-    private static readonly string COLOR_END = "</color>\n";
+    private string fpsLine = "";
 
     protected override void Awake()
     {
+        base.Awake();
+
 #if UNITY_EDITOR
+        var fps = GetComponent<FPS>();
+        if (fps) fps.enabled = false;
         enabled = true;
 #else
+        // In build: enable only if Development Build
         enabled = Debug.isDebugBuild;
 #endif
     }
@@ -33,75 +34,52 @@ public class Stats : UIBehaviour
     protected override void Start()
     {
         _timeLeft = m_UpdateInterval;
+        _frames = 0;
     }
 
     private void Update()
     {
         FrameTimingManager.CaptureFrameTimings();
-
         _timeLeft -= Time.deltaTime;
-        _accumulatedFps += 1.0 / Time.deltaTime;
+        float currentFPS = Time.timeScale / Time.deltaTime;
+        _accumulatedFps += currentFPS;
         _frames++;
 
-        if (_timeLeft > 0f)
-            return;
+        if (FrameTimingManager.GetLatestTimings(1, _frameTimings) > 0)
+        {
+            if (_timeLeft <= 0)
+            {
+                double avgFps = _accumulatedFps / _frames;
 
-        if (FrameTimingManager.GetLatestTimings(1, _frameTimings) == 0)
-            return;
+                // --- FPS Color ---
+                Color fpsColor = avgFps < 30 ? (avgFps < 10 ? Color.red : Color.yellow) : Color.green;
+                string fpsHex = ColorUtility.ToHtmlStringRGB(fpsColor);
+                fpsLine = $"<color=#{fpsHex}>FPS: {avgFps:F1}</color>";
 
-        double avgFps = _accumulatedFps / _frames;
+                tx.Length = 0;
+                tx.AppendFormat(fpsLine + "\nFrame Time {0:F3} ms\n", _frameTimings[0].cpuFrameTime);
+                tx.AppendFormat("Target FPS {0:F3}\n", Application.targetFrameRate);
+                tx.AppendFormat(
+                  "CPU MainThread Frame {0:F3} ms\nCPU RenderThread Frame {1:F3} ms" +
+                  "\nCPU Present Wait {2:F3} ms\nGPU Frame {3:F3} ms\n",
+                  _frameTimings[0].cpuMainThreadFrameTime,
+                  _frameTimings[0].cpuRenderThreadFrameTime,
+                  _frameTimings[0].cpuMainThreadPresentWaitTime,
+                  _frameTimings[0].gpuFrameTime
+                );
+                tx.AppendFormat(
+                  "Allocated: {0:F3} GB\nReserved: {1:F3} GB\nUnused: {2:F3} GB\n",
+                  Profiler.GetTotalAllocatedMemoryLong() / 1073741824f,
+                  Profiler.GetTotalReservedMemoryLong() / 1073741824f,
+                  Profiler.GetTotalUnusedReservedMemoryLong() / 1073741824f
+                );
 
-        _sb.Length = 0;
+                _accumulatedFps = 0;
+                _frames = 0;
+                _timeLeft = m_UpdateInterval;
+            }
 
-        // --- FPS ---
-        if (avgFps < 10)
-            _sb.Append(FPS_RED);
-        else if (avgFps < 30)
-            _sb.Append(FPS_YELLOW);
-        else
-            _sb.Append(FPS_GREEN);
-
-        _sb.Append(avgFps.ToString("F1"));
-        _sb.Append(COLOR_END);
-
-        // --- Timings ---
-        _sb.Append("Frame Time ");
-        _sb.Append(_frameTimings[0].cpuFrameTime.ToString("F3"));
-        _sb.Append(" ms\n");
-
-        _sb.Append("CPU Main ");
-        _sb.Append(_frameTimings[0].cpuMainThreadFrameTime.ToString("F3"));
-        _sb.Append(" ms\n");
-
-        _sb.Append("CPU Render ");
-        _sb.Append(_frameTimings[0].cpuRenderThreadFrameTime.ToString("F3"));
-        _sb.Append(" ms\n");
-
-        _sb.Append("CPU Present ");
-        _sb.Append(_frameTimings[0].cpuMainThreadPresentWaitTime.ToString("F3"));
-        _sb.Append(" ms\n");
-
-        _sb.Append("GPU ");
-        _sb.Append(_frameTimings[0].gpuFrameTime.ToString("F3"));
-        _sb.Append(" ms\n");
-
-        // --- Memory ---
-        _sb.Append("Allocated ");
-        _sb.Append((Profiler.GetTotalAllocatedMemoryLong() / 1073741824f).ToString("F3"));
-        _sb.Append(" GB\n");
-
-        _sb.Append("Reserved ");
-        _sb.Append((Profiler.GetTotalReservedMemoryLong() / 1073741824f).ToString("F3"));
-        _sb.Append(" GB\n");
-
-        _sb.Append("Unused ");
-        _sb.Append((Profiler.GetTotalUnusedReservedMemoryLong() / 1073741824f).ToString("F3"));
-        _sb.Append(" GB\n");
-
-        m_Display.text = _sb.ToString();
-
-        _accumulatedFps = 0;
-        _frames = 0;
-        _timeLeft = m_UpdateInterval;
+            m_Display.text = $"{tx}";
+        }
     }
 }

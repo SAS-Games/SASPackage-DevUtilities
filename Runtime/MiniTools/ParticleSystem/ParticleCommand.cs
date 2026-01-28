@@ -67,8 +67,7 @@ namespace SAS.Utilities.DeveloperConsole
 
             _backupStates.Clear();
 
-            ParticleSystem[] systems =
-                FindObjectsByType<ParticleSystem>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            ParticleSystem[] systems = FindObjectsByType<ParticleSystem>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             int culled = 0;
 
             foreach (var ps in systems)
@@ -161,8 +160,7 @@ namespace SAS.Utilities.DeveloperConsole
 
                     _isCulled = !turnOn;
 
-                    Debug.Log(
-                        $"ToggleAll: {(turnOn ? "Enabled" : "Disabled")} {affected}/{systems.Length} particle GameObjects.");
+                    Debug.Log($"ToggleAll: {(turnOn ? "Enabled" : "Disabled")} {affected}/{systems.Length} particle GameObjects.");
                     return true;
                 }
             }

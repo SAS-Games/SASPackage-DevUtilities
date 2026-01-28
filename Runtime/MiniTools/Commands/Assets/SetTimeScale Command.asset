@@ -12,8 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b7c6211c2a3cb37428f325764bf0792a, type: 3}
   m_Name: SetTimeScale Command
   m_EditorClassIdentifier: 
-  <Name>k__BackingField: SetTimeScale
+  m_CommandName: SetTimeScale
   m_Presets:
   - SetTimeScale 0
   - SetTimeScale 0.5
   - SetTimeScale 1
+  <CloseOnCompletion>k__BackingField: 1

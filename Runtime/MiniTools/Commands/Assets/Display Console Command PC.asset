@@ -10,30 +10,33 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 537edff96314bb4469c17ad51db7d4b4, type: 3}
-  m_Name: Display Console Command
+  m_Name: Display Console Command PC
   m_EditorClassIdentifier: 
-  <Name>k__BackingField: Display
+  m_CommandName: Display
   m_Presets: []
   <CloseOnCompletion>k__BackingField: 1
   m_SubCommands:
   - Name: SetResolution
-    HelpText: 
+    HelpText: 'Usage:\n Display.SetResolution <width> <height> <fullscreen> \nExample:
+      Display.SetResolution 1920 1080 false'
     Presets:
     - SetResolution 1920 1080 false
     - SetResolution 1600 900 false
     MethodName: SetResolution
   - Name: SetFullScreen
-    HelpText: 
+    HelpText: 'Usage:\n Display.SetFullscreen <On|Off> \nExample: Display.SetFullScreen
+      On'
     Presets:
     - SetFullScreen On
     - SetFullScreen Off
     MethodName: SetFullScreen
   - Name: SetWindowMode
-    HelpText: 
+    HelpText: 'Usage:\n Display.SetWindowMode <Windowed | FullScreenWindo | ExclusiveFullScreen
+      | MaximizedWindow> \nExample: Display.SetWindowMode Windowed'
     Presets:
     - SetWindowMode Windowed
     - SetWindowMode FullScreenWindow
     - SetWindowMode ExclusiveFullScreen
     - SetWindowMode MaximizedWindow
     MethodName: SetWindowMode
-  m_HelpText: 
+  m_HelpText: Commands for modifying display properties

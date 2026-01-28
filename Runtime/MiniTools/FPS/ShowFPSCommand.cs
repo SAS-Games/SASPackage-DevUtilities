@@ -21,6 +21,22 @@ namespace SAS.Utilities.DeveloperConsole
                         _fps.name = "FPSCanvas";
                     }
 
+                    if (args.Length > 1)
+                    {
+                        int paddingX = 0;
+                        int paddingY = 0;
+
+                        // Get padding if passed
+                        if (args.Length > 2 && !int.TryParse(args[2], out paddingX))
+                            return false;
+
+                        if (args.Length > 3 && !int.TryParse(args[3], out paddingY))
+                            return false;
+
+                        RectTransform fpsRect = _fps.transform.GetChild(0).transform as RectTransform;
+                        fpsRect.AlignToScreen(args[1], paddingX, paddingY);
+                    }
+
                     _fps.SetActive(isVisible);
                     return true;
                 }

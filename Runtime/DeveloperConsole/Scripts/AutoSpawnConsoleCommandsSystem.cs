@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace SAS.Utilities.DeveloperConsole
 {
-    public static class DeveloperConsoleAutoSpawn
+    public static class AutoSpawnConsoleCommandsSystem
     {
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Spawn()

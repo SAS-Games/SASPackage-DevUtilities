@@ -139,6 +139,7 @@ namespace SAS.Utilities.DeveloperConsole
 
             var baseItemIndex = _activeCommandObjects.IndexOf(baseItem);
             _selectedIndex = baseItemIndex;
+            Debug.Log(baseCommand);
             RebuildNavigableList();
             LayoutRebuilder.ForceRebuildLayoutImmediate(m_BaseCommandContainer);
             if (_highlightedItem != null)
@@ -188,5 +189,92 @@ namespace SAS.Utilities.DeveloperConsole
                 ClearSuggestions();
             gameObject.SetActive(treeView);
         }
+
+        bool IsBaseItem(GameObject item)
+        {
+            return _activeCommandObjects.Contains(item);
+        }
+
+        GameObject GetParentBaseItem(GameObject item)
+        {
+            foreach (var baseItem in _activeCommandObjects)
+            {
+                var presetContainer = baseItem.transform.Find("PresetContainer");
+                if (presetContainer != null && item.transform.IsChildOf(presetContainer))
+                    return baseItem;
+            }
+            return null;
+        }
+
+        private void NavigateRight()
+        {
+            if (_selectedIndex < 0 || _selectedIndex >= _navigableItems.Count)
+                return;
+
+            var item = _navigableItems[_selectedIndex];
+
+            // Only base items can expand
+            if (!IsBaseItem(item))
+                return;
+
+            var presetContainer = item.transform.Find("PresetContainer");
+            if (presetContainer == null || presetContainer.gameObject.activeSelf)
+                return;
+
+            // Simulate click to expand
+            item.GetComponentInChildren<Button>().onClick.Invoke();
+        }
+
+        private void NavigateLeft()
+        {
+            if (_selectedIndex < 0 || _selectedIndex >= _navigableItems.Count)
+                return;
+
+            var item = _navigableItems[_selectedIndex];
+
+            // Case 1: collapse expanded base item
+            if (IsBaseItem(item))
+            {
+                var presetContainer = item.transform.Find("PresetContainer");
+                if (presetContainer != null && presetContainer.gameObject.activeSelf)
+                {
+                    item.GetComponentInChildren<Button>().onClick.Invoke();
+                }
+                return;
+            }
+
+            // Case 2: inside preset -> collapse parent
+            var parentBase = GetParentBaseItem(item);
+            if (parentBase != null)
+            {
+                parentBase.GetComponentInChildren<Button>().onClick.Invoke();
+
+                _selectedIndex = _activeCommandObjects.IndexOf(parentBase);
+                HighlightSelection();
+            }
+        }
+
+        //void ExpandBaseCommand(GameObject baseItem)
+        //{
+        //    var presetContainer = baseItem.transform.Find("PresetContainer") as RectTransform;
+        //    if (presetContainer == null || presetContainer.gameObject.activeSelf)
+        //        return;
+
+        //    var label = baseItem.GetComponentInChildren<TMP_Text>();
+        //    OnCommandSelected(baseItem, label, label.text, presetContainer);
+        //}
+
+        //void CollapseBaseCommand(GameObject baseItem)
+        //{
+        //    var presetContainer = baseItem.transform.Find("PresetContainer") as RectTransform;
+        //    if (presetContainer == null || !presetContainer.gameObject.activeSelf)
+        //        return;
+
+        //    presetContainer.gameObject.SetActive(false);
+        //    _currentlyExpanded = null;
+
+        //    RebuildNavigableList();
+        //    LayoutRebuilder.ForceRebuildLayoutImmediate(m_BaseCommandContainer);
+        //}
     }
 }

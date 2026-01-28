@@ -12,10 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4725425f96dc84e448eb515a9575c64d, type: 3}
   m_Name: GameInfoCommand
   m_EditorClassIdentifier: 
-  <Name>k__BackingField: GameInfo
+  m_CommandName: GameInfo
   m_Presets:
   - GameInfo
   - GameInfo On
   - GameInfo Off
-  m_HelpText: 'Usage: Game Info [On/Off]. \nShow/Hide Game version details panel.'
+  <CloseOnCompletion>k__BackingField: 1
+  m_HelpText: 'Usage: GameInfo [On/Off]. \nShow/Hide Game version details panel.'
   m_InfoPrefab: {fileID: 4840794096766531456, guid: 9fcd77d92f804264e885da6d490e4b4c, type: 3}

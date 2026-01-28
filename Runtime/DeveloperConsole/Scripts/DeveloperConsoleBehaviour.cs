@@ -291,7 +291,6 @@ namespace SAS.Utilities.DeveloperConsole
         private void ExecuteCommandsFromCommandLine()
         {
             string[] args = Environment.GetCommandLineArgs();
-
             for (int i = 0; i < args.Length; i++)
             {
                 if (args[i] == "-consoleCmd" && i + 1 < args.Length)

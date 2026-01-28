@@ -86,6 +86,7 @@ namespace SAS.Utilities.DeveloperConsole
             if (cmd == null || ConsoleCommands.Contains(cmd) || string.IsNullOrEmpty(cmd.Name))
                 return;
 
+            cmd.Init();
             ConsoleCommands.Add(cmd);
             _commandSuggester.Insert($"{this._prefix}{cmd.Name}");
             foreach (var preset in cmd.Presets)

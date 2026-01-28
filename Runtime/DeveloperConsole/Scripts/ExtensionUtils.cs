@@ -1,9 +1,50 @@
+using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using System.Collections;
 
 namespace SAS.Utilities.DeveloperConsole
 {
+    public static class AnchorPreset
+    {
+        // Top row
+        public static readonly Vector2 TopLeft = new Vector2(0f, 1f);
+        public static readonly Vector2 TopCenter = new Vector2(0.5f, 1f);
+        public static readonly Vector2 TopRight = new Vector2(1f, 1f);
+
+        // Middle row
+        public static readonly Vector2 MiddleLeft = new Vector2(0f, 0.5f);
+        public static readonly Vector2 MiddleCenter = new Vector2(0.5f, 0.5f);
+        public static readonly Vector2 MiddleRight = new Vector2(1f, 0.5f);
+
+        // Bottom row
+        public static readonly Vector2 BottomLeft = new Vector2(0f, 0f);
+        public static readonly Vector2 BottomCenter = new Vector2(0.5f, 0f);
+        public static readonly Vector2 BottomRight = new Vector2(1f, 0f);
+
+        private static readonly Dictionary<string, Vector2> Presets =
+            new Dictionary<string, Vector2>()
+            {
+                 { "topleft", TopLeft },
+                 { "topcenter", TopCenter },
+                 { "topright", TopRight },
+
+                 { "middleleft", MiddleLeft },
+                 { "middlecenter",MiddleCenter },
+                 { "middleright", MiddleRight },
+
+                 { "bottomleft", BottomLeft },
+                 { "bottomcenter",BottomCenter },
+                 { "bottomright", BottomRight },
+            };
+
+        public static bool TryGetAnchorValues(string key, out Vector2 pivot)
+        {
+            key = key.ToLower();
+            return Presets.TryGetValue(key, out pivot);
+        }
+    }
+
     public static class ExtensionUtils
     {
         /// <summary>
@@ -63,8 +104,8 @@ namespace SAS.Utilities.DeveloperConsole
         public static void SetDelayedText(this TMP_InputField inputField, string newText, int frameDelay = 1)
         {
 #if UNITY_2023_1_OR_NEWER
-        // Use Unity's Awaitable on newer versions
-        _ = SetDelayedTextAsync_Awaitable(inputField, newText, frameDelay);
+            // Use Unity's Awaitable on newer versions
+            _ = SetDelayedTextAsync_Awaitable(inputField, newText, frameDelay);
 #else
             // Unity 2022 fallback via coroutine
             CoroutineRunner.Run(Delay());
@@ -79,13 +120,53 @@ namespace SAS.Utilities.DeveloperConsole
         }
 
 #if UNITY_2023_1_OR_NEWER
-    private static async System.Threading.Tasks.Task SetDelayedTextAsync_Awaitable(TMP_InputField inputField, string newText, int frameDelay)
-    {
-        for (int i = 0; i < frameDelay; i++)
-            await UnityEngine.Awaitable.NextFrameAsync();
-        inputField.text = newText;
-    }
+        private static async System.Threading.Tasks.Task SetDelayedTextAsync_Awaitable(TMP_InputField inputField, string newText, int frameDelay)
+        {
+            for (int i = 0; i < frameDelay; i++)
+                await UnityEngine.Awaitable.NextFrameAsync();
+            inputField.text = newText;
+        }
 #endif
+
+        /// <summary>
+        /// Align a RectTransform to screen edges like Anchor Presets, with optional padding.
+        /// </summary>
+        /// <param name="rectTransform"></param>
+        /// <param name="anchorPreset"></param>
+        /// <param name="paddingX"></param>
+        /// <param name="paddingY"></param>
+        public static void AlignToScreen(this RectTransform rectTransform, string anchorPreset, int paddingX = 0, int paddingY = 0)
+        {
+            if (AnchorPreset.TryGetAnchorValues(anchorPreset, out Vector2 anchor))
+            {
+                Vector2Int padding = new Vector2Int(paddingX, paddingY);
+                rectTransform.AlignToScreen(anchor, padding);
+            }
+        }
+
+        /// <summary>
+        /// Align a RectTransform to screen edges like Anchor Presets, with optional padding.
+        /// </summary>
+        /// <param name="rectTransform"></param>
+        /// <param name="pivot"></param>
+        /// <param name="padding"></param>
+        public static void AlignToScreen(this RectTransform rectTransform, Vector2 pivot, Vector2Int padding)
+        {
+            if (rectTransform == null)
+                return;
+
+            rectTransform.anchorMin = pivot;
+            rectTransform.anchorMax = pivot;
+            rectTransform.pivot = pivot;
+
+            // Padding direction derived from pivot
+            Vector2 offset = new Vector2(
+                Mathf.Lerp(+padding.x, -padding.x, pivot.x),
+                Mathf.Lerp(+padding.y, -padding.y, pivot.y)
+            );
+
+            rectTransform.anchoredPosition = offset;
+        }
 
         /// <summary>
         /// Minimal hidden runner to start coroutines from static context.

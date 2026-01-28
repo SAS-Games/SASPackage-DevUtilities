@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 85ca2593cc1e074409c2134c0819df0c, type: 3}
   m_Name: Animator Command
   m_EditorClassIdentifier: 
-  <Name>k__BackingField: Animator
+  m_CommandName: Animator
   m_Presets: []
   <CloseOnCompletion>k__BackingField: 1
   m_SubCommands:

@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 3574254913413806374}
   - component: {fileID: 4458009698218427333}
   - component: {fileID: 1159876266928737853}
-  - component: {fileID: 1856751748687472068}
+  - component: {fileID: 7797351498731940177}
   m_Layer: 5
   m_Name: AnimatorText
   m_TagString: Untagged
@@ -61,7 +61,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 0, g: 0, b: 0, a: 0.8666667}
-  m_RaycastTarget: 0
+  m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -77,7 +77,7 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &1856751748687472068
+--- !u!114 &7797351498731940177
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -86,7 +86,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1465767719621802639}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bed4f669356b1bf4790e130a07d5c66e, type: 3}
+  m_Script: {fileID: 11500000, guid: 97fe3468d7304aa43a283ed78bd327b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &4840794096766531456

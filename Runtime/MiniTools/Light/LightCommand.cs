@@ -7,7 +7,6 @@ namespace SAS.Utilities.DeveloperConsole
     public class LightCommand : CompositeConsoleCommand
     {
         private readonly TransformOffsetManager _offsetManager = new();
-
         public override string HelpText => "";
 
         private bool OffsetLights(string[] args)

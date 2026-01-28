@@ -12,8 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c359014f8db610c41ba085c4dbb8b30e, type: 3}
   m_Name: FrameStepperCommand
   m_EditorClassIdentifier: 
-  <Name>k__BackingField: FrameStepper
+  m_CommandName: FrameStepper
   m_Presets:
   - FrameStepper On
   - FrameStepper Off
+  <CloseOnCompletion>k__BackingField: 1
   m_FrameStepperPrefab: {fileID: 1111753515756530176, guid: dace5d7aeb899254386f7c3189cafedc, type: 3}

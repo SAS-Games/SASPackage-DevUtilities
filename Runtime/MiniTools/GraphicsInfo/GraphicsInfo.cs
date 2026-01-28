@@ -64,12 +64,14 @@ public class GraphicsInfo : MonoBehaviour
         // Add extended info if verbose mode
         if (verbose)
         {
-            string resolution = $"{Screen.currentResolution.width}x{Screen.currentResolution.height} @ {Screen.currentResolution.refreshRateRatio}Hz";
+            string renderResolution = $"{Screen.width}x{Screen.height}";
+            string screenResolution = $"{Screen.currentResolution.width}x{Screen.currentResolution.height} @ {Screen.currentResolution.refreshRateRatio}Hz";
             string fullscreen = Screen.fullScreen ? "Fullscreen" : "Windowed";
 
             info +=
                 "\n--- Extended Info ---\n" +
-                $"Resolution: {resolution}\n" +
+                $"Render Resolution: {renderResolution}\n"+
+                $"Screen Resolution: {screenResolution}\n" +
                 $"Mode: {fullscreen}\n" +
                 $"Anti-Aliasing: {aa}\n" +
                 $"HDR: {hdr}\n" +

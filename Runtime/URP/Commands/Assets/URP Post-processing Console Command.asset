@@ -12,18 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9c7fc693a0953ad4ba429a6296949950, type: 3}
   m_Name: URP Post-processing Console Command
   m_EditorClassIdentifier: 
-  <Name>k__BackingField: PP
+  m_CommandName: PP
   m_Presets: []
   <CloseOnCompletion>k__BackingField: 1
   m_SubCommands:
   - Name: SetColorGradingMode
-    HelpText: SetColorGradingMode <LowDynamicRange|HighDynamicRange>
+    HelpText: 'Usage:\n PP.SetColorGradingMode <LowDynamicRange|HighDynamicRange>
+      \nExample: PP.SetColorGradingMode LowDynamicRange'
     Presets:
     - SetColorGradingMode LowDynamicRange
     - SetColorGradingMode HighDynamicRange
-    MethodName: SetLOD
+    MethodName: SetColorGradingMode
   - Name: SetLUTSize
-    HelpText: SetLUTSize <16|32|64>
+    HelpText: 'Usage:\n PP.SetLUTSize <16|32|64> \nExample: PP.SetLUTSize 16'
     Presets:
     - SetLUTSize 16
     - SetLUTSize 32

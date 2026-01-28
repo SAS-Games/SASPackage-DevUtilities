@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9c7fc693a0953ad4ba429a6296949950, type: 3}
   m_Name: URP Quality Console Command
   m_EditorClassIdentifier: 
-  <Name>k__BackingField: Quality
+  m_CommandName: Quality
   m_Presets: []
   <CloseOnCompletion>k__BackingField: 1
   m_SubCommands:
@@ -71,5 +71,5 @@ MonoBehaviour:
     - TextureQuality 1
     - TextureQuality 2
     - TextureQuality 4
-    MethodName: 
+    MethodName: SetTextureQuality
   m_HelpText: Commands for modifying URP quality settings at runtime.

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4ffa96df76c86814882169c868710202, type: 3}
   m_Name: Logging Console Command
   m_EditorClassIdentifier: 
-  <Name>k__BackingField: Logging
+  m_CommandName: Logging
   m_Presets:
   - Logging Help
   <CloseOnCompletion>k__BackingField: 1

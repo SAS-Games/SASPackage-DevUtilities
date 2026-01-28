@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 444e02205efc8bf4d9b3812d271e5fbc, type: 3}
   m_Name: Light Command
   m_EditorClassIdentifier: 
-  <Name>k__BackingField: Light
+  m_CommandName: Light
   m_Presets: []
   <CloseOnCompletion>k__BackingField: 1
   m_SubCommands:

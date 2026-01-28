@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 537edff96314bb4469c17ad51db7d4b4, type: 3}
+  m_Name: Display Console Command PS
+  m_EditorClassIdentifier: 
+  m_CommandName: Display
+  m_Presets: []
+  <CloseOnCompletion>k__BackingField: 1
+  m_SubCommands:
+  - Name: SetResolution
+    HelpText: 'Usage:\n Display.SetResolution <width> <height> <fullscreen> \nExample:
+      Display.SetResolution 1920 1080 false'
+    Presets:
+    - SetResolution 1920 1080 true
+    - SetResolution 1600 900 true
+    MethodName: SetResolution
+  m_HelpText: Commands for modifying display properties

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c41fe51decc571c458889c98206822cd, type: 3}
   m_Name: Particle Command
   m_EditorClassIdentifier: 
-  <Name>k__BackingField: Particle
+  m_CommandName: Particle
   m_Presets: []
   <CloseOnCompletion>k__BackingField: 1
   m_SubCommands:

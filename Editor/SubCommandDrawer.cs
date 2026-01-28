@@ -8,8 +8,7 @@ using UnityEngine;
 [CustomPropertyDrawer(typeof(CompositeConsoleCommand.SubCommand), true)]
 public class SubCommandDrawer : PropertyDrawer
 {
-    private const BindingFlags FLAGS =
-        BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+    private const BindingFlags FLAGS = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
 
     public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
     {
@@ -23,7 +22,7 @@ public class SubCommandDrawer : PropertyDrawer
         var methodProp = property.FindPropertyRelative("MethodName");
 
         height += line + spacing; 
-        height += line + spacing; 
+        height += line + spacing;
         height += line + spacing; 
 
         height += EditorGUI.GetPropertyHeight(presetsProp, true) + spacing;

@@ -12,18 +12,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 47f8854bb6c20334a97ce2c514f766ef, type: 3}
   m_Name: Show FPS Command PS
   m_EditorClassIdentifier: 
-  <Name>k__BackingField: Stats
+  m_CommandName: Stats
   m_Presets: []
   <CloseOnCompletion>k__BackingField: 1
   m_SubCommands:
   - Name: FPS
-    HelpText: 'Usage:   Stats.FPS <On|Off> \n Show or hide FPS UI'
+    HelpText: 'Usage: Stats.FPS <On|Off> <anchor position> <horizontal padding> <vertical
+      padding> \n Show or hide FPS UI and optionally set anchor position with optional
+      padding \n Example: \n - Stats.FPS On \n - Stats.FPS On topright 20 50 \n Anchor
+      position = topleft / topcenter / topright / middleleft / middlecenter / middleright
+      / bottomleft / bottomcenter / bottomright \n Padding value = integer'
     Presets:
     - FPS On
     - FPS Off
     MethodName: ShowFPS
   - Name: SetTargetFrameRate
-    HelpText: 'Usage: FPS.SetTargetFrameRate <fps> \nExample: FPS.SetTargetFrameRate
+    HelpText: 'Usage: Stats.FPS.SetTargetFrameRate <fps> \nExample: FPS.SetTargetFrameRate
       60\n -1 = Use platform default (usually VSync)\n  30 = Lock to 30 FPS\n  60
       = Lock to 60 FPS\n 120 = Lock to 120 FPS'
     Presets:

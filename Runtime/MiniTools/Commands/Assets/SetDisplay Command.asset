@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4c9728f2566d9a145bea6a1431995c3e, type: 3}
   m_Name: SetDisplay Command
   m_EditorClassIdentifier: 
-  <Name>k__BackingField: SetCanvasDisplay
+  m_CommandName: SetCanvasDisplay
   m_Presets:
   - SetCanvasDisplay FPSCanvas 1
   - SetCanvasDisplay FPSCanvas 0
@@ -20,3 +20,4 @@ MonoBehaviour:
   - SetCanvasDisplay OnScreenLog 0
   - SetCanvasDisplay GraphicsInfo 1
   - SetCanvasDisplay GraphicsInfo 0
+  <CloseOnCompletion>k__BackingField: 1

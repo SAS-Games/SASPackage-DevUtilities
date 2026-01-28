@@ -12,18 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9c7fc693a0953ad4ba429a6296949950, type: 3}
   m_Name: URP Shadow Console Command
   m_EditorClassIdentifier: 
-  <Name>k__BackingField: Shadow
+  m_CommandName: Shadow
   m_Presets: []
   <CloseOnCompletion>k__BackingField: 1
   m_SubCommands:
   - Name: SetShadowDistance
-    HelpText: 'SetShadowDistance <distance> \nSets the maximum distance Unity renders
-      real-time shadows.\nExample: Shadow.SetShadowDistance 50'
+    HelpText: 'Shadow.SetShadowDistance <distance> \nSets the maximum distance Unity
+      renders real-time shadows.\nExample: Shadow.SetShadowDistance 50'
     Presets:
     - SetShadowDistance 50
     MethodName: SetShadowDistance
   - Name: SetShadowCascadeCount
-    HelpText: 'SetShadowCascadeCount <1|2|4> \nSets the number of shadow cascades
+    HelpText: 'Shadow.SetShadowCascadeCount <1|2|4> \nSets the number of shadow cascades
       used in URP.\nExample: Shadow.SetShadowCascadeCount 2'
     Presets:
     - SetShadowCascadeCount 1

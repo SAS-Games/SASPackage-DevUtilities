@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace SAS.Utilities.DeveloperConsole
 {
-    [CreateAssetMenu(fileName = "New Animator Command", menuName = "SAS/DeveloperConsole/Commands/Animator Command")]
+    [CreateAssetMenu(fileName = "New Animator Command", menuName = DeveloperConsole.CommandBasePath + "Animator Command")]
     public class AnimatorCommand : CompositeConsoleCommand
     {
         [SerializeField] private GameObject m_AnimatorStatsPrefab;

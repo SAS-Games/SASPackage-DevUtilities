@@ -92,7 +92,7 @@ namespace SAS
         }
 
         [Conditional(DEBUG)]
-        public static void Log(string message, UnityEngine.Object context, int slotIndex = -1, string tag = null,[CallerFilePath] string caller = "")
+        public static void Log(string message, UnityEngine.Object context, int slotIndex, string tag = null,[CallerFilePath] string caller = "")
         {
             LogInternal(message, context, tag, LogLevel.Info, slotIndex, caller);
         }
@@ -129,7 +129,7 @@ namespace SAS
         }
         
         [Conditional(DEBUG)]
-        public static void LogWarning(string message, UnityEngine.Object context, int slotIndex = -1, string tag = null,[CallerFilePath] string caller = "")
+        public static void LogWarning(string message, UnityEngine.Object context, int slotIndex, string tag = null,[CallerFilePath] string caller = "")
         {
             LogInternal(message, context, tag, LogLevel.Warning, slotIndex, caller);
         }
@@ -165,7 +165,7 @@ namespace SAS
         }
         
         [Conditional(DEBUG)]
-        public static void LogError(string message, UnityEngine.Object context, int slotIndex = -1, string tag = null,[CallerFilePath] string caller = "")
+        public static void LogError(string message, UnityEngine.Object context, int slotIndex, string tag = null,[CallerFilePath] string caller = "")
         {
             LogInternal(message, context, tag, LogLevel.Error, slotIndex, caller);
         }

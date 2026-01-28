@@ -7,7 +7,7 @@ using UnityEngine.Rendering.Universal;
 
 namespace SAS.Utilities.DeveloperConsole
 {
-    [CreateAssetMenu(menuName = "SAS/DeveloperConsole/Commands/URP Console Command")]
+    [CreateAssetMenu(menuName = DeveloperConsole.CommandBasePath + "URP Console Command")]
     public class URPConsoleCommand : CompositeConsoleCommand
     {
         [SerializeField] private string m_HelpText = "Commands for modifying URP asset settings at runtime.";
@@ -22,6 +22,7 @@ namespace SAS.Utilities.DeveloperConsole
                 return null;
             }
         }
+
 
         private bool SetRenderScale(string[] args)
         {
