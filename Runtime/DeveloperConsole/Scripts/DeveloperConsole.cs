@@ -97,7 +97,17 @@ namespace SAS.Utilities.DeveloperConsole
         {
             if (cmd == null)
                 return;
-            ConsoleCommands.Remove(cmd);
+
+            if (!ConsoleCommands.Remove(cmd))
+                return;
+
+            _commandSuggester.Remove($"{this._prefix}{cmd.Name}");
+
+            if (cmd.Presets != null)
+            {
+                foreach (var preset in cmd.Presets)
+                    _commandSuggester.Remove($"{this._prefix}{preset}");
+            }
         }
     }
 }
