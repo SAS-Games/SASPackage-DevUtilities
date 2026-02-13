@@ -14,7 +14,7 @@ namespace SAS.Utilities.DeveloperConsole.Editor
 
         private static bool ValidateToggle(string symbol)
         {
-            Menu.SetChecked($"Tools/Defines/{symbol}", HasSymbol(symbol));
+            Menu.SetChecked($"Tools/DevUtilities/Defines/{symbol}", HasSymbol(symbol));
             return true;
         }
 

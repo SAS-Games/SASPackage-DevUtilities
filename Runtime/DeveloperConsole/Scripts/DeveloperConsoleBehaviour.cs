@@ -37,8 +37,8 @@ namespace SAS.Utilities.DeveloperConsole
         [SerializeField] private TMP_InputField m_InputField = null;
         [SerializeField] private Button m_SubmitButton = null;
         [SerializeField] private TMP_Text m_HelpText = null;
-        [SerializeField] private bool m_PauseOnOpen = false;
         [SerializeField] private Toggle m_TreeViewSuggestionToggle;
+        private bool PauseOnOpen => DebugSettings.PauseOnEnable;
 
         private float _pausedTimeScale;
         private DeveloperConsole _developerConsole;
@@ -170,7 +170,7 @@ namespace SAS.Utilities.DeveloperConsole
             }
             else
             {
-                if (m_PauseOnOpen)
+                if (PauseOnOpen)
                 {
                     _pausedTimeScale = Time.timeScale;
                     Time.timeScale = 0;
