@@ -9,7 +9,7 @@ using System.IO;
 /// Always prints logs to Console.
 /// Optional file output controlled by: LOG_TO_FILE.
 /// </summary>
-#if ENABLE_LOG_CATCHER
+#if ENABLE_DEBUG
 public static class ConsoleLogWriter
 {
     private static bool _initialized;
@@ -38,9 +38,10 @@ public static class ConsoleLogWriter
             Console.WriteLine($"[ConsoleLogWriter] Failed to create log file: {e.Message}");
         }
 #endif
-
+#if ENABLE_LOG_CATCHER
         Application.logMessageReceived += HandleLog;
         Console.WriteLine("[ConsoleLogWriter] Initialized.");
+#endif
     }
 
     public static void Shutdown()

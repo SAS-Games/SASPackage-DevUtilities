@@ -6,6 +6,44 @@ using UnityEngine;
 
 namespace SAS
 {
+    public class LogHandler : ILogHandler
+    {
+        private ILogHandler m_DefaultLogHandler = UnityEngine.Debug.unityLogger.logHandler;
+
+        public LogHandler()
+        {
+            UnityEngine.Debug.unityLogger.logHandler = this;
+        }
+
+        public void LogFormat(LogType logType, UnityEngine.Object context, string format, params object[] args)
+        {
+#if ENABLE_DEBUG
+            LogLevel level = LogLevel.Info;
+            int slotIndex = -1;
+            string tag = string.Empty;
+            if (args.Length > 1)
+            {
+                if (!int.TryParse(args[1] as string, out slotIndex))
+                    slotIndex = -1;
+
+                if (args.Length > 2)
+                    tag = args[2] as string;
+            }
+            string contextObjName = context?.name;
+            if (Debug.CanLog(level) && Debug.TagPassesFilter(tag, contextObjName))
+            {
+                m_DefaultLogHandler.LogFormat(logType, context, format, args);
+                Debug.AddOnScreenLogEntry(args[0] as string, tag, level, slotIndex);
+            }
+#endif
+        }
+
+        public void LogException(Exception exception, UnityEngine.Object context)
+        {
+            m_DefaultLogHandler.LogException(exception, context);
+        }
+    }
+
     [Flags]
     public enum LogLevel
     {
@@ -92,16 +130,16 @@ namespace SAS
         }
 
         [Conditional(DEBUG)]
-        public static void Log(string message, UnityEngine.Object context, int slotIndex, string tag = null,[CallerFilePath] string caller = "")
+        public static void Log(string message, UnityEngine.Object context, int slotIndex, string tag = null, [CallerFilePath] string caller = "")
         {
             LogInternal(message, context, tag, LogLevel.Info, slotIndex, caller);
         }
-        
+
 
         [Conditional(DEBUG)]
         public static void LogWarning(object message, string tag = null, [CallerFilePath] string caller = "")
         {
-            LogInternal(message?.ToString() ?? "null", null, tag, LogLevel.Warning,-1, caller);
+            LogInternal(message?.ToString() ?? "null", null, tag, LogLevel.Warning, -1, caller);
         }
 
         [Conditional(DEBUG)]
@@ -109,7 +147,7 @@ namespace SAS
         {
             LogInternal(message?.ToString() ?? "null", context, tag, LogLevel.Warning, -1, caller);
         }
-        
+
         [Conditional(DEBUG)]
         public static void LogWarning(string message, string tag = null, [CallerFilePath] string caller = "")
         {
@@ -127,9 +165,9 @@ namespace SAS
         {
             LogInternal(message, context, tag, LogLevel.Warning, -1, caller);
         }
-        
+
         [Conditional(DEBUG)]
-        public static void LogWarning(string message, UnityEngine.Object context, int slotIndex, string tag = null,[CallerFilePath] string caller = "")
+        public static void LogWarning(string message, UnityEngine.Object context, int slotIndex, string tag = null, [CallerFilePath] string caller = "")
         {
             LogInternal(message, context, tag, LogLevel.Warning, slotIndex, caller);
         }
@@ -139,7 +177,7 @@ namespace SAS
         {
             LogInternal(message?.ToString() ?? "null", null, tag, LogLevel.Error, -1, caller);
         }
-        
+
         [Conditional(DEBUG)]
         public static void LogError(object message, UnityEngine.Object context, string tag = null, [CallerFilePath] string caller = "")
         {
@@ -163,37 +201,32 @@ namespace SAS
         {
             LogInternal(message, context, tag, LogLevel.Error, -1, caller);
         }
-        
+
         [Conditional(DEBUG)]
-        public static void LogError(string message, UnityEngine.Object context, int slotIndex, string tag = null,[CallerFilePath] string caller = "")
+        public static void LogError(string message, UnityEngine.Object context, int slotIndex, string tag = null, [CallerFilePath] string caller = "")
         {
             LogInternal(message, context, tag, LogLevel.Error, slotIndex, caller);
         }
-        
+
         public static void LogException(Exception exception)
         {
             UnityEngine.Debug.LogException(exception);
             AddOnScreenLogEntry(exception.ToString(), "EXCEPTION", LogLevel.Error);
         }
-        
+
         [Conditional(DEBUG)]
         private static void LogInternal(string message, UnityEngine.Object context, string tag, LogLevel level, int slotIndex, string callerFilePath = "")
         {
             if (string.IsNullOrEmpty(tag))
                 tag = System.IO.Path.GetFileNameWithoutExtension(callerFilePath);
-            
-            if (CanLog(level) && TagPassesFilter(tag))
-            {
-                string logMessage = $"Tag: [{tag}] {message}";
-                if (level == LogLevel.Info)
-                    UnityEngine.Debug.Log(logMessage, context);
-                else if (level == LogLevel.Warning)
-                    UnityEngine.Debug.LogWarning(logMessage, context);
-                else if (level == LogLevel.Error)
-                    UnityEngine.Debug.LogError(logMessage, context);
 
-                AddOnScreenLogEntry(message, tag, level, slotIndex);
-            }
+            string logMessage = $"Tag: [{tag}] {message}";
+            if (level == LogLevel.Info)
+                UnityEngine.Debug.LogFormat(LogType.Log, LogOption.None, context, "{0}", logMessage, slotIndex, tag);
+            else if (level == LogLevel.Warning)
+                UnityEngine.Debug.LogFormat(LogType.Warning, LogOption.None, context, "{0}", logMessage, slotIndex, tag);
+            else if (level == LogLevel.Error)
+                UnityEngine.Debug.LogFormat(LogType.Error, LogOption.None, context, "{0}", logMessage, slotIndex, tag);
         }
 
         public static bool CanLog(LogLevel level)
@@ -201,10 +234,10 @@ namespace SAS
             return LogLevel.HasFlag(level);
         }
 
-        private static bool TagPassesFilter(string tag)
+        public static bool TagPassesFilter(string tag, string contextObjectName)
         {
             // If no allowed tags or the tag is present in the allowed tags, the filter passes
-            return AllowedTags.Count == 0 || AllowedTags.Contains(tag);
+            return AllowedTags.Count == 0 || AllowedTags.Contains(tag) || AllowedTags.Contains(contextObjectName);
         }
 
         public static void DrawRay(Vector3 rayOrigin, Vector3 vector3, Color color)
@@ -213,6 +246,6 @@ namespace SAS
         }
 
         // Partial method implemented in the other file
-        private static partial void AddOnScreenLogEntry(string message, string tag, LogLevel level, int slotIndex = -1);
+        internal static partial void AddOnScreenLogEntry(string message, string tag, LogLevel level, int slotIndex = -1);
     }
 }
