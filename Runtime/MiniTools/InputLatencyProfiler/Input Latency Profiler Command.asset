@@ -13,8 +13,22 @@ MonoBehaviour:
   m_Name: Input Latency Profiler Command
   m_EditorClassIdentifier: DevUtilities::SAS.Utilities.DeveloperConsole.InputLatencyProfilerCommand
   m_CommandName: InputLatencyProfiler
-  m_Presets:
-  - InputLatencyProfiler On
-  - InputLatencyProfiler Off
+  m_Presets: []
   <CloseOnCompletion>k__BackingField: 1
+  m_SubCommands:
+  - Name: Overlay
+    HelpText: 'Usage: InputLatencyProfiler.Show <On|Off>. \nShow/Hide InputLatencyProfiler
+      UI.'
+    Presets:
+    - Overlay On
+    - Overlay On
+    MethodName: InputLatencyProfiler
+  - Name: InputUpdateMode
+    HelpText: 'Usage: InputLatencyProfiler.Show <On|Off>. \nShow/Hide InputLatencyProfiler
+      UI.'
+    Presets:
+    - InputUpdateMode dynamic
+    - InputUpdateMode fixed
+    - InputUpdateMode manual
+    MethodName: InputUpdateMode
   m_InputLatencyProfilerPrefab: {fileID: 6207950565407678706, guid: 9cb66f3089b119d42b7350509f868211, type: 3}
