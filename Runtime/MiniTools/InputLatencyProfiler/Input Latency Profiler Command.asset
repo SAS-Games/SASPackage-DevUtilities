@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87cf8b04db749dd44a97049b9fa956b3, type: 3}
+  m_Name: Input Latency Profiler Command
+  m_EditorClassIdentifier: DevUtilities::SAS.Utilities.DeveloperConsole.InputLatencyProfilerCommand
+  m_CommandName: InputLatencyProfiler
+  m_Presets:
+  - InputLatencyProfiler On
+  - InputLatencyProfiler Off
+  <CloseOnCompletion>k__BackingField: 1
+  m_InputLatencyProfilerPrefab: {fileID: 6207950565407678706, guid: 9cb66f3089b119d42b7350509f868211, type: 3}
