@@ -6,8 +6,7 @@ public sealed class InputEventTracker
 {
     private readonly InputLatencyStatistics _statistics;
 
-    public InputEventTracker(
-        InputLatencyStatistics statistics)
+    public InputEventTracker(InputLatencyStatistics statistics)
     {
         _statistics = statistics;
     }

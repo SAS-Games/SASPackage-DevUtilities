@@ -9,10 +9,8 @@ public sealed class InputLatencyProfiler : MonoBehaviour
     private InputLatencyStatistics _actionStatistics;
     private InputLatencyStatistics _pipelineStatistics;
 
-    public InputLatencyStatistics RawStatistics => _rawStatistics;
+    public InputLatencyStatistics RawStatistics => _rawStatistics; 
     public InputLatencyStatistics ActionStatistics => _actionStatistics;
-    public InputLatencyStatistics PipelineStatistics => _pipelineStatistics;
-
     private InputLatencyOverlay _overlay;
 
     private void OnEnable()
@@ -21,7 +19,7 @@ public sealed class InputLatencyProfiler : MonoBehaviour
         _actionStatistics = new InputLatencyStatistics(2048);
         _pipelineStatistics = new InputLatencyStatistics(2048);
 
-        _actionTracker = new InputActionTracker(_actionStatistics, _pipelineStatistics);
+        _actionTracker = new InputActionTracker(_actionStatistics);
         _eventTracker = new InputEventTracker(_rawStatistics);
 
         _overlay = new InputLatencyOverlay(_rawStatistics, _actionStatistics);

@@ -8,12 +8,10 @@ public sealed class InputActionTracker
     private readonly HashSet<InputAction> _tracked = new HashSet<InputAction>();
 
     private readonly InputLatencyStatistics _statistics;
-    private readonly InputLatencyStatistics _pipelineStatistics;
 
-    public InputActionTracker(InputLatencyStatistics actionStatistics, InputLatencyStatistics pipelineStatistics)
+    public InputActionTracker(InputLatencyStatistics actionStatistics)
     {
         _statistics = actionStatistics;
-        _pipelineStatistics = pipelineStatistics;
     }
 
     public void Enable()
@@ -128,7 +126,6 @@ public sealed class InputActionTracker
     private void RecordAction(InputAction.CallbackContext context, InputActionPhase phase)
     {
         double now = Time.realtimeSinceStartupAsDouble;
-
         float latencyMs = (float)((now - context.time) * 1000.0);
         float pipelineDelta = latencyMs - InputLatencySharedState.LatestRawLatencyMs;
         pipelineDelta = Mathf.Max(0f, pipelineDelta);
@@ -142,16 +139,5 @@ public sealed class InputActionTracker
                 Time.frameCount,
                 InputState.currentUpdateType);
         _statistics.AddSample(sample);
-        
-        InputLatencySample pipelineSample = new InputLatencySample(
-                InputLatencyEventType.Action,
-                "PIPELINE",
-                context.control != null ? context.control.path : "Unknown",
-                phase,
-                pipelineDelta,
-                Time.frameCount,
-                InputState.currentUpdateType);
-
-        _pipelineStatistics.AddSample(pipelineSample);
     }
 }
