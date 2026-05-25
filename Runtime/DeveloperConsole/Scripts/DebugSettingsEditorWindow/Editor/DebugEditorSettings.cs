@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEditor;
 using System.Collections.Generic;
 
@@ -15,3 +16,4 @@ namespace SAS.Utilities.DeveloperConsole.Editor
         }
     }
 }
+#endif
