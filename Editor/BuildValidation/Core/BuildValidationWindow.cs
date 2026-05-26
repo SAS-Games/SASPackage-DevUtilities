@@ -44,7 +44,12 @@ namespace SAS.BuildValidation
                 settings.Validations.Add(state);
             }
 
-            state.Enabled = EditorGUILayout.ToggleLeft(type.Name, state.Enabled);
+            var attribute = (BuildValidationAttribute)Attribute.GetCustomAttribute(type, typeof(BuildValidationAttribute));
+            bool optional = attribute?.Optional ?? true;
+            EditorGUI.BeginDisabledGroup(!optional);
+            state.Enabled = EditorGUILayout.ToggleLeft(type.Name, !optional || state.Enabled);
+
+            EditorGUI.EndDisabledGroup();
         }
     }
 }

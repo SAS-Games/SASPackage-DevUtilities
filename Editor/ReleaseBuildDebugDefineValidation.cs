@@ -2,7 +2,7 @@ using UnityEditor.Build.Reporting;
 
 namespace SAS.BuildValidation
 {
-    [BuildValidation(order: 0)]
+    [BuildValidation(optional: false)]
     public class ReleaseBuildDebugDefineValidation : IBuildValidation
     {
         public string Name => "Release Build Debug Define Validation";
@@ -13,7 +13,7 @@ namespace SAS.BuildValidation
 
 #if ENABLE_DEBUG
 
-            bool isDevelopmentBuild = (report.summary.options & UnityEditor.BuildOptions.Development) != 0;
+            bool isDevelopmentBuild = (report.summary.options.HasFlag( UnityEditor.BuildOptions.Development));
 
             if (!isDevelopmentBuild)
                 result.AddIssue("DevUtility is enabled for a non-development build. " + "Disable debug defines before creating a release build.", ValidationSeverity.Error);

@@ -18,10 +18,7 @@ namespace SAS.BuildValidation
                     .Where(type => !type.IsAbstract && !type.IsInterface)
                     .OrderBy(GetValidationOrder)
                     .ToList();
-            foreach (var type in _cachedValidationTypes)
-            {
-                UnityEngine.Debug.Log(type.Name);
-            }
+            
             return _cachedValidationTypes;
         }
 

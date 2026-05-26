@@ -16,9 +16,9 @@ namespace SAS.BuildValidation
             var validationTypes = BuildValidationRegistry.GetValidationTypes();
 
             List<string> warnings = new();
-
             List<string> errors = new();
-
+            ValidationWarningCache.Clear();
+            
             foreach (var type in validationTypes)
             {
                 if (!BuildValidationUtility.IsValidationEnabled(type))
@@ -37,6 +37,7 @@ namespace SAS.BuildValidation
                     {
                         case ValidationSeverity.Warning:
                             warnings.Add(message);
+                            ValidationWarningCache.Warnings.Add(message);
                             break;
 
                         case ValidationSeverity.Error:
@@ -91,20 +92,7 @@ namespace SAS.BuildValidation
         private static string BuildDialogMessage(List<string> warnings, List<string> errors)
         {
             System.Text.StringBuilder builder = new();
-
-            if (warnings.Count > 0)
-            {
-                builder.AppendLine("WARNINGS");
-                builder.AppendLine("--------------------");
-
-                foreach (var warning in warnings)
-                {
-                    builder.AppendLine(warning);
-                }
-
-                builder.AppendLine();
-            }
-
+            
             if (errors.Count > 0)
             {
                 builder.AppendLine("ERRORS");
@@ -114,6 +102,20 @@ namespace SAS.BuildValidation
                 {
                     builder.AppendLine(error);
                 }
+            }
+            
+            if (warnings.Count > 0)
+            {
+                builder.AppendLine();
+                builder.AppendLine("WARNINGS");
+                builder.AppendLine("--------------------");
+
+                foreach (var warning in warnings)
+                {
+                    builder.AppendLine(warning);
+                }
+
+                builder.AppendLine();
             }
 
             return builder.ToString();

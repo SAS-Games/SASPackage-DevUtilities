@@ -5,10 +5,12 @@ namespace SAS.BuildValidation
     [AttributeUsage(AttributeTargets.Class)]
     public class BuildValidationAttribute : Attribute
     {
-        public int Order { get; private set; }
+        public bool Optional { get; }
+        public int Order { get; }
 
-        public BuildValidationAttribute(int order = 0)
+        public BuildValidationAttribute(bool optional = true, int order = 0)
         {
+            Optional = optional;
             Order = order;
         }
     }
