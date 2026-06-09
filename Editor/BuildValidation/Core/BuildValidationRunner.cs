@@ -1,29 +1,34 @@
 using System;
 using System.Collections.Generic;
-using UnityEditor;
-using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
-using UnityEngine;
 
 namespace SAS.BuildValidation
 {
-    public class BuildValidationRunner : IPreprocessBuildWithReport
+    public class ValidationReport
     {
-        public int callbackOrder => 0;
+        public readonly List<string> Warnings = new();
+        public readonly List<string> Errors = new();
 
-        public void OnPreprocessBuild(BuildReport report)
+        public bool HasWarnings => Warnings.Count > 0;
+        public bool HasErrors => Errors.Count > 0;
+    }
+    
+    public static class BuildValidationRunner
+    {
+        public static ValidationReport Run(BuildReport report = null)
         {
-            var validationTypes = BuildValidationRegistry.GetValidationTypes();
+            ValidationReport validationReport = new();
 
-            List<string> warnings = new();
-            List<string> errors = new();
             ValidationWarningCache.Clear();
-            
-            foreach (var type in validationTypes)
+
+            foreach (var type in BuildValidationRegistry.GetValidationTypes())
             {
                 if (!BuildValidationUtility.IsValidationEnabled(type))
                     continue;
 
+                if (report == null && BuildValidationUtility.RequiresBuildReport(type))
+                    continue;
+                
                 if (Activator.CreateInstance(type) is not IBuildValidation validation)
                     continue;
 
@@ -31,50 +36,27 @@ namespace SAS.BuildValidation
 
                 foreach (var issue in result.Issues)
                 {
-                    string message = $"[{validation.Name}] " + $"{issue.Message}";
+                    string message = $"[{validation.Name}] {issue.Message}";
+
+                    LogIssue(issue, message);
 
                     switch (issue.Severity)
                     {
                         case ValidationSeverity.Warning:
-                            warnings.Add(message);
+                            validationReport.Warnings.Add(message);
                             ValidationWarningCache.Warnings.Add(message);
                             break;
 
                         case ValidationSeverity.Error:
-                            errors.Add(message);
+                            validationReport.Errors.Add(message);
                             break;
                     }
-
-                    LogIssue(issue, message);
                 }
             }
 
-            if (warnings.Count == 0 && errors.Count == 0)
-                return;
-
-            string dialogMessage = BuildDialogMessage(warnings, errors);
-
-            // CI / Batch Mode
-            if (Application.isBatchMode)
-            {
-                if (errors.Count > 0)
-                    throw new BuildFailedException(dialogMessage);
-                return;
-            }
-
-            // No errors → only warnings
-            if (errors.Count == 0)
-            {
-                Debug.Log(dialogMessage);
-                return;
-            }
-
-            bool continueBuild = EditorUtility.DisplayDialog("Build Validation Failed", dialogMessage, "Continue Build", "Cancel Build");
-
-            if (!continueBuild)
-                throw new BuildFailedException("Build cancelled due to validation failure.");
+            return validationReport;
         }
-
+        
         private static void LogIssue(ValidationIssue issue, string message)
         {
             switch (issue.Severity)
@@ -87,38 +69,6 @@ namespace SAS.BuildValidation
                     Debug.LogError(message, issue.Context);
                     break;
             }
-        }
-
-        private static string BuildDialogMessage(List<string> warnings, List<string> errors)
-        {
-            System.Text.StringBuilder builder = new();
-            
-            if (errors.Count > 0)
-            {
-                builder.AppendLine("ERRORS");
-                builder.AppendLine("--------------------");
-
-                foreach (var error in errors)
-                {
-                    builder.AppendLine(error);
-                }
-            }
-            
-            if (warnings.Count > 0)
-            {
-                builder.AppendLine();
-                builder.AppendLine("WARNINGS");
-                builder.AppendLine("--------------------");
-
-                foreach (var warning in warnings)
-                {
-                    builder.AppendLine(warning);
-                }
-
-                builder.AppendLine();
-            }
-
-            return builder.ToString();
         }
     }
 }

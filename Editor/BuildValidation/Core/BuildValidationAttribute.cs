@@ -8,10 +8,16 @@ namespace SAS.BuildValidation
         public bool Optional { get; }
         public int Order { get; }
 
-        public BuildValidationAttribute(bool optional = true, int order = 0)
+        /// <summary>
+        /// Validation can only run when a BuildReport is available.
+        /// </summary>
+        public bool RequiresBuildReport { get; }
+
+        public BuildValidationAttribute(bool optional = true, int order = 0, bool requiresBuildReport = false)
         {
             Optional = optional;
             Order = order;
+            RequiresBuildReport = requiresBuildReport;
         }
     }
 }

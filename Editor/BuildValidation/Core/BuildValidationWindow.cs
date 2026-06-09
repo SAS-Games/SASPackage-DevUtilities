@@ -6,7 +6,7 @@ namespace SAS.BuildValidation
 {
     public class BuildValidationWindow : EditorWindow
     {
-        [MenuItem("Tools/DevUtilities/Build Validation")]
+        [MenuItem("Tools/Build Validation/Validators")]
         public static void Open()
         {
             GetWindow<BuildValidationWindow>("Build Validation");

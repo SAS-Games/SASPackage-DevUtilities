@@ -6,7 +6,8 @@ namespace SAS.BuildValidation
     {
         public static bool IsValidationEnabled(Type type)
         {
-            var attribute = (BuildValidationAttribute)Attribute.GetCustomAttribute(type, typeof(BuildValidationAttribute));
+            var attribute =
+                (BuildValidationAttribute)Attribute.GetCustomAttribute(type, typeof(BuildValidationAttribute));
 
             bool optional = attribute?.Optional ?? true;
 
@@ -29,6 +30,13 @@ namespace SAS.BuildValidation
             }
 
             return state.Enabled;
+        }
+
+        public static bool RequiresBuildReport(Type type)
+        {
+            var attribute =
+                (BuildValidationAttribute)Attribute.GetCustomAttribute(type, typeof(BuildValidationAttribute));
+            return attribute?.RequiresBuildReport ?? false;
         }
     }
 }
