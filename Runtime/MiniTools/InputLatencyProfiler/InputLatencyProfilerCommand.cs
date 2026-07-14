@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
 
+#if ENABLE_DEBUG
+
 namespace SAS.Utilities.DeveloperConsole
 {
     [CreateAssetMenu(fileName = "New Input Latency Profiler Command", menuName = DeveloperConsole.CommandBasePath + "Input Latency Profiler")]
@@ -8,7 +10,9 @@ namespace SAS.Utilities.DeveloperConsole
     {
         [SerializeField] private GameObject m_InputLatencyProfilerPrefab;
         private GameObject _inputLatencyProfiler;
-        public override string HelpText => "Usage: InputLatencyProfiler <On|Off>. \nShow/Hide InputLatencyProfiler UI.";
+        private InputSettings.UpdateMode _previousUpdateMode;
+        private bool _hasPreviousUpdateMode;
+        public override string HelpText => "Usage: InputLatencyProfiler <Overlay|InputUpdateMode>.";
         
 
         private bool InputLatencyProfiler(string[] args)
@@ -38,35 +42,54 @@ namespace SAS.Utilities.DeveloperConsole
 
             string mode = args[0].ToLowerInvariant();
 
+            if (mode == "restore" || mode == "r")
+            {
+                if (!_hasPreviousUpdateMode)
+                    return false;
+
+                InputSystem.settings.updateMode = _previousUpdateMode;
+                _hasPreviousUpdateMode = false;
+                Debug.Log($"[InputMode] Restored {_previousUpdateMode}");
+                return true;
+            }
+
             switch (mode)
             {
                 case "dynamic":
                 case "d":
                 {
-                    InputSystem.settings.updateMode = InputSettings.UpdateMode.ProcessEventsInDynamicUpdate;
-                    Debug.Log("[InputMode] Dynamic Update");
-                    return true;
+                    return ApplyUpdateMode(InputSettings.UpdateMode.ProcessEventsInDynamicUpdate, "Dynamic Update");
                 }
 
                 case "fixed":
                 case "f":
                 {
-                    InputSystem.settings.updateMode = InputSettings.UpdateMode.ProcessEventsInFixedUpdate;
-                    Debug.Log("[InputMode] Fixed Update");
-                    return true;
+                    return ApplyUpdateMode(InputSettings.UpdateMode.ProcessEventsInFixedUpdate, "Fixed Update");
                 }
 
                 case "manual":
                 case "m":
                 {
-                    InputSystem.settings.updateMode = InputSettings.UpdateMode.ProcessEventsManually;
-                    Debug.Log("[InputMode] Manual Update");
-                    return true;
+                    return ApplyUpdateMode(InputSettings.UpdateMode.ProcessEventsManually, "Manual Update");
                 }
 
                 default:
                     return false;
             }
         }
+
+        private bool ApplyUpdateMode(InputSettings.UpdateMode mode, string label)
+        {
+            if (!_hasPreviousUpdateMode)
+            {
+                _previousUpdateMode = InputSystem.settings.updateMode;
+                _hasPreviousUpdateMode = true;
+            }
+
+            InputSystem.settings.updateMode = mode;
+            Debug.Log($"[InputMode] {label}");
+            return true;
+        }
     }
 }
+#endif

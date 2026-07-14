@@ -1,3 +1,4 @@
+#if ENABLE_DEBUG
 public sealed class InputLatencyStatistics : IGraphStatisticsSource
 {
     public float MinLatency { get; private set; }
@@ -7,7 +8,7 @@ public sealed class InputLatencyStatistics : IGraphStatisticsSource
 
     private readonly CircularBuffer<InputLatencySample> _samples;
 
-    private float _totalLatency;
+    private double _totalLatency;
 
     public float AverageLatency { get; private set; }
 
@@ -22,15 +23,21 @@ public sealed class InputLatencyStatistics : IGraphStatisticsSource
 
     public void AddSample(InputLatencySample sample)
     {
-        _samples.Add(sample);
-
+        bool overwritten = _samples.Add(sample, out InputLatencySample removed);
+        if (overwritten)
+            _totalLatency -= removed.LatencyMs;
         _totalLatency += sample.LatencyMs;
+        AverageLatency = (float)(_totalLatency / _samples.Count);
 
-        AverageLatency =
-            _totalLatency / _samples.Count;
-
-        if (sample.LatencyMs > MaxLatency)
-            MaxLatency = sample.LatencyMs;
+        if (_samples.Count == 1)
+            MinLatency = MaxLatency = sample.LatencyMs;
+        else if (overwritten && (removed.LatencyMs <= MinLatency || removed.LatencyMs >= MaxLatency))
+            RecalculateRange();
+        else
+        {
+            if (sample.LatencyMs < MinLatency) MinLatency = sample.LatencyMs;
+            if (sample.LatencyMs > MaxLatency) MaxLatency = sample.LatencyMs;
+        }
     }
 
     public ref readonly InputLatencySample
@@ -38,4 +45,17 @@ public sealed class InputLatencyStatistics : IGraphStatisticsSource
     {
         return ref _samples.GetRecent(index);
     }
+
+    private void RecalculateRange()
+    {
+        if (_samples.Count == 0) { MinLatency = MaxLatency = 0f; return; }
+        MinLatency = float.MaxValue; MaxLatency = float.MinValue;
+        for (int i = 0; i < _samples.Count; i++)
+        {
+            float value = _samples.GetRecent(i).LatencyMs;
+            if (value < MinLatency) MinLatency = value;
+            if (value > MaxLatency) MaxLatency = value;
+        }
+    }
 }
+#endif

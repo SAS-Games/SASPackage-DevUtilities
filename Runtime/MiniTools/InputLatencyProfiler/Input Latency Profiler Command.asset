@@ -17,18 +17,19 @@ MonoBehaviour:
   <CloseOnCompletion>k__BackingField: 1
   m_SubCommands:
   - Name: Overlay
-    HelpText: 'Usage: InputLatencyProfiler.Show <On|Off>. \nShow/Hide InputLatencyProfiler
+    HelpText: 'Usage: InputLatencyProfiler.Overlay <On|Off>. \nShow/Hide InputLatencyProfiler
       UI.'
     Presets:
     - Overlay On
-    - Overlay On
+    - Overlay Off
     MethodName: InputLatencyProfiler
   - Name: InputUpdateMode
-    HelpText: 'Usage: InputLatencyProfiler.Show <On|Off>. \nShow/Hide InputLatencyProfiler
-      UI.'
+    HelpText: 'Usage: InputLatencyProfiler.InputUpdateMode <dynamic|fixed|manual|restore>.
+      \nTemporarily change or restore the Input System update mode.'
     Presets:
     - InputUpdateMode dynamic
     - InputUpdateMode fixed
     - InputUpdateMode manual
+    - InputUpdateMode restore
     MethodName: InputUpdateMode
   m_InputLatencyProfilerPrefab: {fileID: 6207950565407678706, guid: 9cb66f3089b119d42b7350509f868211, type: 3}

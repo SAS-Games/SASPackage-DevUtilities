@@ -1,3 +1,4 @@
+#if ENABLE_DEBUG
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -8,10 +9,16 @@ public sealed class InputActionTracker
     private readonly HashSet<InputAction> _tracked = new HashSet<InputAction>();
 
     private readonly InputLatencyStatistics _statistics;
+    private readonly InputLatencyStatistics _queueStatistics;
+    private readonly InputLatencyStatistics _pipelineStatistics;
+    private readonly InputEventCorrelation _correlation;
 
-    public InputActionTracker(InputLatencyStatistics actionStatistics)
+    public InputActionTracker(InputLatencyStatistics actionStatistics, InputLatencyStatistics queueStatistics, InputLatencyStatistics pipelineStatistics, InputEventCorrelation correlation)
     {
         _statistics = actionStatistics;
+        _queueStatistics = queueStatistics;
+        _pipelineStatistics = pipelineStatistics;
+        _correlation = correlation;
     }
 
     public void Enable()
@@ -30,39 +37,34 @@ public sealed class InputActionTracker
 
     private void RegisterExistingActions()
     {
-        InputActionAsset[] assets = Resources.FindObjectsOfTypeAll<InputActionAsset>();
-
-        foreach (InputActionAsset asset in assets)
+        List<InputAction> enabledActions = new List<InputAction>();
+        InputSystem.ListEnabledActions(enabledActions);
+        foreach (InputAction action in enabledActions)
         {
-            if (asset == null)
-                continue;
-
-            foreach (InputActionMap map in asset.actionMaps)
-            {
-                foreach (InputAction action in map.actions)
-                {
-                    if (action.enabled)
-                    {
-                        RegisterAction(action);
-                    }
-                }
-            }
+            RegisterAction(action);
         }
     }
 
     private void OnActionChange(object obj, InputActionChange change)
     {
-        if (obj is not InputAction action)
-            return;
-
         switch (change)
         {
-            case InputActionChange.ActionEnabled:
+            case InputActionChange.ActionEnabled when obj is InputAction action:
                 RegisterAction(action);
                 break;
 
-            case InputActionChange.ActionDisabled:
+            case InputActionChange.ActionDisabled when obj is InputAction action:
                 UnregisterAction(action);
+                break;
+
+            case InputActionChange.ActionMapEnabled when obj is InputActionMap enabledMap:
+                foreach (InputAction mapAction in enabledMap.actions)
+                    RegisterAction(mapAction);
+                break;
+
+            case InputActionChange.ActionMapDisabled when obj is InputActionMap disabledMap:
+                foreach (InputAction mapAction in disabledMap.actions)
+                    UnregisterAction(mapAction);
                 break;
         }
     }
@@ -126,9 +128,7 @@ public sealed class InputActionTracker
     private void RecordAction(InputAction.CallbackContext context, InputActionPhase phase)
     {
         double now = Time.realtimeSinceStartupAsDouble;
-        float latencyMs = (float)((now - context.time) * 1000.0);
-        float pipelineDelta = latencyMs - InputLatencySharedState.LatestRawLatencyMs;
-        pipelineDelta = Mathf.Max(0f, pipelineDelta);
+        float latencyMs = InputLatencyCalculator.Between(context.time, now);
 
         InputLatencySample sample = new InputLatencySample(
                 InputLatencyEventType.Action,
@@ -139,5 +139,29 @@ public sealed class InputActionTracker
                 Time.frameCount,
                 InputState.currentUpdateType);
         _statistics.AddSample(sample);
+
+        if (context.control != null && _correlation.TryGetDequeuedTime(context.control.device.deviceId, context.time, out double eventDequeuedTime))
+        {
+            string actionName = context.action != null ? context.action.name : "Unknown";
+            _queueStatistics.AddSample(new InputLatencySample(
+                InputLatencyEventType.Raw,
+                actionName,
+                context.control.path,
+                phase,
+                InputLatencyCalculator.Between(context.time, eventDequeuedTime),
+                Time.frameCount,
+                InputState.currentUpdateType));
+
+            float pipelineLatencyMs = InputLatencyCalculator.Between(eventDequeuedTime, now);
+            _pipelineStatistics.AddSample(new InputLatencySample(
+                InputLatencyEventType.Pipeline,
+                actionName,
+                context.control.path,
+                phase,
+                pipelineLatencyMs,
+                Time.frameCount,
+                InputState.currentUpdateType));
+        }
     }
 }
+#endif

@@ -1,3 +1,4 @@
+#if ENABLE_DEBUG
 using UnityEngine;
 
 public sealed class InputLatencyGraphUI : MonoBehaviour
@@ -28,3 +29,4 @@ public sealed class InputLatencyGraphUI : MonoBehaviour
         m_ActionStatsView.Refresh();
     }
 }
+#endif

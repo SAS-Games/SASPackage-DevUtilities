@@ -1,14 +1,14 @@
-using UnityEngine;
+#if ENABLE_DEBUG
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
 
 public sealed class InputEventTracker
 {
-    private readonly InputLatencyStatistics _statistics;
+    private readonly InputEventCorrelation _correlation;
 
-    public InputEventTracker(InputLatencyStatistics statistics)
+    public InputEventTracker(InputEventCorrelation correlation)
     {
-        _statistics = statistics;
+        _correlation = correlation;
     }
 
     public void Enable()
@@ -27,20 +27,7 @@ public sealed class InputEventTracker
             !eventPtr.IsA<DeltaStateEvent>())
             return;
 
-        double now = Time.realtimeSinceStartupAsDouble;
-
-        float latencyMs = (float)((now - eventPtr.time) * 1000.0);
-        InputLatencySharedState.LatestRawLatencyMs = latencyMs;
-
-        InputLatencySample sample = new InputLatencySample(
-                InputLatencyEventType.Raw,
-                "RAW",
-                device != null ? device.name : "Unknown",
-                InputActionPhase.Waiting,
-                latencyMs,
-                Time.frameCount,
-                InputState.currentUpdateType);
-
-        _statistics.AddSample(sample);
+        _correlation.Record(eventPtr.deviceId, eventPtr.time, UnityEngine.Time.realtimeSinceStartupAsDouble);
     }
 }
+#endif

@@ -1,3 +1,4 @@
+#if ENABLE_DEBUG
 public sealed class LatencyGraphSource : IGraphDataSource
 {
     private readonly InputLatencyStatistics _statistics;
@@ -18,3 +19,4 @@ public sealed class LatencyGraphSource : IGraphDataSource
     public float MinValue => 0f;
     public float MaxValue { get; }
 }
+#endif

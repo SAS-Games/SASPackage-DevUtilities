@@ -1,3 +1,4 @@
+#if ENABLE_DEBUG
 using TMPro;
 using UnityEngine;
 
@@ -30,3 +31,4 @@ public sealed class GraphStatsView : MonoBehaviour
         m_MaxText.text = $"MAX : {_source.Max:F2} ms";
     }
 }
+#endif

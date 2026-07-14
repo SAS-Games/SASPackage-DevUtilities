@@ -1,3 +1,4 @@
+#if ENABLE_DEBUG
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -288,3 +289,4 @@ public class GraphGraphic : MaskableGraphic
             color);
     }
 }
+#endif
