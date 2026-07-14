@@ -1,4 +1,3 @@
-using System;
 using SAS.Utilities.RuntimeDebugger;
 using UnityEngine;
 
@@ -7,7 +6,8 @@ namespace SAS.Utilities.DeveloperConsole
     [CreateAssetMenu(fileName = "Runtime Debugger Command", menuName = DeveloperConsole.CommandBasePath + "Runtime Debugger")]
     public sealed class RuntimeDebuggerConsoleCommand : ConsoleCommand
     {
-        public override string HelpText => "Usage: RuntimeDebugger <On|Off|Toggle|Status>. Enables or fully suspends the runtime debugger.";
+        public override string HelpText =>
+            "Usage: RuntimeDebugger <On|Off>. Enables or fully suspends the runtime debugger.";
 
         public override bool Process(DeveloperConsoleBehaviour developerConsole, string command, string[] args)
         {
@@ -15,23 +15,9 @@ namespace SAS.Utilities.DeveloperConsole
             if (args == null || args.Length != 1)
                 return false;
 
-            string operation = args[0];
             RuntimeDebuggerHost host = RuntimeDebuggerHost.Instance;
-            if (operation.Equals("status", StringComparison.OrdinalIgnoreCase))
-            {
-                string state = host == null || !host.IsDebuggerEnabled ? "disabled" : host.IsOpen ? "enabled and open" : "enabled and closed";
-                Debug.Log($"Runtime Debugger is {state}.");
-                return true;
-            }
 
-            bool enable;
-            if (operation.Equals("on", StringComparison.OrdinalIgnoreCase) || operation.Equals("enable", StringComparison.OrdinalIgnoreCase))
-                enable = true;
-            else if (operation.Equals("off", StringComparison.OrdinalIgnoreCase) || operation.Equals("disable", StringComparison.OrdinalIgnoreCase))
-                enable = false;
-            else if (operation.Equals("toggle", StringComparison.OrdinalIgnoreCase))
-                enable = host == null || !host.IsDebuggerEnabled;
-            else
+            if (!BoolUtil.TryParse(args[0], out var enable))
                 return false;
 
             if (enable)
