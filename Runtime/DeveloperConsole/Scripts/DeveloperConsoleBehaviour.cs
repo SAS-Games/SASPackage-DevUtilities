@@ -174,12 +174,22 @@ namespace SAS.Utilities.DeveloperConsole
 
         private void Toggle(CallbackContext context)
         {
+            if (m_UiCanvas == null)
+                return;
+
             if (m_UiCanvas.activeSelf)
             {
                 if (m_InputField != null)
                     Time.timeScale = _pausedTimeScale;
-                EventSystem.current.SetSelectedGameObject(null);
-                EventSystem.current.SetSelectedGameObject(_lastSelectedGameObject);
+
+                EventSystem eventSystem = EventSystem.current;
+                if (eventSystem != null)
+                {
+                    eventSystem.SetSelectedGameObject(null);
+                    if (_lastSelectedGameObject != null && _lastSelectedGameObject.activeInHierarchy)
+                        eventSystem.SetSelectedGameObject(_lastSelectedGameObject);
+                }
+
                 m_UiCanvas.SetActive(false);
             }
             else
@@ -191,8 +201,9 @@ namespace SAS.Utilities.DeveloperConsole
                 }
 
                 m_UiCanvas.SetActive(true);
-                _lastSelectedGameObject = EventSystem.current.currentSelectedGameObject;
-                EventSystem.current.SetSelectedGameObject(null);
+                EventSystem eventSystem = EventSystem.current;
+                _lastSelectedGameObject = eventSystem != null ? eventSystem.currentSelectedGameObject : null;
+                eventSystem?.SetSelectedGameObject(null);
 #if UNITY_EDITOR || !UNITY_PS5
                 StartCoroutine(FocusInputFieldNextFrame());
 #endif
@@ -203,7 +214,13 @@ namespace SAS.Utilities.DeveloperConsole
 
         private IEnumerator FocusInputFieldNextFrame()
         {
+            EventSystem eventSystem = EventSystem.current;
             yield return null; // wait one frame
+
+            if (m_InputField == null ||
+                !CanApplyDelayedFocus(eventSystem, m_InputField.gameObject))
+                yield break;
+
             m_InputField.ActivateInputField();
             m_InputField.Select();
             SuggestionAppliedEvent?.Invoke();
@@ -211,14 +228,34 @@ namespace SAS.Utilities.DeveloperConsole
 
         private IEnumerator FocusSubmitNextFrame()
         {
+            EventSystem eventSystem = EventSystem.current;
             yield return null; // wait one frame
+
+            if (m_SubmitButton == null ||
+                !CanApplyDelayedFocus(eventSystem, m_SubmitButton.gameObject))
+                yield break;
+
             m_SubmitButton.Select();
         }
 
         private IEnumerator ClearFocusNextFrame()
         {
+            EventSystem eventSystem = EventSystem.current;
             yield return null; // wait one frame
-            EventSystem.current.SetSelectedGameObject(null);
+
+            if (!CanApplyDelayedFocus(eventSystem))
+                yield break;
+
+            eventSystem.SetSelectedGameObject(null);
+        }
+
+        private bool CanApplyDelayedFocus(EventSystem eventSystem, GameObject selection = null)
+        {
+            if (m_UiCanvas == null || !m_UiCanvas.activeInHierarchy || eventSystem == null ||
+                !eventSystem.isActiveAndEnabled || EventSystem.current != eventSystem)
+                return false;
+
+            return selection == null || selection.activeInHierarchy;
         }
 
         public void ProcessCommand()
@@ -226,7 +263,10 @@ namespace SAS.Utilities.DeveloperConsole
             DeveloperConsole.ProcessCommand(m_InputField.text, this, out var close);
             m_InputField.text = string.Empty;
 #if !UNITY_EDITOR && UNITY_PS5
-            StartCoroutine(ClearFocusNextFrame());
+            // A closing command disables the console EventSystem; clearing on the next frame would
+            // either dereference a missing EventSystem or clear the restored gameplay UI selection.
+            if (!close)
+                StartCoroutine(ClearFocusNextFrame());
 #endif
             SuggestionAppliedEvent?.Invoke();
             if (close)
@@ -342,9 +382,15 @@ namespace SAS.Utilities.DeveloperConsole
 
         private IEnumerator SelectGameObjectNextFrame()
         {
+            EventSystem eventSystem = EventSystem.current;
             yield return null;
-            EventSystem.current.SetSelectedGameObject(null);
-            EventSystem.current.SetSelectedGameObject(m_SubmitButton.gameObject);
+
+            if (m_SubmitButton == null ||
+                !CanApplyDelayedFocus(eventSystem, m_SubmitButton.gameObject))
+                yield break;
+
+            eventSystem.SetSelectedGameObject(null);
+            eventSystem.SetSelectedGameObject(m_SubmitButton.gameObject);
         }
 
         private void OnSubmit(CallbackContext context)
@@ -361,9 +407,9 @@ namespace SAS.Utilities.DeveloperConsole
         {
             if (!context.performed) return;
 
-            if (m_InputField != null)
+            if (m_InputField != null && m_UiCanvas != null && m_UiCanvas.activeInHierarchy)
             {
-                EventSystem.current.SetSelectedGameObject(null);
+                EventSystem.current?.SetSelectedGameObject(null);
                 StartCoroutine(FocusInputFieldNextFrame());
             }
         }
