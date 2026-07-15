@@ -8,6 +8,9 @@ namespace SAS.Utilities.DeveloperConsole
     [RequireComponent(typeof(ScrollSnapper))]
     public class SuggestionListView : SuggestionView
     {
+        private static readonly Color NormalSuggestionColor = new(0.92f, 0.95f, 1f);
+        private static readonly Color SelectedSuggestionColor = new(0.22f, 0.75f, 1f);
+
         [SerializeField] private RectTransform m_Container;
         [SerializeField] private GameObject m_SuggestionTemplate;
 
@@ -73,7 +76,7 @@ namespace SAS.Utilities.DeveloperConsole
             for (int i = 0; i < _activeSuggestions.Count; i++)
             {
                 var text = _activeSuggestions[i].GetComponentInChildren<TMP_Text>();
-                text.color = (i == _selectedIndex) ? Color.yellow : Color.white;
+                text.color = i == _selectedIndex ? SelectedSuggestionColor : NormalSuggestionColor;
                 if (i == _selectedIndex)
                 {
                     _scrollSnapper.FocusOn(_activeSuggestions[i].transform);

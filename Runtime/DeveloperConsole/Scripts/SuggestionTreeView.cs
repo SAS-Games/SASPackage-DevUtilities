@@ -9,6 +9,9 @@ namespace SAS.Utilities.DeveloperConsole
     [RequireComponent(typeof(ScrollSnapper))]
     public class SuggestionTreeView : SuggestionView
     {
+        private static readonly Color NormalSuggestionColor = new(0.92f, 0.95f, 1f);
+        private static readonly Color SelectedSuggestionColor = new(0.22f, 0.75f, 1f);
+
         [SerializeField] private RectTransform m_BaseCommandContainer;
         [SerializeField] private GameObject m_BaseCommandTemplate;
         [SerializeField] private GameObject m_PresetTemplate;
@@ -91,12 +94,12 @@ namespace SAS.Utilities.DeveloperConsole
         private void HighlightSelection()
         {
             if (_highlightedItem != null)
-                _highlightedItem.GetComponentInChildren<TMP_Text>().color = Color.white;
+                _highlightedItem.GetComponentInChildren<TMP_Text>().color = NormalSuggestionColor;
 
             if (_selectedIndex >= 0 && _selectedIndex < _navigableItems.Count)
             {
                 _highlightedItem = _navigableItems[_selectedIndex];
-                _highlightedItem.GetComponentInChildren<TMP_Text>().color = Color.yellow;
+                _highlightedItem.GetComponentInChildren<TMP_Text>().color = SelectedSuggestionColor;
                 StartCoroutine(SelectGameObjectNextFrame(_highlightedItem.GetComponentInChildren<Button>().gameObject));
             }
 

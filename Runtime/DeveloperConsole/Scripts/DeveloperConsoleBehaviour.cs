@@ -38,9 +38,18 @@ namespace SAS.Utilities.DeveloperConsole
         [SerializeField] private Button m_SubmitButton = null;
         [SerializeField] private TMP_Text m_HelpText = null;
         [SerializeField] private Toggle m_TreeViewSuggestionToggle;
+        [SerializeField] private RectTransform m_CommandPanel = null;
+        [SerializeField] private RectTransform[] m_SuggestionPanels = Array.Empty<RectTransform>();
+        [SerializeField, Min(32f)] private float m_MaxHelpHeight = 260f;
         private bool PauseOnOpen => DebugSettings.PauseOnEnable;
 
         private float _pausedTimeScale;
+        private float _compactCommandPanelHeight;
+        private float _minimumHelpHeight;
+        private float _helpBottomOffset;
+        private float _helpTopPadding;
+        private float[] _suggestionPanelGaps = Array.Empty<float>();
+        private bool _helpLayoutInitialized;
         private DeveloperConsole _developerConsole;
         private ConsoleInputActions _inputActions;
         public bool IsTreeViewSuggestion => m_TreeViewSuggestionToggle.isOn;
@@ -138,6 +147,7 @@ namespace SAS.Utilities.DeveloperConsole
             if (m_InputField != null)
                 m_InputField.onValueChanged.AddListener(OnInputChanged);
 
+            InitializeHelpLayout();
             m_TreeViewSuggestionToggle.onValueChanged.AddListener(OnTreeViewSuggestion);
             OnTreeViewSuggestion(m_TreeViewSuggestionToggle.isOn);
 
@@ -151,7 +161,11 @@ namespace SAS.Utilities.DeveloperConsole
 
         private void OnTreeViewSuggestion(bool treeView)
         {
+            if (m_HelpText != null)
+                m_HelpText.text = string.Empty;
+
             SuggestionViewChangedEvent?.Invoke(treeView);
+            RefreshHelpLayout();
         }
 
         private void OnEnable() => _inputActions?.Developer.Enable();
@@ -221,13 +235,96 @@ namespace SAS.Utilities.DeveloperConsole
 
         public void DisplayHelpText(string helpText)
         {
-            if (m_HelpText != null)
-                m_HelpText.text = helpText;
+            if (m_HelpText == null)
+                return;
+
+            m_HelpText.text = helpText ?? string.Empty;
+            RefreshHelpLayout();
+        }
+
+        private void InitializeHelpLayout()
+        {
+            if (m_CommandPanel == null && m_InputField != null)
+                m_CommandPanel = m_InputField.transform.parent as RectTransform;
+            if (m_HelpText == null || m_CommandPanel == null)
+                return;
+
+            RectTransform helpRect = m_HelpText.rectTransform;
+            _compactCommandPanelHeight = m_CommandPanel.sizeDelta.y;
+            _minimumHelpHeight = helpRect.sizeDelta.y;
+            _helpBottomOffset = helpRect.anchoredPosition.y - _minimumHelpHeight * helpRect.pivot.y;
+            _helpTopPadding = Mathf.Max(0f,
+                _compactCommandPanelHeight - _helpBottomOffset - _minimumHelpHeight);
+
+            m_SuggestionPanels ??= Array.Empty<RectTransform>();
+            _suggestionPanelGaps = new float[m_SuggestionPanels.Length];
+            for (int i = 0; i < m_SuggestionPanels.Length; i++)
+            {
+                RectTransform panel = m_SuggestionPanels[i];
+                if (panel != null)
+                    _suggestionPanelGaps[i] = panel.offsetMin.y - _compactCommandPanelHeight;
+            }
+
+            _helpLayoutInitialized = true;
+        }
+
+        private void RefreshHelpLayout()
+        {
+            if (!_helpLayoutInitialized)
+                InitializeHelpLayout();
+            if (!_helpLayoutInitialized)
+                return;
+
+            RectTransform helpRect = m_HelpText.rectTransform;
+            bool showHelp = m_TreeViewSuggestionToggle == null || m_TreeViewSuggestionToggle.isOn;
+            bool hasHelp = showHelp && !string.IsNullOrWhiteSpace(m_HelpText.text);
+            float helpHeight = _minimumHelpHeight;
+            if (hasHelp)
+            {
+                float availableWidth = Mathf.Max(1f, helpRect.rect.width);
+                float preferredHeight = m_HelpText
+                    .GetPreferredValues(m_HelpText.text, availableWidth, Mathf.Infinity).y;
+                helpHeight = Mathf.Clamp(Mathf.Ceil(preferredHeight), _minimumHelpHeight,
+                    Mathf.Max(_minimumHelpHeight, m_MaxHelpHeight));
+            }
+
+            Vector2 helpSize = helpRect.sizeDelta;
+            helpSize.y = helpHeight;
+            helpRect.sizeDelta = helpSize;
+
+            Vector2 helpPosition = helpRect.anchoredPosition;
+            helpPosition.y = _helpBottomOffset + helpHeight * helpRect.pivot.y;
+            helpRect.anchoredPosition = helpPosition;
+
+            float commandPanelHeight = Mathf.Max(_compactCommandPanelHeight,
+                _helpBottomOffset + helpHeight + _helpTopPadding);
+            Vector2 panelSize = m_CommandPanel.sizeDelta;
+            panelSize.y = commandPanelHeight;
+            m_CommandPanel.sizeDelta = panelSize;
+
+            Vector2 panelPosition = m_CommandPanel.anchoredPosition;
+            panelPosition.y = commandPanelHeight * m_CommandPanel.pivot.y;
+            m_CommandPanel.anchoredPosition = panelPosition;
+
+            for (int i = 0; i < m_SuggestionPanels.Length; i++)
+            {
+                RectTransform panel = m_SuggestionPanels[i];
+                if (panel == null)
+                    continue;
+
+                Vector2 offsetMin = panel.offsetMin;
+                offsetMin.y = commandPanelHeight + _suggestionPanelGaps[i];
+                panel.offsetMin = offsetMin;
+            }
         }
 
 
         private void OnInputChanged(string input)
         {
+            if (!string.IsNullOrWhiteSpace(input) && m_HelpText != null &&
+                !string.IsNullOrEmpty(m_HelpText.text))
+                DisplayHelpText(string.Empty);
+
             InputChangedEvent?.Invoke(input);
 #if !UNITY_EDITOR && UNITY_PS5
             StartCoroutine(FocusSubmitNextFrame());
