@@ -60,6 +60,7 @@ namespace SAS.Utilities.RuntimeDebugger.Core
         public bool HasEnabledState;
         public bool Enabled;
         public bool Missing;
+        public string StatusMessage;
         public IReadOnlyList<RuntimeMemberDescriptor> Members;
     }
 

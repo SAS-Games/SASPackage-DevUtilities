@@ -17,6 +17,7 @@ namespace SAS.Utilities.RuntimeDebugger.Core
         private readonly RuntimeDebuggerSettings _settings;
         private readonly RuntimeObjectRegistry _registry = new();
         private readonly RuntimeValueDrawerRegistry _drawers = new();
+        private readonly RuntimeComponentDrawerRegistry _componentDrawers;
         private readonly Dictionary<Type, FieldInfo[]> _fieldCache = new();
         private readonly Dictionary<string, RuntimeObjectId> _sceneIds = new();
         private readonly int _mainThreadId;
@@ -26,6 +27,7 @@ namespace SAS.Utilities.RuntimeDebugger.Core
         public RuntimeDebuggerService(RuntimeDebuggerSettings settings)
         {
             _settings = settings;
+            _componentDrawers = new RuntimeComponentDrawerRegistry(_drawers);
             _mainThreadId = Thread.CurrentThread.ManagedThreadId;
             SceneManager.sceneLoaded += OnSceneChanged;
             SceneManager.sceneUnloaded += OnSceneUnloaded;
@@ -111,16 +113,20 @@ namespace SAS.Utilities.RuntimeDebugger.Core
                         components.Add(new RuntimeComponentDescriptor
                         {
                             Id = _registry.GetOrCreate(component), TypeName = type.FullName,
+                            StatusMessage = "Inspection is blocked by the runtime debugger settings.",
                             Members = Array.Empty<RuntimeMemberDescriptor>()
                         });
                         continue;
                     }
 
                     bool hasEnabled = TryGetEnabled(component, out bool enabled);
+                    IReadOnlyList<RuntimeMemberDescriptor> members = BuildMembers(component);
                     components.Add(new RuntimeComponentDescriptor
                     {
                         Id = _registry.GetOrCreate(component), TypeName = type.FullName, HasEnabledState = hasEnabled,
-                        Enabled = enabled, Members = BuildMembers(component)
+                        Enabled = enabled,
+                        StatusMessage = members.Count == 0 ? "No supported runtime properties." : null,
+                        Members = members
                     });
                 }
 
@@ -224,15 +230,33 @@ namespace SAS.Utilities.RuntimeDebugger.Core
         private IReadOnlyList<RuntimeMemberDescriptor> BuildMembers(Component component)
         {
             var result = new List<RuntimeMemberDescriptor>();
+            var memberIds = new HashSet<string>(StringComparer.Ordinal);
+            IRuntimeComponentDrawer componentDrawer = _componentDrawers.Resolve(component.GetType());
+            if (componentDrawer != null)
+            {
+                IReadOnlyList<RuntimeMemberDescriptor> drawerMembers = componentDrawer.BuildInspector(component);
+                if (drawerMembers != null)
+                {
+                    foreach (RuntimeMemberDescriptor member in drawerMembers)
+                    {
+                        if (member != null && memberIds.Add(member.Name)) result.Add(member);
+                    }
+                }
+            }
+
             if (component is Transform transform)
             {
                 AddSynthetic(result, "localPosition", typeof(Vector3), transform.localPosition);
                 AddSynthetic(result, "localEulerAngles", typeof(Vector3), transform.localEulerAngles);
                 AddSynthetic(result, "localScale", typeof(Vector3), transform.localScale);
+                memberIds.Add("localPosition");
+                memberIds.Add("localEulerAngles");
+                memberIds.Add("localScale");
             }
 
             foreach (FieldInfo field in GetInspectableFields(component.GetType()))
             {
+                if (!memberIds.Add(field.Name)) continue;
                 IRuntimeValueDrawer drawer = _drawers.Resolve(field.FieldType);
                 bool readOnly = drawer == null || field.IsInitOnly ||
                                 field.IsDefined(typeof(RuntimeReadOnlyAttribute), true) ||
@@ -257,6 +281,11 @@ namespace SAS.Utilities.RuntimeDebugger.Core
                 }
             }
 
+            if (!_settings.AllowValueChanges)
+            {
+                foreach (RuntimeMemberDescriptor member in result) member.ReadOnly = true;
+            }
+
             return result;
         }
 
@@ -269,6 +298,13 @@ namespace SAS.Utilities.RuntimeDebugger.Core
 
         private RuntimeCommandResult SetMember(Component component, string name, string text)
         {
+            IRuntimeComponentDrawer componentDrawer = _componentDrawers.Resolve(component.GetType());
+            if (componentDrawer is IRuntimeEditableComponentDrawer editableDrawer &&
+                editableDrawer.TrySetValue(component, name, text, out RuntimeCommandResult drawerResult))
+            {
+                return drawerResult ?? RuntimeCommandResult.Fail("The member could not be changed.");
+            }
+
             if (component is Transform transform)
             {
                 if (!_drawers.Resolve(typeof(Vector3))

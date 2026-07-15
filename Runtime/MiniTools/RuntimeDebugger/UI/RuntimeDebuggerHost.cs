@@ -1103,6 +1103,14 @@ namespace SAS.Utilities.RuntimeDebugger
                         ToggleComponent(component);
                     }
 
+                    if (!string.IsNullOrWhiteSpace(component.StatusMessage))
+                    {
+                        GUILayout.BeginHorizontal();
+                        GUILayout.Space(32f);
+                        GUILayout.Label(component.StatusMessage, _mutedStyle);
+                        GUILayout.EndHorizontal();
+                    }
+
                     if (!_expandedComponents.Contains(component.Id.Value))
                     {
                         GUILayout.EndVertical();

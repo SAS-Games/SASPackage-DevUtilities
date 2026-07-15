@@ -127,7 +127,8 @@ namespace SAS.Utilities.RuntimeDebugger.Core
             }
         }
 
-        private static string Join(params object[] values) => string.Join(", ", values);
+        private static string Join(params object[] values) => string.Join(", ",
+            Array.ConvertAll(values, value => Convert.ToString(value, CultureInfo.InvariantCulture)));
     }
 
     internal sealed class RuntimeObjectReferenceDrawer : IRuntimeValueDrawer
