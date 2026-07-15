@@ -116,8 +116,7 @@ public sealed class InputLatencyProfiler : MonoBehaviour
 
     private void OnGUI()
     {
-        if (_overlay?.Draw() == true)
-            Close();
+        _overlay?.Draw();
     }
 
     public void Close()

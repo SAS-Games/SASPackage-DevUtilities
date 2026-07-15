@@ -13,7 +13,7 @@ namespace SAS.Utilities.DeveloperConsole
         private InputSettings.UpdateMode _previousUpdateMode;
         private bool _hasPreviousUpdateMode;
         public override string HelpText =>
-            "Usage: InputLatencyProfiler <Overlay|InputUpdateMode>. The open overlay can be closed with CLOSE or Escape.";
+            "Usage: InputLatencyProfiler <Overlay|InputUpdateMode>. The open overlay can be closed with Escape, or controller B when enabled.";
         
 
         private bool InputLatencyProfiler(string[] args)

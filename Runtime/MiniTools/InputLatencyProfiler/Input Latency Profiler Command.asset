@@ -18,7 +18,7 @@ MonoBehaviour:
   m_SubCommands:
   - Name: Overlay
     HelpText: 'Usage: InputLatencyProfiler.Overlay <On|Off>. \nShow or hide the Input
-      Latency Profiler UI. The open overlay can be closed with CLOSE or Escape.'
+      Latency Profiler UI. The open overlay can be closed with Escape, or controller B when enabled.'
     Presets:
     - Overlay On
     - Overlay Off
