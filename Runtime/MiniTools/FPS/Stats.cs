@@ -1,21 +1,29 @@
-﻿using System.Text;
+using System.Text;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Profiling;
 using UnityEngine.UI;
 
+/// <summary>
+/// Displays interval FPS, frame timing, target frame rate, VSync, and memory statistics.
+/// The FPS value is calculated from unscaled elapsed time so it remains valid while the
+/// game is paused and is not biased by averaging reciprocal frame times.
+/// </summary>
 public class Stats : UIBehaviour
 {
-    [Header("Display")][SerializeField] private Text m_Display = default;
+    private const float MinimumUpdateInterval = 0.05f;
+    private const double BytesPerGibibyte = 1073741824d;
+
+    [Header("Display")]
+    [SerializeField] private Text m_Display = default;
+    [Min(MinimumUpdateInterval)]
     [SerializeField] private float m_UpdateInterval = 0.5f;
 
-    private float _timeLeft;
+    private double _elapsedSeconds;
     private int _frames;
-    private double _accumulatedFps;
 
-    private readonly StringBuilder tx = new StringBuilder(512);
+    private readonly StringBuilder _builder = new StringBuilder(512);
     private readonly FrameTiming[] _frameTimings = new FrameTiming[1];
-    private string fpsLine = "";
 
     protected override void Awake()
     {
@@ -23,63 +31,92 @@ public class Stats : UIBehaviour
 
 #if UNITY_EDITOR
         var fps = GetComponent<FPS>();
-        if (fps) fps.enabled = false;
+        if (fps != null)
+            fps.enabled = false;
         enabled = true;
 #else
-        // In build: enable only if Development Build
         enabled = Debug.isDebugBuild;
 #endif
     }
 
-    protected override void Start()
+    protected override void OnEnable()
     {
-        _timeLeft = m_UpdateInterval;
-        _frames = 0;
+        base.OnEnable();
+        ResetSample();
     }
 
     private void Update()
     {
+#if !ENABLE_DEBUG
+        return;
+#else
+        float deltaTime = Time.unscaledDeltaTime;
+        if (deltaTime <= 0f || float.IsNaN(deltaTime) || float.IsInfinity(deltaTime))
+            return;
+
         FrameTimingManager.CaptureFrameTimings();
-        _timeLeft -= Time.deltaTime;
-        float currentFPS = Time.timeScale / Time.deltaTime;
-        _accumulatedFps += currentFPS;
+
+        _elapsedSeconds += deltaTime;
         _frames++;
+
+        double updateInterval = Mathf.Max(MinimumUpdateInterval, m_UpdateInterval);
+        if (_elapsedSeconds < updateInterval)
+            return;
+
+        double averageFps = _frames / _elapsedSeconds;
+        double averageFrameTimeMs = _elapsedSeconds * 1000d / _frames;
+
+        RefreshDisplay(averageFps, averageFrameTimeMs);
+        ResetSample();
+#endif
+    }
+
+    private void RefreshDisplay(double averageFps, double averageFrameTimeMs)
+    {
+        Color fpsColor = averageFps < 30d
+            ? (averageFps < 10d ? Color.red : Color.yellow)
+            : Color.green;
+
+        _builder.Length = 0;
+        _builder.Append("<color=#")
+            .Append(ColorUtility.ToHtmlStringRGB(fpsColor))
+            .Append(">FPS: ")
+            .Append(averageFps.ToString("F1"))
+            .Append("</color>\n");
+        _builder.AppendFormat("Average Frame Time: {0:F2} ms\n", averageFrameTimeMs);
+
+        _builder.Append("Target FPS: ");
+        if (Application.targetFrameRate < 0)
+            _builder.Append("Platform Default (-1)");
+        else
+            _builder.Append(Application.targetFrameRate);
+
+        _builder.AppendFormat("\nVSync Count: {0}\n", QualitySettings.vSyncCount);
 
         if (FrameTimingManager.GetLatestTimings(1, _frameTimings) > 0)
         {
-            if (_timeLeft <= 0)
-            {
-                double avgFps = _accumulatedFps / _frames;
-
-                // --- FPS Color ---
-                Color fpsColor = avgFps < 30 ? (avgFps < 10 ? Color.red : Color.yellow) : Color.green;
-                string fpsHex = ColorUtility.ToHtmlStringRGB(fpsColor);
-                fpsLine = $"<color=#{fpsHex}>FPS: {avgFps:F1}</color>";
-
-                tx.Length = 0;
-                tx.AppendFormat(fpsLine + "\nFrame Time {0:F3} ms\n", _frameTimings[0].cpuFrameTime);
-                tx.AppendFormat("Target FPS {0:F3}\n", Application.targetFrameRate);
-                tx.AppendFormat(
-                  "CPU MainThread Frame {0:F3} ms\nCPU RenderThread Frame {1:F3} ms" +
-                  "\nCPU Present Wait {2:F3} ms\nGPU Frame {3:F3} ms\n",
-                  _frameTimings[0].cpuMainThreadFrameTime,
-                  _frameTimings[0].cpuRenderThreadFrameTime,
-                  _frameTimings[0].cpuMainThreadPresentWaitTime,
-                  _frameTimings[0].gpuFrameTime
-                );
-                tx.AppendFormat(
-                  "Allocated: {0:F3} GB\nReserved: {1:F3} GB\nUnused: {2:F3} GB\n",
-                  Profiler.GetTotalAllocatedMemoryLong() / 1073741824f,
-                  Profiler.GetTotalReservedMemoryLong() / 1073741824f,
-                  Profiler.GetTotalUnusedReservedMemoryLong() / 1073741824f
-                );
-
-                _accumulatedFps = 0;
-                _frames = 0;
-                _timeLeft = m_UpdateInterval;
-            }
-
-            m_Display.text = $"{tx}";
+            FrameTiming timing = _frameTimings[0];
+            _builder.AppendFormat("Latest CPU Frame: {0:F3} ms\n", timing.cpuFrameTime);
+            _builder.AppendFormat("Latest CPU Main Thread: {0:F3} ms\n", timing.cpuMainThreadFrameTime);
+            _builder.AppendFormat("Latest CPU Render Thread: {0:F3} ms\n", timing.cpuRenderThreadFrameTime);
+            _builder.AppendFormat("Latest CPU Present Wait: {0:F3} ms\n", timing.cpuMainThreadPresentWaitTime);
+            _builder.AppendFormat("Latest GPU Frame: {0:F3} ms\n", timing.gpuFrameTime);
         }
+        else
+        {
+            _builder.Append("Detailed Frame Timing: unavailable\n");
+        }
+
+        _builder.AppendFormat("Allocated: {0:F3} GiB\n", Profiler.GetTotalAllocatedMemoryLong() / BytesPerGibibyte);
+        _builder.AppendFormat("Reserved: {0:F3} GiB\n", Profiler.GetTotalReservedMemoryLong() / BytesPerGibibyte);
+        _builder.AppendFormat("Unused: {0:F3} GiB", Profiler.GetTotalUnusedReservedMemoryLong() / BytesPerGibibyte);
+
+        m_Display.text = _builder.ToString();
+    }
+
+    private void ResetSample()
+    {
+        _elapsedSeconds = 0d;
+        _frames = 0;
     }
 }

@@ -1,63 +1,105 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace SAS.Utilities.DeveloperConsole
 {
-    [CreateAssetMenu(fileName = "New Show FPS Command", menuName =  DeveloperConsole.CommandBasePath + "Show FPS Command")]
+    [CreateAssetMenu(fileName = "New Show FPS Command", menuName = DeveloperConsole.CommandBasePath + "Show FPS Command")]
     public class ShowFPSCommand : CompositeConsoleCommand
     {
         [SerializeField] private GameObject m_FpsPrefab;
         private GameObject _fps;
-        public override string HelpText => "Usage: FPS <On|Off>. \nShow/Hide FPS UI.";
+
+        public override string HelpText =>
+            "Stats commands:\n" +
+            "  Stats.FPS <On|Off> [anchor] [horizontal-padding] [vertical-padding]\n" +
+            "  Stats.SetTargetFrameRate <-1|fps>";
 
         protected bool ShowFPS(string[] args)
         {
-            if (args != null && args.Length > 0)
+#if !ENABLE_DEBUG
+            return false;
+#else
+            if (args == null || args.Length < 1 || args.Length > 4)
+                return false;
+
+            if (!BoolUtil.TryParse(args[0], out bool isVisible))
+                return false;
+
+            bool hasAlignment = args.Length > 1;
+            Vector2 anchor = default;
+            int paddingX = 0;
+            int paddingY = 0;
+
+            // Validate every argument before creating, moving, or toggling the overlay.
+            if (hasAlignment && !AnchorPreset.TryGetAnchorValues(args[1], out anchor))
+                return false;
+
+            if (args.Length > 2 && !int.TryParse(args[2], out paddingX))
+                return false;
+
+            if (args.Length > 3 && !int.TryParse(args[3], out paddingY))
+                return false;
+
+            // Hiding an overlay that does not exist is already a successful no-op.
+            if (!isVisible && _fps == null)
+                return true;
+
+            if (_fps == null)
             {
-                if (BoolUtil.TryParse(args[0], out var isVisible))
-                {
-                    if (_fps == null)
-                    {
-                        _fps = Instantiate(m_FpsPrefab);
-                        _fps.name = "FPSCanvas";
-                    }
+                if (m_FpsPrefab == null)
+                    return false;
 
-                    if (args.Length > 1)
-                    {
-                        int paddingX = 0;
-                        int paddingY = 0;
+                if (hasAlignment && !TryGetDisplayRect(m_FpsPrefab, out _))
+                    return false;
 
-                        // Get padding if passed
-                        if (args.Length > 2 && !int.TryParse(args[2], out paddingX))
-                            return false;
-
-                        if (args.Length > 3 && !int.TryParse(args[3], out paddingY))
-                            return false;
-
-                        RectTransform fpsRect = _fps.transform.GetChild(0).transform as RectTransform;
-                        fpsRect.AlignToScreen(args[1], paddingX, paddingY);
-                    }
-
-                    _fps.SetActive(isVisible);
-                    return true;
-                }
+                _fps = Instantiate(m_FpsPrefab);
+                _fps.name = "FPSCanvas";
             }
 
-            return false;
-        }
+            if (hasAlignment)
+            {
+                if (!TryGetDisplayRect(_fps, out RectTransform fpsRect))
+                    return false;
 
+                fpsRect.AlignToScreen(anchor, new Vector2Int(paddingX, paddingY));
+            }
+
+            _fps.SetActive(isVisible);
+            return true;
+#endif
+        }
 
         protected virtual bool SetTargetFrameRate(string[] args)
         {
-            if (args.Length < 1 || !int.TryParse(args[0], out int val))
+#if !ENABLE_DEBUG
+            return false;
+#else
+            if (!TryParseTargetFrameRate(args, out int targetFrameRate))
                 return false;
 
-            // Disable VSync so targetFrameRate takes effect
+            // Application.targetFrameRate is authoritative only when VSync is disabled.
             QualitySettings.vSyncCount = 0;
-
-            // Apply frame rate (-1 = platform default)
-            Application.targetFrameRate = Mathf.Max(val, -1);
-
+            Application.targetFrameRate = targetFrameRate;
             return true;
+#endif
+        }
+
+        protected static bool TryParseTargetFrameRate(string[] args, out int targetFrameRate)
+        {
+            targetFrameRate = 0;
+            return args != null &&
+                   args.Length == 1 &&
+                   int.TryParse(args[0], out targetFrameRate) &&
+                   (targetFrameRate == -1 || targetFrameRate > 0);
+        }
+
+        private static bool TryGetDisplayRect(GameObject root, out RectTransform displayRect)
+        {
+            displayRect = null;
+            if (root == null || root.transform.childCount == 0)
+                return false;
+
+            displayRect = root.transform.GetChild(0) as RectTransform;
+            return displayRect != null;
         }
     }
 }

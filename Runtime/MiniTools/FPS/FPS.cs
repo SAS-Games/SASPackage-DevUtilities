@@ -1,85 +1,99 @@
-﻿using System.Text;
+using System.Text;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
+/// <summary>
+/// Lightweight legacy FPS display. New overlays should use <see cref="Stats"/>.
+/// </summary>
 public class FPS : UIBehaviour
 {
+    private const float MinimumUpdateInterval = 0.05f;
+
     [Header("Display")]
     [SerializeField] private Text m_Display;
+    [Min(MinimumUpdateInterval)]
     [SerializeField] private float m_UpdateInterval = 0.5f;
     [SerializeField] private int m_TargetFrameRate = 60;
 
-    private float _timeLeft;
+    private double _elapsedSeconds;
     private int _frames;
-    private float _accumulatedFPS;
 
-    private readonly StringBuilder _sb = new StringBuilder(128);
+    private readonly StringBuilder _builder = new StringBuilder(128);
 
-    private static readonly string COLOR_RED = "<color=#FF0000>";
-    private static readonly string COLOR_YELLOW = "<color=#FFFF00>";
-    private static readonly string COLOR_WHITE = "<color=#FFFFFF>";
-    private static readonly string COLOR_GREEN = "<color=#00FF00>";
-    private static readonly string COLOR_END = "</color>";
+    private const string ColorRed = "<color=#FF0000>";
+    private const string ColorYellow = "<color=#FFFF00>";
+    private const string ColorWhite = "<color=#FFFFFF>";
+    private const string ColorGreen = "<color=#00FF00>";
+    private const string ColorEnd = "</color>";
 
     protected override void Awake()
     {
+        base.Awake();
 #if UNITY_EDITOR
         enabled = false;
 #else
-        enabled = Debug.isDebugBuild;
+        enabled = !Debug.isDebugBuild; 
 #endif
     }
 
-    protected override void Start()
+    protected override void OnEnable()
     {
-        _timeLeft = m_UpdateInterval;
-        _frames = 0;
-        _accumulatedFPS = 0f;
+        base.OnEnable();
+        ResetSample();
     }
 
     private void Update()
     {
-        _timeLeft -= Time.deltaTime;
-
-        _accumulatedFPS += 1f / Time.deltaTime;
-        _frames++;
-
-        if (_timeLeft > 0f)
+#if !ENABLE_DEBUG
+        return;
+#else
+        float deltaTime = Time.unscaledDeltaTime;
+        if (deltaTime <= 0f || float.IsNaN(deltaTime) || float.IsInfinity(deltaTime))
             return;
 
-        float avgFps = _accumulatedFPS / _frames;
-        float frameTimeMs = 1000f / Mathf.Max(avgFps, 0.0001f);
-        float targetFrameTime = 1000f / Mathf.Max(m_TargetFrameRate, 0.0001f);
+        _elapsedSeconds += deltaTime;
+        _frames++;
 
-        _sb.Length = 0;
+        double updateInterval = Mathf.Max(MinimumUpdateInterval, m_UpdateInterval);
+        if (_elapsedSeconds < updateInterval)
+            return;
 
-        if (avgFps < 10f)
-            _sb.Append(COLOR_RED);
-        else if (avgFps < 30f)
-            _sb.Append(COLOR_YELLOW);
+        double averageFps = _frames / _elapsedSeconds;
+        double frameTimeMs = _elapsedSeconds * 1000d / _frames;
+        int targetFrameRate = Application.targetFrameRate > 0
+            ? Application.targetFrameRate
+            : Mathf.Max(1, m_TargetFrameRate);
+        double targetFrameTimeMs = 1000d / targetFrameRate;
+
+        _builder.Length = 0;
+
+        if (averageFps < 10d)
+            _builder.Append(ColorRed);
+        else if (averageFps < 30d)
+            _builder.Append(ColorYellow);
         else
-            _sb.Append(COLOR_GREEN);
+            _builder.Append(ColorGreen);
 
-        _sb.Append("FPS: ");
-        _sb.Append(avgFps.ToString("F1"));
-        _sb.Append(COLOR_END);
-        _sb.Append('\n');
+        _builder.Append("FPS: ")
+            .Append(averageFps.ToString("F1"))
+            .Append(ColorEnd)
+            .Append('\n');
 
-        if (frameTimeMs > targetFrameTime)
-            _sb.Append(COLOR_RED);
-        else
-            _sb.Append(COLOR_WHITE);
+        _builder.Append(frameTimeMs > targetFrameTimeMs ? ColorRed : ColorWhite)
+            .Append("Frame Time: ")
+            .Append(frameTimeMs.ToString("F2"))
+            .Append(" ms")
+            .Append(ColorEnd);
 
-        _sb.Append("Frame Time: ");
-        _sb.Append(frameTimeMs.ToString("F2"));
-        _sb.Append(" ms");
-        _sb.Append(COLOR_END);
+        m_Display.text = _builder.ToString();
+        ResetSample();
+#endif
+    }
 
-        m_Display.text = _sb.ToString();
-
-        _accumulatedFPS = 0f;
+    private void ResetSample()
+    {
+        _elapsedSeconds = 0d;
         _frames = 0;
-        _timeLeft = m_UpdateInterval;
     }
 }

@@ -23,7 +23,7 @@ namespace SAS.Utilities.DeveloperConsole
         public static readonly Vector2 BottomRight = new Vector2(1f, 0f);
 
         private static readonly Dictionary<string, Vector2> Presets =
-            new Dictionary<string, Vector2>()
+            new Dictionary<string, Vector2>(System.StringComparer.OrdinalIgnoreCase)
             {
                  { "topleft", TopLeft },
                  { "topcenter", TopCenter },
@@ -40,8 +40,8 @@ namespace SAS.Utilities.DeveloperConsole
 
         public static bool TryGetAnchorValues(string key, out Vector2 pivot)
         {
-            key = key.ToLower();
-            return Presets.TryGetValue(key, out pivot);
+            pivot = default;
+            return !string.IsNullOrWhiteSpace(key) && Presets.TryGetValue(key.Trim(), out pivot);
         }
     }
 

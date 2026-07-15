@@ -37,7 +37,7 @@ RectTransform:
   m_AnchorMin: {x: 1, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
   m_AnchoredPosition: {x: -165, y: -170}
-  m_SizeDelta: {x: 300, y: 200}
+  m_SizeDelta: {x: 300, y: 240}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4458009698218427333
 CanvasRenderer:
@@ -101,8 +101,10 @@ GameObject:
   - component: {fileID: 5836109799629292761}
   - component: {fileID: 5181882616318872658}
   - component: {fileID: 5015909938340262309}
-  - component: {fileID: 9082245390930172511}
   - component: {fileID: -6136017348891098970}
+  - component: {fileID: 8949445333414762743}
+  - component: {fileID: 8353354785915137812}
+  - component: {fileID: 2894322828740432872}
   m_Layer: 5
   m_Name: FPS
   m_TagString: Untagged
@@ -193,21 +195,6 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
---- !u!114 &9082245390930172511
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4840794096766531456}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: df35b6ee8de73fc42ac8cf2aaef51344, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Display: {fileID: 7919385023625728094}
-  m_UpdateInterval: 0.1
-  m_TargetFrameRate: 200
 --- !u!114 &-6136017348891098970
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -221,7 +208,46 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Display: {fileID: 7919385023625728094}
-  m_UpdateInterval: 0.1
+  m_UpdateInterval: 0.25
+--- !u!114 &8949445333414762743
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4840794096766531456}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df35b6ee8de73fc42ac8cf2aaef51344, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DevUtilities::FPS
+  m_Display: {fileID: 7919385023625728094}
+  m_UpdateInterval: 0.25
+  m_TargetFrameRate: 60
+--- !u!114 &8353354785915137812
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4840794096766531456}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 427a6d41ccf1f064380c58b56d037ce4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &2894322828740432872
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4840794096766531456}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 452f3d3786a2c5249bb5fc8d21840abd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DevUtilities::PersistentObject
 --- !u!1 &7232403671296343171
 GameObject:
   m_ObjectHideFlags: 0
