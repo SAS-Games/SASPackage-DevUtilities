@@ -5,10 +5,57 @@ using UnityEngine.InputSystem;
 using Unity.Profiling;
 using UnityEngine;
 
+internal interface IInputLatencyProfilerCloseInput : IDisposable
+{
+    bool CloseRequested { get; }
+    void Update();
+}
+
+internal sealed class InputSystemInputLatencyProfilerCloseInput : IInputLatencyProfilerCloseInput
+{
+    private readonly InputAction _closeAction;
+    private bool _queued;
+    private bool _current;
+
+    public InputSystemInputLatencyProfilerCloseInput(bool includeController)
+    {
+        _closeAction = new InputAction("CloseInputLatencyProfiler", InputActionType.Button);
+        _closeAction.AddBinding("<Keyboard>/escape");
+        if (includeController)
+            _closeAction.AddBinding("<Gamepad>/buttonEast");
+        _closeAction.performed += OnClosePerformed;
+        _closeAction.Enable();
+    }
+
+    public bool CloseRequested => _current;
+
+    public void Update()
+    {
+        _current = _queued;
+        _queued = false;
+    }
+
+    public void Dispose()
+    {
+        _closeAction.performed -= OnClosePerformed;
+        _closeAction.Disable();
+        _closeAction.Dispose();
+        _queued = false;
+        _current = false;
+    }
+
+    private void OnClosePerformed(InputAction.CallbackContext context) => _queued = true;
+}
+
 public sealed class InputLatencyProfiler : MonoBehaviour
 {
+    [SerializeField] private GameObject m_VisibilityRoot;
+    [SerializeField, Tooltip("Allow gamepad B / button East to close the overlay. Disable this when gameplay owns the controller.")]
+    private bool m_EnableControllerClose;
+
     private InputActionTracker _actionTracker;
     private InputEventTracker _eventTracker;
+    private IInputLatencyProfilerCloseInput _closeInput;
 
     private InputLatencyStatistics _rawStatistics;
     private InputLatencyStatistics _actionStatistics;
@@ -31,8 +78,10 @@ public sealed class InputLatencyProfiler : MonoBehaviour
 
         _actionTracker = new InputActionTracker(_actionStatistics, _rawStatistics, _pipelineStatistics, correlation);
         _eventTracker = new InputEventTracker(correlation);
+        _closeInput = new InputSystemInputLatencyProfilerCloseInput(m_EnableControllerClose);
 
-        _overlay = new InputLatencyOverlay(_rawStatistics, _actionStatistics, _pipelineStatistics, _userMethodStatistics);
+        _overlay = new InputLatencyOverlay(_rawStatistics, _actionStatistics, _pipelineStatistics,
+            _userMethodStatistics, m_EnableControllerClose);
         InputLatencyProfilerMarker.SetTarget(this);
 
         Canvas legacyCanvas = GetComponentInParent<Canvas>();
@@ -50,15 +99,32 @@ public sealed class InputLatencyProfiler : MonoBehaviour
     private void OnDisable()
     {
         InputLatencyProfilerMarker.ClearTarget(this);
+        _closeInput?.Dispose();
+        _closeInput = null;
         _actionTracker?.Disable();
         _eventTracker?.Disable();
         _overlay?.Dispose();
         _overlay = null;
     }
 
+    private void Update()
+    {
+        _closeInput?.Update();
+        if (_closeInput?.CloseRequested == true)
+            Close();
+    }
+
     private void OnGUI()
     {
-        _overlay?.Draw();
+        if (_overlay?.Draw() == true)
+            Close();
+    }
+
+    public void Close()
+    {
+        GameObject visibilityRoot = m_VisibilityRoot != null ? m_VisibilityRoot : gameObject;
+        if (visibilityRoot.activeSelf)
+            visibilityRoot.SetActive(false);
     }
 
     internal void RecordUserMethod(InputAction.CallbackContext context, string markerName)

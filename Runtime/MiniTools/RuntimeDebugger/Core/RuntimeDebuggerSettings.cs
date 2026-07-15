@@ -39,7 +39,7 @@ namespace SAS.Utilities.RuntimeDebugger
         [Header("Appearance")] [SerializeField, Range(0.75f, 2f)]
         private float m_UiScale = 1f;
 
-        [SerializeField] private Color m_BackgroundColor = new(0.055f, 0.065f, 0.085f, 0.98f);
+        [SerializeField] private Color m_BackgroundColor = new(0.055f, 0.065f, 0.085f, 0.86f);
         [SerializeField] private Color m_FocusColor = new(0.22f, 0.75f, 1f);
         [SerializeField, Range(0.25f, 0.75f)] private float m_HierarchyPanelWidth = 0.42f;
 

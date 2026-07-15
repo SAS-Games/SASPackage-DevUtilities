@@ -89,8 +89,8 @@ namespace SAS.Utilities.RuntimeDebugger
         private GUIStyle _messageStyle;
         private GUIStyle _resizeHandleStyle;
 
-        private static readonly Color WindowColor = new(0.055f, 0.065f, 0.085f, 0.98f);
-        private static readonly Color CardColor = new(0.09f, 0.11f, 0.145f, 0.98f);
+        private static readonly Color WindowColor = new(0.055f, 0.065f, 0.085f, 0.86f);
+        private static readonly Color CardColor = new(0.09f, 0.11f, 0.145f, 0.72f);
         private static readonly Color TextColor = new(0.92f, 0.95f, 1f);
         private static readonly Color HeaderColor = new(0.72f, 0.78f, 0.88f);
         private static readonly Color MutedColor = new(0.55f, 0.61f, 0.7f);

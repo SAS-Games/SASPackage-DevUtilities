@@ -10,6 +10,7 @@ public sealed class InputLatencyOverlay : IDisposable
     private readonly InputLatencyStatistics _action;
     private readonly InputLatencyStatistics _dispatch;
     private readonly InputLatencyStatistics _userMethod;
+    private readonly bool _controllerCloseEnabled;
     private readonly StringBuilder _builder = new(192);
 
     private Rect _window = new(24f, 24f, 920f, 590f);
@@ -21,23 +22,29 @@ public sealed class InputLatencyOverlay : IDisposable
     private GUIStyle _cardStyle;
     private GUIStyle _mutedStyle;
     private GUIStyle _rowStyle;
+    private GUIStyle _buttonStyle;
     private Texture2D _windowTexture;
     private Texture2D _cardTexture;
+    private Texture2D _buttonHoverTexture;
+    private bool _closeRequested;
 
     public InputLatencyOverlay(
         InputLatencyStatistics raw,
         InputLatencyStatistics action,
         InputLatencyStatistics dispatch,
-        InputLatencyStatistics userMethod)
+        InputLatencyStatistics userMethod,
+        bool controllerCloseEnabled)
     {
         _raw = raw;
         _action = action;
         _dispatch = dispatch;
         _userMethod = userMethod;
+        _controllerCloseEnabled = controllerCloseEnabled;
     }
 
-    public void Draw()
+    public bool Draw()
     {
+        _closeRequested = false;
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
         EnsureStyles();
         _window.width = Mathf.Clamp(_window.width, 680f, Mathf.Max(680f, Screen.width - 16f));
@@ -46,6 +53,7 @@ public sealed class InputLatencyOverlay : IDisposable
         _window.y = Mathf.Clamp(_window.y, 0f, Mathf.Max(0f, Screen.height - _window.height));
         _window = GUI.Window(0x1A71E, _window, DrawWindow, GUIContent.none, _windowStyle);
 #endif
+        return _closeRequested;
     }
 
     private void DrawWindow(int id)
@@ -57,6 +65,9 @@ public sealed class InputLatencyOverlay : IDisposable
         GUILayout.EndVertical();
         GUILayout.FlexibleSpace();
         GUILayout.Label(InputStateLabel(), _mutedStyle);
+        GUILayout.Space(8f);
+        if (GUILayout.Button("CLOSE", _buttonStyle, GUILayout.Width(64f), GUILayout.Height(26f)))
+            _closeRequested = true;
         GUILayout.EndHorizontal();
 
         GUILayout.Space(10f);
@@ -86,7 +97,9 @@ public sealed class InputLatencyOverlay : IDisposable
         GUILayout.EndHorizontal();
 
         GUILayout.Space(5f);
-        GUILayout.Label("Event Queue + Input Dispatch = Action Callback. User Method is measured where InputLatencyProfilerMarker.Measure is called.", _mutedStyle);
+        string closeHint = _controllerCloseEnabled ? "Esc / B closes." : "Esc closes.";
+        GUILayout.Label("Event Queue + Input Dispatch = Action Callback. User Method is measured where " +
+                        "InputLatencyProfilerMarker.Measure is called.  " + closeHint, _mutedStyle);
         GUI.DragWindow(new Rect(0f, 0f, _window.width, 55f));
     }
 
@@ -167,14 +180,25 @@ public sealed class InputLatencyOverlay : IDisposable
     {
         if (_windowStyle != null) return;
         _windowStyle = new GUIStyle(GUI.skin.window) { padding = new RectOffset(16, 16, 14, 14) };
-        _windowTexture = MakeTexture(new Color(0.055f, 0.065f, 0.085f, 0.98f));
+        _windowTexture = MakeTexture(new Color(0.055f, 0.065f, 0.085f, 0.86f));
         _windowStyle.normal.background = _windowTexture;
         _headerStyle = new GUIStyle(GUI.skin.label) { fontSize = 18, fontStyle = FontStyle.Bold, normal = { textColor = new Color(0.92f, 0.95f, 1f) } };
         _subHeaderStyle = new GUIStyle(GUI.skin.label) { fontSize = 11, fontStyle = FontStyle.Bold, normal = { textColor = new Color(0.72f, 0.78f, 0.88f) } };
         _mutedStyle = new GUIStyle(GUI.skin.label) { fontSize = 10, normal = { textColor = new Color(0.55f, 0.61f, 0.7f) } };
         _cardStyle = new GUIStyle(GUI.skin.box) { padding = new RectOffset(10, 10, 8, 8) };
-        _cardTexture = MakeTexture(new Color(0.09f, 0.11f, 0.145f, 0.98f));
+        _cardTexture = MakeTexture(new Color(0.09f, 0.11f, 0.145f, 0.72f));
         _cardStyle.normal.background = _cardTexture;
+        _buttonHoverTexture = MakeTexture(new Color(0.12f, 0.32f, 0.43f, 0.9f));
+        _buttonStyle = new GUIStyle(GUI.skin.button)
+        {
+            fontSize = 10,
+            fontStyle = FontStyle.Bold,
+            alignment = TextAnchor.MiddleCenter,
+            normal = { background = _cardTexture, textColor = new Color(0.72f, 0.78f, 0.88f) },
+            hover = { background = _buttonHoverTexture, textColor = Color.white },
+            active = { background = _buttonHoverTexture, textColor = Color.white },
+            focused = { background = _buttonHoverTexture, textColor = Color.white }
+        };
         _rowStyle = new GUIStyle { padding = new RectOffset(4, 4, 3, 3) };
     }
 
@@ -190,9 +214,12 @@ public sealed class InputLatencyOverlay : IDisposable
     {
         if (_windowTexture != null) UnityEngine.Object.Destroy(_windowTexture);
         if (_cardTexture != null) UnityEngine.Object.Destroy(_cardTexture);
+        if (_buttonHoverTexture != null) UnityEngine.Object.Destroy(_buttonHoverTexture);
         _windowTexture = null;
         _cardTexture = null;
+        _buttonHoverTexture = null;
         _windowStyle = null;
+        _buttonStyle = null;
     }
 }
 #endif

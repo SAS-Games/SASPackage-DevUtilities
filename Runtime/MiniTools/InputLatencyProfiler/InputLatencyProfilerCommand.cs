@@ -12,7 +12,8 @@ namespace SAS.Utilities.DeveloperConsole
         private GameObject _inputLatencyProfiler;
         private InputSettings.UpdateMode _previousUpdateMode;
         private bool _hasPreviousUpdateMode;
-        public override string HelpText => "Usage: InputLatencyProfiler <Overlay|InputUpdateMode>.";
+        public override string HelpText =>
+            "Usage: InputLatencyProfiler <Overlay|InputUpdateMode>. The open overlay can be closed with CLOSE or Escape.";
         
 
         private bool InputLatencyProfiler(string[] args)
