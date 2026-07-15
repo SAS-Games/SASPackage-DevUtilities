@@ -240,13 +240,8 @@ namespace SAS.Utilities.DeveloperConsole
 
         private IEnumerator ClearFocusNextFrame()
         {
-            EventSystem eventSystem = EventSystem.current;
             yield return null; // wait one frame
-
-            if (!CanApplyDelayedFocus(eventSystem))
-                yield break;
-
-            eventSystem.SetSelectedGameObject(null);
+            EventSystem.current?.SetSelectedGameObject(null);
         }
 
         private bool CanApplyDelayedFocus(EventSystem eventSystem, GameObject selection = null)
@@ -263,10 +258,7 @@ namespace SAS.Utilities.DeveloperConsole
             DeveloperConsole.ProcessCommand(m_InputField.text, this, out var close);
             m_InputField.text = string.Empty;
 #if !UNITY_EDITOR && UNITY_PS5
-            // A closing command disables the console EventSystem; clearing on the next frame would
-            // either dereference a missing EventSystem or clear the restored gameplay UI selection.
-            if (!close)
-                StartCoroutine(ClearFocusNextFrame());
+            StartCoroutine(ClearFocusNextFrame());
 #endif
             SuggestionAppliedEvent?.Invoke();
             if (close)

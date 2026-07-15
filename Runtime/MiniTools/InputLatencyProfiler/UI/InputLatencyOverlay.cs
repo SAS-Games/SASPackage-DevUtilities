@@ -45,14 +45,12 @@ public sealed class InputLatencyOverlay : IDisposable
     public bool Draw()
     {
         _closeRequested = false;
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
         EnsureStyles();
         _window.width = Mathf.Clamp(_window.width, 680f, Mathf.Max(680f, Screen.width - 16f));
         _window.height = Mathf.Clamp(_window.height, 420f, Mathf.Max(420f, Screen.height - 16f));
         _window.x = Mathf.Clamp(_window.x, 0f, Mathf.Max(0f, Screen.width - _window.width));
         _window.y = Mathf.Clamp(_window.y, 0f, Mathf.Max(0f, Screen.height - _window.height));
         _window = GUI.Window(0x1A71E, _window, DrawWindow, GUIContent.none, _windowStyle);
-#endif
         return _closeRequested;
     }
 

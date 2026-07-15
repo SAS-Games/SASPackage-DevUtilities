@@ -11,7 +11,7 @@ namespace SAS.Utilities.DeveloperConsole
 
         public override bool Process(DeveloperConsoleBehaviour developerConsole, string command, string[] args)
         {
-#if UNITY_EDITOR || DEVELOPMENT_BUILD || SAS_RUNTIME_DEBUGGER
+#if UNITY_EDITOR || DEVELOPMENT_BUILD || ENABLE_DEBUG
             if (args == null || args.Length != 1)
                 return false;
 
@@ -39,7 +39,8 @@ namespace SAS.Utilities.DeveloperConsole
             Debug.Log($"Runtime Debugger {(enable ? "enabled" : "disabled")}.");
             return true;
 #else
-            Debug.LogWarning("Runtime Debugger is not available in this release build.");
+            Debug.LogWarning(
+                "Runtime Debugger is not available. Enable ENABLE_DEBUG or use a Development Build.");
             return false;
 #endif
         }
