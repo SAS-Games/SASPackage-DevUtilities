@@ -3,6 +3,11 @@ using System.Collections.Generic;
 
 namespace SAS.Utilities.RuntimeDebugger.Core
 {
+    [AttributeUsage(AttributeTargets.Class, Inherited = true)]
+    internal sealed class RuntimeDebuggerProtectedAttribute : Attribute
+    {
+    }
+
     [Serializable]
     public readonly struct RuntimeObjectId : IEquatable<RuntimeObjectId>
     {

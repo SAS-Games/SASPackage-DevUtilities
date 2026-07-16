@@ -160,6 +160,8 @@ namespace SAS.Utilities.RuntimeDebugger.Core
                         return RuntimeCommandResult.Fail("GameObject activation changes are disabled.");
                     if (!_registry.TryResolve(active.ObjectId, out GameObject target))
                         return RuntimeCommandResult.Fail("The GameObject no longer exists.");
+                    if (!active.Active && IsRuntimeDebuggerHost(target))
+                        return RuntimeCommandResult.Fail("The runtime debugger cannot disable its own host.");
                     target.SetActive(active.Active);
                     return RuntimeCommandResult.Ok();
                 }
@@ -172,6 +174,8 @@ namespace SAS.Utilities.RuntimeDebugger.Core
                         return RuntimeCommandResult.Fail("The component no longer exists.");
                     if (IsBlocked(component.GetType()))
                         return RuntimeCommandResult.Fail("The component type is blocked.");
+                    if (!componentEnabled.Enabled && IsRuntimeDebuggerProtected(component))
+                        return RuntimeCommandResult.Fail("The runtime debugger cannot disable its own host.");
                     return TrySetEnabled(component, componentEnabled.Enabled)
                         ? RuntimeCommandResult.Ok()
                         : RuntimeCommandResult.Fail("This component has no supported enabled state.");
@@ -406,6 +410,12 @@ namespace SAS.Utilities.RuntimeDebugger.Core
             else return false;
             return true;
         }
+
+        private static bool IsRuntimeDebuggerHost(GameObject gameObject) =>
+            gameObject != null && gameObject.GetComponents<Component>().Any(IsRuntimeDebuggerProtected);
+
+        private static bool IsRuntimeDebuggerProtected(Component component) =>
+            component != null && component.GetType().IsDefined(typeof(RuntimeDebuggerProtectedAttribute), true);
 
         private void EnsureMainThread()
         {
