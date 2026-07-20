@@ -54,7 +54,7 @@ namespace SAS.Utilities.RuntimeDebugger
             Matrix4x4 previousMatrix = GUI.matrix;
             GUI.matrix = Matrix4x4.Scale(new Vector3(scale, scale, 1f));
             _theme.EnsureCreated();
-            _fontAtlas.RequestRuntimeCharacters(_theme.Font, _controller);
+            _fontAtlas.ValidateVisibleCharacters(_theme.Font, _theme.BoldFont, _controller);
             Rect windowResult = GUI.Window(windowId, _window, DrawWindow, GUIContent.none, _theme.Window);
             if (_pendingWindowSize.x > 0f && _pendingWindowSize.y > 0f)
             {

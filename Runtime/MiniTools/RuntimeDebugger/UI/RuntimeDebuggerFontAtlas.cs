@@ -1,71 +1,125 @@
 using System.Collections.Generic;
-using System.Globalization;
-using System.Text;
 using SAS.Utilities.RuntimeDebugger.Core;
 using UnityEngine;
 
 namespace SAS.Utilities.RuntimeDebugger
 {
+    /// <summary>
+    /// Validates that strings used by the runtime debugger exist in the
+    /// pre-baked font atlas.
+    ///
+    /// This class does not generate glyphs at runtime.
+    /// </summary>
     internal sealed class RuntimeDebuggerFontAtlas
     {
-        private readonly HashSet<char> _characterSet = new();
-        private readonly StringBuilder _characters = new(256);
+        private readonly HashSet<int> _reportedMissingCharacters = new();
 
-        internal void RequestRuntimeCharacters(Font font, RuntimeDebuggerController controller)
+        /// <summary>
+        /// Checks all currently visible debugger text against the assigned fonts.
+        /// Only active in Editor and Development builds.
+        /// </summary>
+        internal void ValidateVisibleCharacters(Font regularFont, Font boldFont, RuntimeDebuggerController controller)
         {
-            if (Event.current.type != EventType.Repaint || font == null || !font.dynamic)
+            if (controller == null)
                 return;
 
-            _characterSet.Clear();
-            _characters.Clear();
-            Add("0123456789▶▼ (inactive):");
-            Add(controller.Search);
-            Add(controller.EditValue);
-            Add(controller.Error);
+            Validate(regularFont, "0123456789▶▼↘ (inactive):");
 
-            foreach (RuntimeHierarchyEntry entry in controller.VisibleEntries)
-                Add(entry.Name);
+            Validate(regularFont, controller.Search);
+            Validate(regularFont, controller.EditValue);
+            Validate(regularFont, controller.Error);
+
+            if (controller.VisibleEntries != null)
+            {
+                foreach (RuntimeHierarchyEntry entry in controller.VisibleEntries)
+                    Validate(regularFont, entry.Name);
+            }
 
             RuntimeObjectDetails details = controller.Details;
             if (details != null)
             {
-                Add(details.Name);
-                Add(details.Tag);
-                Add(details.Layer.ToString(CultureInfo.InvariantCulture));
-                foreach (RuntimeComponentDescriptor component in details.Components)
-                {
-                    Add(component.TypeName);
-                    Add(component.StatusMessage);
-                    if (component.Members == null)
-                        continue;
+                Validate(regularFont, details.Name);
+                Validate(regularFont, details.Tag);
+                Validate(regularFont, details.Layer.ToString());
 
-                    foreach (RuntimeMemberDescriptor member in component.Members)
+                if (details.Components != null)
+                {
+                    foreach (RuntimeComponentDescriptor component in details.Components)
                     {
-                        Add(member.DisplayName);
-                        Add(member.Value);
-                        Add(member.Error);
+                        Validate(regularFont, component.TypeName);
+                        Validate(regularFont, component.StatusMessage);
+
+                        if (component.Members == null)
+                            continue;
+
+                        foreach (RuntimeMemberDescriptor member in component.Members)
+                        {
+                            Validate(regularFont, member.DisplayName);
+                            Validate(regularFont, member.Value);
+                            Validate(regularFont, member.Error);
+                        }
                     }
                 }
             }
 
-            if (_characters.Length == 0)
-                return;
-
-            string characters = _characters.ToString();
-            font.RequestCharactersInTexture(characters, 10, FontStyle.Normal);
-            font.RequestCharactersInTexture(characters, 11, FontStyle.Normal);
-            font.RequestCharactersInTexture(characters, 12, FontStyle.Normal);
-            font.RequestCharactersInTexture(characters, 12, FontStyle.Bold);
+            Validate(boldFont, "RUNTIME DEBUGGER");
+            Validate(boldFont, "LIVE SCENE INSPECTION");
+            Validate(boldFont, "SEARCH");
+            Validate(boldFont, "HIERARCHY");
+            Validate(boldFont, "INSPECTOR");
+            Validate(boldFont, "REFRESHING");
+            Validate(boldFont, "ITEMS");
+            Validate(boldFont, "FOCUS");
+            Validate(boldFont, "VIEW");
+            Validate(boldFont, "CLEAR");
+            Validate(boldFont, "SAVE");
+            Validate(boldFont, "EDIT");
+            Validate(boldFont, "ACTIVATE");
+            Validate(boldFont, "DEACTIVATE");
+            Validate(boldFont, "ENABLED");
+            Validate(boldFont, "DISABLED");
         }
 
-        private void Add(string text)
+        /// <summary>
+        /// Checks one string against the pre-baked font.
+        /// </summary>
+        internal void Validate(Font font, string text)
         {
-            if (string.IsNullOrEmpty(text))
+            if (font == null || string.IsNullOrEmpty(text))
                 return;
 
             foreach (char character in text)
-                if (_characterSet.Add(character))
-                    _characters.Append(character);
+            {
+                if (char.IsControl(character))
+                    continue;
+
+                if (font.HasCharacter(character))
+                    continue;
+
+                int missingCharacterKey = MakeCharacterKey(font, character);
+                if (!_reportedMissingCharacters.Add(missingCharacterKey))
+                    continue;
+
+                Debug.LogWarning(
+                    $"[Runtime Debugger] Font '{font.name}' does not contain character '{PrintableCharacter(character)}' U+{(int)character:X4}. Example text: \"{text}\"");
+            }
+        }
+
+        private static int MakeCharacterKey(Font font, char character)
+        {
+            return (font != null ? font.GetInstanceID() : 0) * 0x10000 + character;
+        }
+
+        private static string PrintableCharacter(char character)
+        {
+            return character switch
+            {
+                ' ' => "<space>",
+                '\t' => "<tab>",
+                '\n' => "<newline>",
+                '\r' => "<carriage-return>",
+                _ => character.ToString()
+            };
         }
     }
 }

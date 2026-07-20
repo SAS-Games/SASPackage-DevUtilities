@@ -43,6 +43,13 @@ namespace SAS.Utilities.RuntimeDebugger
         [SerializeField] private Color m_FocusColor = new(0.22f, 0.75f, 1f);
         [SerializeField, Range(0.25f, 0.75f)] private float m_HierarchyPanelWidth = 0.42f;
 
+        [Header("Fonts")]
+        [SerializeField]
+        private Font m_RegularFont;
+
+        [SerializeField]
+        private Font m_BoldFont;
+
         public bool EnableDebugger => m_EnableDebugger;
         public bool AutomaticallyCreateBootstrap => m_AutomaticallyCreateBootstrap;
         public bool PauseWhenOpen => m_PauseWhenOpen;
@@ -65,6 +72,8 @@ namespace SAS.Utilities.RuntimeDebugger
         public Color BackgroundColor => m_BackgroundColor;
         public Color FocusColor => m_FocusColor;
         public float HierarchyPanelWidth => m_HierarchyPanelWidth;
+        public Font RegularFont => m_RegularFont;
+        public Font BoldFont => m_BoldFont != null ? m_BoldFont : m_RegularFont;
 
         internal static RuntimeDebuggerSettings LoadOrCreateDefaults()
         {
