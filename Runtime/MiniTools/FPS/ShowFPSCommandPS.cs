@@ -7,7 +7,7 @@ namespace SAS.Utilities.DeveloperConsole
     {
         protected override bool SetTargetFrameRate(string[] args)
         {
-#if !UNITY_EDITOR && !DEVELOPMENT_BUILD && !ENABLE_DEBUG
+#if !ENABLE_DEBUG
             return false;
 #else
             if (!TryParseTargetFrameRate(args, out int targetFrameRate))

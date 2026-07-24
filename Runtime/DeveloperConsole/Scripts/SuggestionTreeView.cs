@@ -20,20 +20,19 @@ namespace SAS.Utilities.DeveloperConsole
         private List<GameObject> _navigableItems = new();
         private GameObject _currentlyExpanded;
         private GameObject _highlightedItem;
-        private DeveloperConsole _developerConsole;
         private ScrollSnapper _scrollSnapper;
 
 
         protected override void Awake()
         {
             base.Awake();
-            _developerConsole = _developerConsoleUI.DeveloperConsole;
             _scrollSnapper = GetComponent<ScrollSnapper>();
         }
 
         protected override void OnEnable()
         {
             base.OnEnable();
+            _developerConsoleUI.CommandsChanged += ShowCommands;
             ShowCommands();
             _developerConsoleUI.SuggestionAppliedEvent += ShowCommands;
         }
@@ -41,6 +40,7 @@ namespace SAS.Utilities.DeveloperConsole
         protected override void OnDisable()
         {
             base.OnDisable();
+            _developerConsoleUI.CommandsChanged -= ShowCommands;
             _developerConsoleUI.SuggestionAppliedEvent -= ShowCommands;
         }
 
@@ -48,7 +48,7 @@ namespace SAS.Utilities.DeveloperConsole
         {
             ClearSuggestions();
             gameObject.SetActive(true);
-            foreach (var command in _developerConsole.ConsoleCommands)
+            foreach (var command in _developerConsoleUI.DeveloperConsole.ConsoleCommands)
                 CreateBaseCommandUI(command.Name);
             RebuildNavigableList();
         }
@@ -133,7 +133,8 @@ namespace SAS.Utilities.DeveloperConsole
 
             if (_currentlyExpanded != null)
             {
-                var suggestions = _developerConsole.GetCommandSuggestions(baseCommand);
+                var suggestions =
+                    _developerConsoleUI.DeveloperConsole.GetCommandSuggestions(baseCommand);
                 suggestions = suggestions.Where(s => s != baseCommand)
                     .ToList();
 

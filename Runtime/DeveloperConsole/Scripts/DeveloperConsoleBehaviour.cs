@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using SAS.Utilities.Presentation;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -26,6 +27,8 @@ namespace SAS.Utilities.DeveloperConsole
         }
 
         public Action<string> InputChangedEvent;
+        public event Action<string> HelpTextDisplayed;
+        public event Action CommandsChanged;
         public Action<bool> SuggestionViewChangedEvent;
         public Action SuggestionAppliedEvent;
 
@@ -50,7 +53,9 @@ namespace SAS.Utilities.DeveloperConsole
         private float _helpTopPadding;
         private float[] _suggestionPanelGaps = Array.Empty<float>();
         private bool _helpLayoutInitialized;
+        private bool _consoleVisibilityRequested;
         private DeveloperConsole _developerConsole;
+        private IDeveloperConsoleCommandGateway _commandGateway;
         private ConsoleInputActions _inputActions;
         public bool IsTreeViewSuggestion => m_TreeViewSuggestionToggle.isOn;
         private GameObject _lastSelectedGameObject;
@@ -136,6 +141,7 @@ namespace SAS.Utilities.DeveloperConsole
             }
 
             Instance = this;
+            _consoleVisibilityRequested = m_UiCanvas != null && m_UiCanvas.activeSelf;
             _pausedTimeScale = Time.timeScale;
             _inputActions = new ConsoleInputActions();
             _inputActions.Developer.ToggleConsole.performed += Toggle;
@@ -156,7 +162,16 @@ namespace SAS.Utilities.DeveloperConsole
 
             ExecuteCommandsFromCommandLine();
 
+            OnPresentationSuppressionChanged();
+
             DontDestroyOnLoad(this.gameObject);
+        }
+
+        private void OnDestroy()
+        {
+            SetCommandGateway(null);
+            if (Instance == this)
+                Instance = null;
         }
 
         private void OnTreeViewSuggestion(bool treeView)
@@ -168,16 +183,41 @@ namespace SAS.Utilities.DeveloperConsole
             RefreshHelpLayout();
         }
 
-        private void OnEnable() => _inputActions?.Developer.Enable();
+        private void OnEnable()
+        {
+            DevUtilityPresentationRegistry.SuppressionChanged -= OnPresentationSuppressionChanged;
+            DevUtilityPresentationRegistry.SuppressionChanged += OnPresentationSuppressionChanged;
+            OnPresentationSuppressionChanged();
+            if (DevUtilityPresentationRegistry.CanShowLocalUi)
+                _inputActions?.Developer.Enable();
+        }
 
-        private void OnDisable() => _inputActions?.Developer.Disable();
+        private void OnDisable()
+        {
+            DevUtilityPresentationRegistry.SuppressionChanged -= OnPresentationSuppressionChanged;
+            _inputActions?.Developer.Disable();
+        }
 
         private void Toggle(CallbackContext context)
         {
             if (m_UiCanvas == null)
                 return;
+            if (!DevUtilityPresentationRegistry.CanShowLocalUi)
+                return;
 
-            if (m_UiCanvas.activeSelf)
+            SetConsoleVisible(!_consoleVisibilityRequested);
+        }
+
+        private void ApplyConsoleVisibility()
+        {
+            if (m_UiCanvas == null)
+                return;
+
+            bool visible = _consoleVisibilityRequested && DevUtilityPresentationRegistry.CanShowLocalUi;
+            if (m_UiCanvas.activeSelf == visible)
+                return;
+
+            if (!visible)
             {
                 if (m_InputField != null)
                     Time.timeScale = _pausedTimeScale;
@@ -267,11 +307,41 @@ namespace SAS.Utilities.DeveloperConsole
 
         public void DisplayHelpText(string helpText)
         {
+            HelpTextDisplayed?.Invoke(helpText ?? string.Empty);
             if (m_HelpText == null)
                 return;
 
             m_HelpText.text = helpText ?? string.Empty;
             RefreshHelpLayout();
+        }
+
+        public void SetCommandGateway(IDeveloperConsoleCommandGateway gateway)
+        {
+            if (ReferenceEquals(_commandGateway, gateway))
+                return;
+
+            if (_commandGateway != null)
+            {
+                _commandGateway.CatalogChanged -= RebuildGatewayCommands;
+                _commandGateway.CommandCompleted -= OnGatewayCommandCompleted;
+            }
+
+            _commandGateway = gateway;
+            if (_commandGateway == null)
+            {
+                _developerConsole = null;
+                return;
+            }
+
+            _commandGateway.CatalogChanged += RebuildGatewayCommands;
+            _commandGateway.CommandCompleted += OnGatewayCommandCompleted;
+            RebuildGatewayCommands();
+        }
+
+        public void SetConsoleVisible(bool visible)
+        {
+            _consoleVisibilityRequested = visible;
+            ApplyConsoleVisibility();
         }
 
         private void InitializeHelpLayout()
@@ -440,6 +510,52 @@ namespace SAS.Utilities.DeveloperConsole
                     }
                 }
             }
+        }
+
+        private void RebuildGatewayCommands()
+        {
+            if (_commandGateway == null)
+                return;
+
+            var commands = new List<IConsoleCommand>();
+            DeveloperConsoleCommandDescriptor[] descriptors =
+                _commandGateway.Commands ??
+                Array.Empty<DeveloperConsoleCommandDescriptor>();
+            foreach (DeveloperConsoleCommandDescriptor descriptor in descriptors)
+            {
+                if (descriptor != null && !string.IsNullOrWhiteSpace(descriptor.Name))
+                    commands.Add(new GatewayConsoleCommandProxy(
+                        descriptor,
+                        _commandGateway));
+            }
+
+            _developerConsole = new DeveloperConsole(
+                _commandGateway.Prefix ?? string.Empty,
+                commands);
+            CommandsChanged?.Invoke();
+            InputChangedEvent?.Invoke(m_InputField != null ? m_InputField.text : string.Empty);
+        }
+
+        private void OnGatewayCommandCompleted(
+            DeveloperConsoleCommandResult response)
+        {
+            if (response == null)
+                return;
+            DisplayHelpText(response.Message ?? string.Empty);
+        }
+
+        private void OnPresentationSuppressionChanged()
+        {
+            if (DevUtilityPresentationRegistry.CanShowLocalUi)
+            {
+                if (isActiveAndEnabled)
+                    _inputActions?.Developer.Enable();
+                ApplyConsoleVisibility();
+                return;
+            }
+
+            _inputActions?.Developer.Disable();
+            ApplyConsoleVisibility();
         }
 
     }

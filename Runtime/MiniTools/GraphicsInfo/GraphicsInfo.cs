@@ -9,22 +9,9 @@ public class GraphicsInfo : MonoBehaviour
 {
     [SerializeField] private TMP_Text m_Display = default;
 
-    public void Show(bool status, bool verbose)
+    public void Refresh(bool verbose)
     {
-        if (!status)
-        {
-            gameObject.SetActive(false);
-            return;
-        }
-
-        if (m_Display == null)
-        {
-            Debug.LogWarning("GraphicsInfo requires a display text reference.");
-            return;
-        }
-
         m_Display.text = Info(verbose);
-        gameObject.SetActive(true);
     }
     private string Info(bool verbose)
     {
@@ -77,7 +64,7 @@ public class GraphicsInfo : MonoBehaviour
         if (verbose)
         {
             string renderResolution = $"{Screen.width}x{Screen.height}";
-            string screenResolution = $"{Screen.currentResolution.width}x{Screen.currentResolution.height} @ {Screen.currentResolution.refreshRateRatio.value:F2} Hz";
+            string screenResolution = $"{Screen.currentResolution.width}x{Screen.currentResolution.height} @ {Screen.currentResolution.refreshRateRatio}Hz";
             string fullscreen = Screen.fullScreen ? "Fullscreen" : "Windowed";
 
             info +=

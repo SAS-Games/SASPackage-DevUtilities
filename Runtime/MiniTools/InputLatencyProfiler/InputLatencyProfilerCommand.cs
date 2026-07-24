@@ -28,7 +28,7 @@ namespace SAS.Utilities.DeveloperConsole
                         _inputLatencyProfiler.name = "InputLatencyProfiler";
                     }
 
-                    _inputLatencyProfiler.SetActive(isVisible);
+                    Presentation.DevUtilityUiVisibility.SetVisible(_inputLatencyProfiler, isVisible);
                     return true;
                 }
             }

@@ -25,7 +25,7 @@ public class FrameStepper : MonoBehaviour
         m_Toggle.isOn = _isPaused;
     }
 
-    public void Show(bool status) => gameObject.SetActive(status);
+    public void Show(bool status) => SAS.Utilities.Presentation.DevUtilityUiVisibility.SetVisible(gameObject, status);
 
     private void OnEnable() => _controls?.Enable();
     private void OnDisable() => _controls?.Disable();

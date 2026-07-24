@@ -83,6 +83,7 @@ GameObject:
   - component: {fileID: 2584970309661936838}
   - component: {fileID: 3205385918407102549}
   - component: {fileID: -3307172350291283966}
+  - component: {fileID: 9000000000000000001}
   m_Layer: 5
   m_Name: InputLatencyGraphUI
   m_TagString: Untagged
@@ -90,6 +91,19 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!114 &9000000000000000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6207950565407678706}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c48bbf7c6d8e45d68d6bbaa724517562, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  m_PresentationRoot: {fileID: 0}
 --- !u!224 &3721969622637608240
 RectTransform:
   m_ObjectHideFlags: 0

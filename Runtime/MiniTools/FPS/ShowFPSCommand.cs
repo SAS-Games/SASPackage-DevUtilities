@@ -8,19 +8,13 @@ namespace SAS.Utilities.DeveloperConsole
         [SerializeField] private GameObject m_FpsPrefab;
         private GameObject _fps;
 
-        public override string HelpText =>
-            "Stats commands:\n" +
-            "  Stats.FPS <On|Off> [anchor] [horizontal-padding] [vertical-padding]\n" +
-            "  Stats.Unit <On|Off> [anchor] [horizontal-padding] [vertical-padding]\n" +
-            "  Stats.Rendering <On|Off> [anchor] [horizontal-padding] [vertical-padding]\n" +
-            "  Stats.Memory\n" +
-            "  Stats.SceneRendering\n" +
-            "  Stats.Levels\n" +
-            "  Stats.SetTargetFrameRate <-1|fps>";
+        public override string HelpText => "Stats commands:\n" +
+                                           "  Stats.FPS <On|Off> [anchor] [horizontal-padding] [vertical-padding]\n" +
+                                           "  Stats.SetTargetFrameRate <-1|fps>";
 
         protected bool ShowFPS(string[] args)
         {
-#if !UNITY_EDITOR && !DEVELOPMENT_BUILD && !ENABLE_DEBUG
+#if !ENABLE_DEBUG
             return false;
 #else
             if (args == null || args.Length < 1 || args.Length > 4)
@@ -68,14 +62,14 @@ namespace SAS.Utilities.DeveloperConsole
                 fpsRect.AlignToScreen(anchor, new Vector2Int(paddingX, paddingY));
             }
 
-            _fps.SetActive(isVisible);
+            Presentation.DevUtilityUiVisibility.SetVisible(_fps, isVisible);
             return true;
 #endif
         }
 
         protected virtual bool SetTargetFrameRate(string[] args)
         {
-#if !UNITY_EDITOR && !DEVELOPMENT_BUILD && !ENABLE_DEBUG
+#if !ENABLE_DEBUG
             return false;
 #else
             if (!TryParseTargetFrameRate(args, out int targetFrameRate))
@@ -85,45 +79,6 @@ namespace SAS.Utilities.DeveloperConsole
             QualitySettings.vSyncCount = 0;
             Application.targetFrameRate = targetFrameRate;
             return true;
-#endif
-        }
-
-        protected bool Memory(string[] args)
-        {
-#if UNITY_EDITOR || DEVELOPMENT_BUILD || ENABLE_DEBUG
-            if (args == null || args.Length != 0)
-                return false;
-
-            Debug.Log(RuntimeStatsReporter.BuildMemoryReport());
-            return true;
-#else
-            return false;
-#endif
-        }
-
-        protected bool SceneRendering(string[] args)
-        {
-#if UNITY_EDITOR || DEVELOPMENT_BUILD || ENABLE_DEBUG
-            if (args == null || args.Length != 0)
-                return false;
-
-            Debug.Log(RuntimeStatsReporter.BuildSceneRenderingReport());
-            return true;
-#else
-            return false;
-#endif
-        }
-
-        protected bool Levels(string[] args)
-        {
-#if UNITY_EDITOR || DEVELOPMENT_BUILD || ENABLE_DEBUG
-            if (args == null || args.Length != 0)
-                return false;
-
-            Debug.Log(RuntimeStatsReporter.BuildLevelsReport());
-            return true;
-#else
-            return false;
 #endif
         }
 

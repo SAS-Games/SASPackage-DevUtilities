@@ -21,7 +21,7 @@ namespace SAS.Utilities.DeveloperConsole
                         _statsInstance.name = "AnimatorStatsUI";
                     }
 
-                    _statsInstance.SetActive(isVisible);
+                    Presentation.DevUtilityUiVisibility.SetVisible(_statsInstance, isVisible);
                     return true;
                 }
             }
@@ -69,8 +69,8 @@ namespace SAS.Utilities.DeveloperConsole
                 _statsInstance.name = "ParticleStatsUI";
             }
 
-            _statsInstance.SetActive(false);
-            _statsInstance.SetActive(true);
+            Presentation.DevUtilityUiVisibility.SetVisible(_statsInstance, false);
+            Presentation.DevUtilityUiVisibility.SetVisible(_statsInstance, true);
             Debug.Log("Particle Stats UI Refreshed.");
 
             return true;

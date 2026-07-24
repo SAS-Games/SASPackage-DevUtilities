@@ -20,7 +20,7 @@ namespace SAS.Utilities.DeveloperConsole
                     if (_infoObj == null)
                         _infoObj = Instantiate(m_InfoPrefab);
 
-                    _infoObj.SetActive(isVisible);
+                    Presentation.DevUtilityUiVisibility.SetVisible(_infoObj, isVisible);
                     return true;
                 }
             }

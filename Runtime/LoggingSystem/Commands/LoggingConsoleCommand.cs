@@ -43,12 +43,12 @@ namespace SAS.Utilities.DeveloperConsole
                     _onScreenLog = Instantiate(m_OnScreenLogPrefab);
                     _onScreenLog.name = "OnScreenLog";
                 }
-                _onScreenLog.SetActive(true);
+                Presentation.DevUtilityUiVisibility.SetVisible(_onScreenLog, true);
             }
             else if (args[0].Equals("Off", StringComparison.OrdinalIgnoreCase))
             {
                 if (_onScreenLog != null)
-                    _onScreenLog.SetActive(false);
+                    Presentation.DevUtilityUiVisibility.SetVisible(_onScreenLog, false);
             }
             else
                 return false;

@@ -22,28 +22,37 @@ namespace SAS.Utilities.DeveloperConsole
 
         public void ProcessCommand(string inputValue, DeveloperConsoleBehaviour developerConsole, out bool close)
         {
+            TryProcessCommand(inputValue, developerConsole, out close);
+        }
+
+        public bool TryProcessCommand(string inputValue, DeveloperConsoleBehaviour developerConsole, out bool close)
+        {
             close = false;
-            if (!inputValue.StartsWith(_prefix))
-                return;
+            if (string.IsNullOrWhiteSpace(inputValue) || !inputValue.StartsWith(_prefix))
+                return false;
 
             inputValue = inputValue.Remove(0, _prefix.Length);
             string[] inputSplit = inputValue.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             if (inputSplit.Length == 0)
-                return;
+                return false;
             string commandInput = inputSplit[0];
             string[] args = inputSplit.Skip(1).ToArray();
             if (inputValue.Equals("clear", StringComparison.OrdinalIgnoreCase))
             {
                 developerConsole.DisplayHelpText("");
-                return;
+                return true;
             }
 
             if (ProcessCommand(commandInput, args, developerConsole, out close))
+            {
                 _commandHistory.Add(inputValue);
+                return true;
+            }
+
+            return false;
         }
 
-        private bool ProcessCommand(string commandInput, string[] args, DeveloperConsoleBehaviour developerConsole,
-            out bool close)
+        private bool ProcessCommand(string commandInput, string[] args, DeveloperConsoleBehaviour developerConsole, out bool close)
         {
             close = false;
             foreach (var command in ConsoleCommands)
