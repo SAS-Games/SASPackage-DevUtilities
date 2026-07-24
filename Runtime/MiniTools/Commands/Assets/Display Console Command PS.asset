@@ -16,6 +16,14 @@ MonoBehaviour:
   m_Presets: []
   <CloseOnCompletion>k__BackingField: 1
   m_SubCommands:
+  - Name: Status
+    HelpText: Display.Status - Logs current resolution state.
+    Presets: [Status]
+    MethodName: Status
+  - Name: Restore
+    HelpText: Display.Restore - Restores the resolution captured before the first change.
+    Presets: [Restore]
+    MethodName: Restore
   - Name: SetResolution
     HelpText: 'Usage:\n Display.SetResolution <width> <height> <fullscreen> \nExample:
       Display.SetResolution 1920 1080 false'

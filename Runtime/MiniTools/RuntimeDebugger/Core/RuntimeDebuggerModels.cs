@@ -78,6 +78,7 @@ namespace SAS.Utilities.RuntimeDebugger.Core
         public string Tag;
         public int Layer;
         public IReadOnlyList<RuntimeComponentDescriptor> Components;
+        public RuntimeMaterialShaderSection MaterialsAndShaders;
     }
 
     public sealed class RuntimeCommandResult
@@ -109,6 +110,30 @@ namespace SAS.Utilities.RuntimeDebugger.Core
         public RuntimeObjectId ComponentId;
         public string MemberName;
         public string Value;
+    }
+
+    public sealed class SetRuntimeShaderPropertyCommand : RuntimeDebuggerCommand
+    {
+        public RuntimeObjectId RendererId;
+        public int MaterialIndex;
+        public int PropertyId;
+        public RuntimeMaterialEditScope Scope;
+        public string Value;
+    }
+
+    public sealed class RestoreRuntimeShaderPropertyCommand : RuntimeDebuggerCommand
+    {
+        public RuntimeObjectId RendererId;
+        public int MaterialIndex;
+        public int PropertyId;
+        public RuntimeMaterialEditScope Scope;
+    }
+
+    public sealed class RestoreRuntimeMaterialCommand : RuntimeDebuggerCommand
+    {
+        public RuntimeObjectId RendererId;
+        public int MaterialIndex;
+        public RuntimeMaterialEditScope Scope;
     }
 
     public interface IRuntimeDebugger

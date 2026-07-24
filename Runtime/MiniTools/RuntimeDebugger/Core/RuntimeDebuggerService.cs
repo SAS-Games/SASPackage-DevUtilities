@@ -18,6 +18,7 @@ namespace SAS.Utilities.RuntimeDebugger.Core
         private readonly RuntimeObjectRegistry _registry = new();
         private readonly RuntimeValueDrawerRegistry _drawers = new();
         private readonly RuntimeComponentDrawerRegistry _componentDrawers;
+        private readonly List<IRuntimeDebuggerInspectorExtension> _inspectorExtensions = new();
         private readonly Dictionary<Type, FieldInfo[]> _fieldCache = new();
         private readonly Dictionary<string, RuntimeObjectId> _sceneIds = new();
         private readonly int _mainThreadId;
@@ -28,6 +29,7 @@ namespace SAS.Utilities.RuntimeDebugger.Core
         {
             _settings = settings;
             _componentDrawers = new RuntimeComponentDrawerRegistry(_drawers);
+            _inspectorExtensions.Add(new RuntimeMaterialShaderExtension(settings));
             _mainThreadId = Thread.CurrentThread.ManagedThreadId;
             SceneManager.sceneLoaded += OnSceneChanged;
             SceneManager.sceneUnloaded += OnSceneUnloaded;
@@ -140,11 +142,14 @@ namespace SAS.Utilities.RuntimeDebugger.Core
                     tag = "<unavailable>";
                 }
 
-                return new RuntimeObjectDetails
+                var details = new RuntimeObjectDetails
                 {
                     Id = objectId, Name = gameObject.name, Active = gameObject.activeSelf, Tag = tag,
                     Layer = gameObject.layer, Components = components
                 };
+                foreach (IRuntimeDebuggerInspectorExtension extension in _inspectorExtensions)
+                    extension.Inspect(gameObject, _registry, details);
+                return details;
             }
         }
 
@@ -191,6 +196,12 @@ namespace SAS.Utilities.RuntimeDebugger.Core
                     return SetMember(component, setValue.MemberName, setValue.Value);
                 }
 
+                foreach (IRuntimeDebuggerInspectorExtension extension in _inspectorExtensions)
+                {
+                    if (extension.TryExecute(command, _registry, out RuntimeCommandResult result))
+                        return result ?? RuntimeCommandResult.Fail("The inspector extension did not return a result.");
+                }
+
                 return RuntimeCommandResult.Fail("Unsupported debugger command.");
             }
             catch (Exception ex)
@@ -204,6 +215,9 @@ namespace SAS.Utilities.RuntimeDebugger.Core
             SceneManager.sceneLoaded -= OnSceneChanged;
             SceneManager.sceneUnloaded -= OnSceneUnloaded;
             SceneManager.activeSceneChanged -= OnActiveSceneChanged;
+            foreach (IRuntimeDebuggerInspectorExtension extension in _inspectorExtensions)
+                extension.Dispose();
+            _inspectorExtensions.Clear();
         }
 
         private void AddObject(List<RuntimeHierarchyEntry> entries, GameObject gameObject, RuntimeObjectId sceneId,

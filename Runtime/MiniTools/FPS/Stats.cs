@@ -1,4 +1,5 @@
 using System.Text;
+using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Profiling;
@@ -24,30 +25,45 @@ public class Stats : UIBehaviour
 
     private readonly StringBuilder _builder = new StringBuilder(512);
     private readonly FrameTiming[] _frameTimings = new FrameTiming[1];
+    private ProfilerRecorder _batches;
+    private ProfilerRecorder _setPassCalls;
+    private ProfilerRecorder _drawCalls;
+    private ProfilerRecorder _triangles;
+    private ProfilerRecorder _vertices;
+    private ProfilerRecorder _shadowCasters;
+    private ProfilerRecorder _renderTextureCount;
+    private ProfilerRecorder _renderTextureMemory;
 
     protected override void Awake()
     {
         base.Awake();
 
-#if UNITY_EDITOR
+#if UNITY_EDITOR || DEVELOPMENT_BUILD || ENABLE_DEBUG
         var fps = GetComponent<FPS>();
         if (fps != null)
             fps.enabled = false;
         enabled = true;
 #else
-        enabled = Debug.isDebugBuild;
+        enabled = false;
 #endif
     }
 
     protected override void OnEnable()
     {
         base.OnEnable();
+        StartRenderingRecorders();
         ResetSample();
+    }
+
+    protected override void OnDisable()
+    {
+        DisposeRenderingRecorders();
+        base.OnDisable();
     }
 
     private void Update()
     {
-#if !ENABLE_DEBUG
+#if !UNITY_EDITOR && !DEVELOPMENT_BUILD && !ENABLE_DEBUG
         return;
 #else
         float deltaTime = Time.unscaledDeltaTime;
@@ -107,6 +123,15 @@ public class Stats : UIBehaviour
             _builder.Append("Detailed Frame Timing: unavailable\n");
         }
 
+        AppendCounter("Batches", _batches);
+        AppendCounter("SetPass Calls", _setPassCalls);
+        AppendCounter("Draw Calls", _drawCalls);
+        AppendCounter("Triangles", _triangles);
+        AppendCounter("Vertices", _vertices);
+        AppendCounter("Shadow Casters", _shadowCasters);
+        AppendCounter("Render Textures", _renderTextureCount);
+        AppendMemoryCounter("Render Texture Memory", _renderTextureMemory);
+
         _builder.AppendFormat("Allocated: {0:F3} GiB\n", Profiler.GetTotalAllocatedMemoryLong() / BytesPerGibibyte);
         _builder.AppendFormat("Reserved: {0:F3} GiB\n", Profiler.GetTotalReservedMemoryLong() / BytesPerGibibyte);
         _builder.AppendFormat("Unused: {0:F3} GiB", Profiler.GetTotalUnusedReservedMemoryLong() / BytesPerGibibyte);
@@ -118,5 +143,44 @@ public class Stats : UIBehaviour
     {
         _elapsedSeconds = 0d;
         _frames = 0;
+    }
+
+    private void StartRenderingRecorders()
+    {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD || ENABLE_DEBUG
+        DisposeRenderingRecorders();
+        _batches = ProfilerRecorder.StartNew(ProfilerCategory.Render, "Batches Count");
+        _setPassCalls = ProfilerRecorder.StartNew(ProfilerCategory.Render, "SetPass Calls Count");
+        _drawCalls = ProfilerRecorder.StartNew(ProfilerCategory.Render, "Draw Calls Count");
+        _triangles = ProfilerRecorder.StartNew(ProfilerCategory.Render, "Triangles Count");
+        _vertices = ProfilerRecorder.StartNew(ProfilerCategory.Render, "Vertices Count");
+        _shadowCasters = ProfilerRecorder.StartNew(ProfilerCategory.Render, "Shadow Casters Count");
+        _renderTextureCount = ProfilerRecorder.StartNew(ProfilerCategory.Memory, "Render Texture Count");
+        _renderTextureMemory = ProfilerRecorder.StartNew(ProfilerCategory.Memory, "Render Texture Memory");
+#endif
+    }
+
+    private void DisposeRenderingRecorders()
+    {
+        _batches.Dispose();
+        _setPassCalls.Dispose();
+        _drawCalls.Dispose();
+        _triangles.Dispose();
+        _vertices.Dispose();
+        _shadowCasters.Dispose();
+        _renderTextureCount.Dispose();
+        _renderTextureMemory.Dispose();
+    }
+
+    private void AppendCounter(string label, ProfilerRecorder recorder)
+    {
+        if (recorder.Valid)
+            _builder.Append(label).Append(": ").Append(recorder.LastValue).Append('\n');
+    }
+
+    private void AppendMemoryCounter(string label, ProfilerRecorder recorder)
+    {
+        if (recorder.Valid)
+            _builder.Append(label).Append(": ").Append((recorder.LastValue / BytesPerGibibyte).ToString("F3")).Append(" GiB\n");
     }
 }

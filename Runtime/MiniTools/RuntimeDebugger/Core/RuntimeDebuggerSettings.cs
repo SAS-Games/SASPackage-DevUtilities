@@ -26,6 +26,19 @@ namespace SAS.Utilities.RuntimeDebugger
         [SerializeField] private bool m_AllowComponentEnableChanges = true;
         [SerializeField] private string[] m_BlockedNamespaces = { "UnityEditor" };
         [SerializeField] private string[] m_BlockedComponentTypes = Array.Empty<string>();
+
+        [Header("Shader Inspection")]
+        [SerializeField] private bool m_AllowShaderInspection = true;
+        [SerializeField] private bool m_AllowShaderValueChanges = true;
+        [SerializeField] private bool m_AllowMaterialPropertyBlockChanges = true;
+        [SerializeField] private bool m_AllowMaterialInstantiation = true;
+        [SerializeField] private bool m_AllowSharedMaterialChanges;
+        [SerializeField] private bool m_AllowGlobalShaderChanges;
+        [SerializeField] private bool m_AllowTextureChanges;
+        [SerializeField] private bool m_ShowHiddenShaderProperties;
+        [SerializeField, Min(1)] private int m_MaxDebuggerMaterialInstances = 256;
+        [SerializeField, Min(1)] private int m_MaxVisibleShaderProperties = 256;
+
         [Header("Editing")] [SerializeField] private float m_NormalNumericStep = 1f;
         [SerializeField] private float m_LargeNumericStep = 10f;
         [SerializeField] private float m_SmallNumericStep = 0.1f;
@@ -62,6 +75,16 @@ namespace SAS.Utilities.RuntimeDebugger
         public bool AllowComponentEnableChanges => m_AllowComponentEnableChanges;
         public string[] BlockedNamespaces => m_BlockedNamespaces ?? Array.Empty<string>();
         public string[] BlockedComponentTypes => m_BlockedComponentTypes ?? Array.Empty<string>();
+        public bool AllowShaderInspection => m_AllowShaderInspection;
+        public bool AllowShaderValueChanges => m_AllowShaderValueChanges;
+        public bool AllowMaterialPropertyBlockChanges => m_AllowMaterialPropertyBlockChanges;
+        public bool AllowMaterialInstantiation => m_AllowMaterialInstantiation;
+        public bool AllowSharedMaterialChanges => m_AllowSharedMaterialChanges;
+        public bool AllowGlobalShaderChanges => m_AllowGlobalShaderChanges;
+        public bool AllowTextureChanges => m_AllowTextureChanges;
+        public bool ShowHiddenShaderProperties => m_ShowHiddenShaderProperties;
+        public int MaxDebuggerMaterialInstances => Mathf.Max(1, m_MaxDebuggerMaterialInstances);
+        public int MaxVisibleShaderProperties => Mathf.Max(1, m_MaxVisibleShaderProperties);
         public float NormalNumericStep => m_NormalNumericStep;
         public float LargeNumericStep => m_LargeNumericStep;
         public float SmallNumericStep => m_SmallNumericStep;

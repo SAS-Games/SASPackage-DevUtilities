@@ -26,6 +26,42 @@ MonoBehaviour:
     - FPS On
     - FPS Off
     MethodName: ShowFPS
+  - Name: Unit
+    HelpText: 'Usage: Stats.Unit <On|Off> [anchor] [horizontal-padding] [vertical-padding]
+      \nUnity equivalent of Unreal stat unit. Shows FPS, frame time, main/render thread,
+      present wait, GPU time, VSync, target FPS, and memory.\n Example: Stats.Unit
+      On topright 20 50'
+    Presets:
+    - Unit On
+    - Unit Off
+    MethodName: ShowFPS
+  - Name: Rendering
+    HelpText: 'Usage: Stats.Rendering <On|Off> [anchor] [horizontal-padding] [vertical-padding]
+      \nShows live Batches, SetPass Calls, Draw Calls, Triangles, Vertices, Shadow
+      Casters, render-texture count/memory, CPU/GPU frame timing, FPS, and memory.'
+    Presets:
+    - Rendering On
+    - Rendering Off
+    MethodName: ShowFPS
+  - Name: Memory
+    HelpText: 'Usage: Stats.Memory\n Unity equivalent of Unreal stat memory. Logs
+      managed, Mono, native allocation, system RAM, graphics memory, and GC counters.'
+    Presets:
+    - Memory
+    MethodName: Memory
+  - Name: SceneRendering
+    HelpText: 'Usage: Stats.SceneRendering\n Unity equivalent of Unreal stat scenerendering.
+      Logs a CPU-side census of renderers, materials, mesh geometry, lights, cameras,
+      LOD groups, and particle systems.'
+    Presets:
+    - SceneRendering
+    MethodName: SceneRendering
+  - Name: Levels
+    HelpText: 'Usage: Stats.Levels\n Unity equivalent of Unreal stat levels. Logs
+      every loaded scene, build index, root count, and active-scene state.'
+    Presets:
+    - Levels
+    MethodName: Levels
   - Name: SetTargetFrameRate
     HelpText: 'Usage: Stats.SetTargetFrameRate <-1|fps> \nSets the target frame
       rate. FPS must be positive. -1 resets the target-frame-rate override.

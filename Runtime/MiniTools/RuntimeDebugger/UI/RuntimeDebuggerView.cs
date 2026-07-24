@@ -22,6 +22,7 @@ namespace SAS.Utilities.RuntimeDebugger
         private readonly RuntimeDebuggerSettings _settings;
         private readonly RuntimeDebuggerTheme _theme;
         private readonly RuntimeDebuggerFontAtlas _fontAtlas = new();
+        private readonly RuntimeMaterialShaderInspectorView _materialShaderView;
         private Rect _window = new(80, 60, 1100, 700);
         private Rect _searchFieldRect;
         private Vector2 _pendingWindowSize;
@@ -33,6 +34,7 @@ namespace SAS.Utilities.RuntimeDebugger
             _controller = controller;
             _settings = settings;
             _theme = new RuntimeDebuggerTheme(settings);
+            _materialShaderView = new RuntimeMaterialShaderInspectorView(controller, settings, _theme);
         }
 
         internal void Draw(int windowId)
@@ -71,8 +73,7 @@ namespace SAS.Utilities.RuntimeDebugger
         private void DrawWindow(int id)
         {
             HandleGuiFocusKey();
-            if (Event.current.type == EventType.MouseDown && Event.current.button == 0 &&
-                _searchFieldRect.Contains(Event.current.mousePosition))
+            if (Event.current.type == EventType.MouseDown && Event.current.button == 0 && _searchFieldRect.Contains(Event.current.mousePosition))
                 _controller.SetFocusedPanel(RuntimeDebuggerPanel.Search);
 
             if (_controller.ClearGuiFocus)
@@ -115,9 +116,7 @@ namespace SAS.Utilities.RuntimeDebugger
             string next = GUILayout.TextField(_controller.Search, _theme.SearchField, GUILayout.Height(28f));
             if (Event.current.type == EventType.Repaint)
                 _searchFieldRect = GUILayoutUtility.GetLastRect();
-            else if (!_controller.IsSearchFocused && Event.current.rawType == EventType.MouseDown &&
-                     Event.current.button == 0 && GUIUtility.keyboardControl != previousKeyboardControl &&
-                     GUI.GetNameOfFocusedControl() == SearchControlName)
+            else if (!_controller.IsSearchFocused && Event.current.rawType == EventType.MouseDown && Event.current.button == 0 && GUIUtility.keyboardControl != previousKeyboardControl && GUI.GetNameOfFocusedControl() == SearchControlName)
                 _controller.SetFocusedPanel(RuntimeDebuggerPanel.Search);
 
             if (next != _controller.Search)
@@ -144,7 +143,7 @@ namespace SAS.Utilities.RuntimeDebugger
             if (!string.IsNullOrEmpty(_controller.Error))
                 GUILayout.Label($"STATUS  {_controller.Error}", _theme.Message);
             else if (_controller.IsEditing)
-                GUILayout.Label("EDITING  Enter/A or SAVE applies  /  Esc/B or the close button cancels  /  Panel switching cancels the edit", _theme.Footer);
+                GUILayout.Label("EDITING  Left/Right move the text cursor  /  Enter/A or SAVE applies  /  Esc/B cancels", _theme.Footer);
             else if (_controller.IsSearchFocused)
                 GUILayout.Label("SEARCH  Type to filter  /  X clears  /  Tab/RB next panel  /  Shift+Tab/LB previous", _theme.Footer);
             else if (_controller.IsInspectorFocused)
@@ -241,14 +240,10 @@ namespace SAS.Utilities.RuntimeDebugger
             {
                 RuntimeHierarchyEntry entry = _controller.VisibleEntries[i];
                 int depth = Depth(entry);
-                string arrow = _controller.HasHierarchyChildren(entry)
-                    ? (_controller.ExpandedHierarchy.Contains(entry.Id.Value) ? "\u25BC " : "\u25B6 ")
-                    : "  ";
+                string arrow = _controller.HasHierarchyChildren(entry) ? (_controller.ExpandedHierarchy.Contains(entry.Id.Value) ? "\u25BC " : "\u25B6 ") : "  ";
                 string inactive = entry.Kind == RuntimeHierarchyKind.GameObject && !entry.ActiveSelf ? " (inactive)" : string.Empty;
-                GUIStyle rowStyle = _controller.IsHierarchyFocused && i == _controller.HierarchyCursor
-                    ? _theme.SelectedRow : entry.Kind == RuntimeHierarchyKind.Scene ? _theme.SceneRow : !entry.ActiveSelf ? _theme.InactiveRow : _theme.Row;
-                if (GUILayout.Button(new string(' ', depth * 3) + arrow + entry.Name + inactive, rowStyle,
-                        GUILayout.Height(20f)))
+                GUIStyle rowStyle = _controller.IsHierarchyFocused && i == _controller.HierarchyCursor ? _theme.SelectedRow : entry.Kind == RuntimeHierarchyKind.Scene ? _theme.SceneRow : !entry.ActiveSelf ? _theme.InactiveRow : _theme.Row;
+                if (GUILayout.Button(new string(' ', depth * 3) + arrow + entry.Name + inactive, rowStyle, GUILayout.Height(20f)))
                     _controller.ActivateHierarchyRow(i);
             }
 
@@ -282,9 +277,7 @@ namespace SAS.Utilities.RuntimeDebugger
                 GUILayout.Label("Select an object from the hierarchy to inspect its components and values.", _theme.Muted);
             }
             else
-            {
                 DrawInspectorContents(details);
-            }
 
             GUILayout.EndScrollView();
             GUILayout.EndVertical();
@@ -300,12 +293,7 @@ namespace SAS.Utilities.RuntimeDebugger
             GUILayout.Label($"Active: {details.Active}   Tag: {details.Tag}   Layer: {details.Layer}", _theme.Muted);
             GUILayout.EndVertical();
             GUILayout.FlexibleSpace();
-            GUIStyle activeButtonStyle = _controller.IsInspectorFocused &&
-                                         _controller.InspectorCursor == activeRowIndex
-                ? _theme.SelectedRow
-                : details.Active
-                    ? _theme.WarningButton
-                    : _theme.PrimaryButton;
+            GUIStyle activeButtonStyle = _controller.IsInspectorFocused && _controller.InspectorCursor == activeRowIndex ? _theme.SelectedRow : details.Active ? _theme.WarningButton : _theme.PrimaryButton;
             bool activeClicked = GUILayout.Button(details.Active ? "DEACTIVATE" : "ACTIVATE", activeButtonStyle, GUILayout.Width(106f), GUILayout.Height(28f));
             GUILayout.EndHorizontal();
             RevealInspectorCursorIfNeeded(activeRowIndex);
@@ -323,6 +311,8 @@ namespace SAS.Utilities.RuntimeDebugger
 
                 DrawComponent(component, ref fieldIndex);
             }
+
+            _materialShaderView.Draw(details.MaterialsAndShaders, ref fieldIndex);
         }
 
         private void DrawComponent(RuntimeComponentDescriptor component, ref int fieldIndex)
@@ -330,10 +320,7 @@ namespace SAS.Utilities.RuntimeDebugger
             GUILayout.BeginVertical(_theme.Component);
             int componentRowIndex = fieldIndex++;
             bool hasMembers = RuntimeDebuggerController.HasInspectorMembers(component);
-            GUIStyle componentRowStyle = _controller.IsInspectorFocused &&
-                                         _controller.InspectorCursor == componentRowIndex
-                ? _theme.SelectedRow
-                : _theme.Row;
+            GUIStyle componentRowStyle = _controller.IsInspectorFocused && _controller.InspectorCursor == componentRowIndex ? _theme.SelectedRow : _theme.Row;
             GUILayout.BeginHorizontal(componentRowStyle);
             bool foldoutClicked = false;
             if (hasMembers)
@@ -344,8 +331,7 @@ namespace SAS.Utilities.RuntimeDebugger
             bool toggleClicked = false;
             if (component.HasEnabledState)
             {
-                GUIStyle stateStyle = _controller.IsInspectorFocused && componentRowIndex == _controller.InspectorCursor
-                    ? _theme.SelectedRow : component.Enabled ? _theme.SuccessButton : _theme.Button;
+                GUIStyle stateStyle = _controller.IsInspectorFocused && componentRowIndex == _controller.InspectorCursor ? _theme.SelectedRow : component.Enabled ? _theme.SuccessButton : _theme.Button;
                 toggleClicked = GUILayout.Button(component.Enabled ? "ENABLED" : "DISABLED", stateStyle, GUILayout.Width(82f), GUILayout.Height(22f));
             }
 
@@ -376,17 +362,14 @@ namespace SAS.Utilities.RuntimeDebugger
 
         private void DrawMember(RuntimeComponentDescriptor component, RuntimeMemberDescriptor member, int fieldIndex)
         {
-            GUILayout.BeginHorizontal(_controller.IsInspectorFocused && fieldIndex == _controller.InspectorCursor
-                ? _theme.SelectedRow
-                : _theme.Row);
+            GUILayout.BeginHorizontal(_controller.IsInspectorFocused && fieldIndex == _controller.InspectorCursor ? _theme.SelectedRow : _theme.Row);
             GUILayout.Space(28f);
             GUILayout.Label(member.DisplayName, _theme.Muted, GUILayout.Width(180f));
             bool isEditing = _controller.IsEditingMember(component, member);
             if (isEditing)
             {
                 GUI.SetNextControlName(EditValueControlName);
-                _controller.EditValue = GUILayout.TextField(_controller.EditValue, _theme.ValueField,
-                    GUILayout.Height(22f));
+                _controller.EditValue = GUILayout.TextField(_controller.EditValue, _theme.ValueField, GUILayout.Height(22f));
                 if (_controller.FocusEditField)
                 {
                     GUI.FocusControl(EditValueControlName);
@@ -395,9 +378,7 @@ namespace SAS.Utilities.RuntimeDebugger
                 }
             }
             else
-            {
                 GUILayout.Label(member.Error ?? member.Value, member.Error == null ? _theme.Body : _theme.Message);
-            }
 
             if (!member.ReadOnly && isEditing)
             {
@@ -407,9 +388,7 @@ namespace SAS.Utilities.RuntimeDebugger
                     _controller.CancelEdit();
             }
             else if (!member.ReadOnly && GUILayout.Button("EDIT", _theme.PrimaryButton, GUILayout.Width(48f), GUILayout.Height(22f)))
-            {
                 _controller.BeginEditFromView(component, member, fieldIndex);
-            }
 
             GUILayout.EndHorizontal();
             RevealInspectorCursorIfNeeded(fieldIndex);

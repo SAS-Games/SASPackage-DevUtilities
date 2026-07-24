@@ -43,10 +43,12 @@ namespace SAS.Utilities.RuntimeDebugger
         {
             _service.RefreshHierarchy();
             _snapshot = _service.GetHierarchySnapshot();
-            foreach (RuntimeHierarchyEntry scene in _snapshot.Entries.Where(item =>
-                         item.Kind == RuntimeHierarchyKind.Scene))
+            foreach (RuntimeHierarchyEntry scene in _snapshot.Entries.Where(item => item.Kind == RuntimeHierarchyKind.Scene))
+            {
                 if (_knownScenes.Add(scene.Id.Value))
                     _expanded.Add(scene.Id.Value);
+            }
+
             RebuildVisible();
         }
 
@@ -127,13 +129,10 @@ namespace SAS.Utilities.RuntimeDebugger
             RuntimeHierarchyEntry entry = _visible[_cursor];
             if (entry.Kind != RuntimeHierarchyKind.GameObject)
                 return RuntimeCommandResult.Fail("Scene activation cannot be changed.");
-            return _service.Execute(new SetGameObjectActiveCommand
-                { ObjectId = entry.Id, Active = !entry.ActiveSelf });
+            return _service.Execute(new SetGameObjectActiveCommand { ObjectId = entry.Id, Active = !entry.ActiveSelf });
         }
 
-        internal bool HasChildren(RuntimeHierarchyEntry entry) =>
-            entry.Kind == RuntimeHierarchyKind.Scene ||
-            _snapshot != null && _snapshot.Entries.Any(item => item.ParentId.Equals(entry.Id));
+        internal bool HasChildren(RuntimeHierarchyEntry entry) => entry.Kind == RuntimeHierarchyKind.Scene || _snapshot != null && _snapshot.Entries.Any(item => item.ParentId.Equals(entry.Id));
 
         private void NavigateRight(RuntimeHierarchyEntry entry)
         {
@@ -183,8 +182,7 @@ namespace SAS.Utilities.RuntimeDebugger
             using (RebuildMarker.Auto())
             {
                 int previousCursor = _cursor;
-                RuntimeObjectId previousCursorId =
-                    _cursor >= 0 && _cursor < _visible.Count ? _visible[_cursor].Id : default;
+                RuntimeObjectId previousCursorId = _cursor >= 0 && _cursor < _visible.Count ? _visible[_cursor].Id : default;
                 _visible.Clear();
                 if (_snapshot == null)
                     return;
@@ -195,21 +193,15 @@ namespace SAS.Utilities.RuntimeDebugger
                 {
                     if (matches != null && !matches.Contains(item.Id.Value))
                         continue;
-                    if (matches == null && item.Kind == RuntimeHierarchyKind.GameObject &&
-                        byId.TryGetValue(item.ParentId.Value, out RuntimeHierarchyEntry parent) &&
-                        !_expanded.Contains(parent.Id.Value))
+                    if (matches == null && item.Kind == RuntimeHierarchyKind.GameObject && byId.TryGetValue(item.ParentId.Value, out RuntimeHierarchyEntry parent) && !_expanded.Contains(parent.Id.Value))
                         continue;
                     if (matches == null && HasCollapsedAncestor(item, byId))
                         continue;
                     _visible.Add(item);
                 }
 
-                int restoredCursor = previousCursorId.IsValid
-                    ? _visible.FindIndex(item => item.Id.Equals(previousCursorId))
-                    : -1;
-                _cursor = restoredCursor >= 0
-                    ? restoredCursor
-                    : Mathf.Clamp(previousCursor, 0, Mathf.Max(0, _visible.Count - 1));
+                int restoredCursor = previousCursorId.IsValid ? _visible.FindIndex(item => item.Id.Equals(previousCursorId)) : -1;
+                _cursor = restoredCursor >= 0 ? restoredCursor : Mathf.Clamp(previousCursor, 0, Mathf.Max(0, _visible.Count - 1));
                 if (_cursor != previousCursor)
                     RevealCursor = true;
             }
@@ -222,19 +214,21 @@ namespace SAS.Utilities.RuntimeDebugger
 
             var matches = new HashSet<long>();
             foreach (RuntimeHierarchyEntry item in _snapshot.Entries)
+            {
                 if ((item.Name?.IndexOf(_search, StringComparison.OrdinalIgnoreCase) ?? -1) >= 0 ||
-                    (item.ComponentTypeNames?.Any(type =>
-                        type.IndexOf(_search, StringComparison.OrdinalIgnoreCase) >= 0) ?? false))
+                    (item.ComponentTypeNames?.Any(
+                        type => type.IndexOf(_search, StringComparison.OrdinalIgnoreCase) >= 0) ?? false))
                     for (RuntimeHierarchyEntry current = item;
                          current != null && matches.Add(current.Id.Value) &&
                          byId.TryGetValue(current.ParentId.Value, out current);)
                     {
                     }
+            }
+
             return matches;
         }
 
-        private bool HasCollapsedAncestor(RuntimeHierarchyEntry item,
-            Dictionary<long, RuntimeHierarchyEntry> byId)
+        private bool HasCollapsedAncestor(RuntimeHierarchyEntry item, Dictionary<long, RuntimeHierarchyEntry> byId)
         {
             while (byId.TryGetValue(item.ParentId.Value, out RuntimeHierarchyEntry parent))
             {

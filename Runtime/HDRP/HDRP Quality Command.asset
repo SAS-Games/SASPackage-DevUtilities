@@ -11,15 +11,21 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e329f9243e9df4c409d8fd44485114bb, type: 3}
   m_Name: HDRP Quality Command
-  m_EditorClassIdentifier: DevUtilities::HP.Utilities.DeveloperConsole.HDRPUpscaleCommand
+  m_EditorClassIdentifier:
   m_CommandName: Quality
   m_Presets: []
   <CloseOnCompletion>k__BackingField: 1
   m_SubCommands:
+  - Name: Status
+    HelpText: Quality.Status - Logs active HDRP dynamic-resolution quality state.
+    Presets: [Status]
+    MethodName: Status
+  - Name: Restore
+    HelpText: Quality.Restore - Restores HDRP and camera settings captured before the first change.
+    Presets: [Restore]
+    MethodName: Restore
   - Name: SetUpscalingFilter
-    HelpText: 'Quality.SetUpscalingFilter < CatmullRom | ContrastAdaptiveSharpen
-      | EdgeAdaptiveScalingUpres | TAAU> \nChanges the upscaling filter used when
-      render scale is below 1.\nExample: Quality.SetUpscalingFilter TAAU'
+    HelpText: 'Quality.SetUpscalingFilter <CatmullRom|ContrastAdaptiveSharpen|EdgeAdaptiveScalingUpres|TAAU> [all|camera-name]'
     Presets:
     - 'SetUpscalingFilter CatmullRom '
     - 'SetUpscalingFilter ContrastAdaptiveSharpen '
@@ -38,4 +44,4 @@ MonoBehaviour:
     - SetScreenPercentage 75
     - SetScreenPercentage 100
     MethodName: SetScreenPercentage
-  m_HelpText: Commands for modifying HDRP quality settings at runtime.
+  m_HelpText: Commands for inspecting, modifying, and restoring HDRP quality settings at runtime.

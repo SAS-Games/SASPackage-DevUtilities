@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30e65ec7e233419ba092b7b8e975771d, type: 3}
+  m_Name: Camera Command
+  m_EditorClassIdentifier:
+  m_CommandName: Camera
+  m_Presets: []
+  <CloseOnCompletion>k__BackingField: 1
+  m_SubCommands:
+  - Name: List
+    HelpText: Camera.List - Lists loaded cameras.
+    Presets: [List]
+    MethodName: List
+  - Name: Status
+    HelpText: Camera.Status [all|camera-name] - Logs detailed camera rendering state.
+    Presets: [Status]
+    MethodName: Status
+  - Name: Stack
+    HelpText: Camera.Stack - Lists URP Base-camera stacks.
+    Presets: [Stack]
+    MethodName: Stack
+  - Name: SetOcclusionCulling
+    HelpText: Camera.SetOcclusionCulling <On|Off> [all|camera-name]
+    Presets: [SetOcclusionCulling On all, SetOcclusionCulling Off all]
+    MethodName: SetOcclusionCulling
+  - Name: SetRenderShadows
+    HelpText: Camera.SetRenderShadows <On|Off> [all|camera-name]
+    Presets: [SetRenderShadows On all, SetRenderShadows Off all]
+    MethodName: SetRenderShadows
+  - Name: SetPostProcessing
+    HelpText: Camera.SetPostProcessing <On|Off> [all|camera-name]
+    Presets: [SetPostProcessing On all, SetPostProcessing Off all]
+    MethodName: SetPostProcessing
+  - Name: SetRenderer
+    HelpText: Camera.SetRenderer <-1|index> [all|camera-name] - -1 selects the pipeline default.
+    Presets: [SetRenderer -1 all, SetRenderer 0 all]
+    MethodName: SetRenderer
+  - Name: Restore
+    HelpText: Camera.Restore - Restores all camera settings captured by this command.
+    Presets: [Restore]
+    MethodName: Restore
+  m_HelpText: Lists cameras and temporarily changes per-camera rendering settings.

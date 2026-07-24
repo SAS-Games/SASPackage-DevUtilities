@@ -38,6 +38,8 @@ namespace SAS.Utilities.RuntimeDebugger
         internal List<RuntimeHierarchyEntry> VisibleEntries => _hierarchy.VisibleEntries;
         internal HashSet<long> ExpandedHierarchy => _hierarchy.ExpandedEntries;
         internal HashSet<long> ExpandedComponents => _inspector.ExpandedComponents;
+        internal bool MaterialsExpanded => _inspector.MaterialsExpanded;
+        internal string ShaderPropertySearch => _inspector.ShaderPropertySearch;
         internal RuntimeDebuggerPanel FocusedPanel => _focusedPanel;
         internal bool IsSearchFocused => _focusedPanel == RuntimeDebuggerPanel.Search;
         internal bool IsHierarchyFocused => _focusedPanel == RuntimeDebuggerPanel.Hierarchy;
@@ -230,12 +232,71 @@ namespace SAS.Utilities.RuntimeDebugger
         internal bool IsEditingMember(RuntimeComponentDescriptor component, RuntimeMemberDescriptor member) =>
             _inspector.IsEditingMember(component, member);
 
+        internal bool IsEditingShaderProperty(RuntimeObjectId rendererId, int materialIndex, int propertyId) =>
+            _inspector.IsEditingShaderProperty(rendererId, materialIndex, propertyId);
+
+        internal bool IsMaterialRendererExpanded(RuntimeObjectId rendererId) =>
+            _inspector.IsMaterialRendererExpanded(rendererId);
+
+        internal bool IsMaterialSlotExpanded(RuntimeObjectId rendererId, int materialIndex) =>
+            _inspector.IsMaterialSlotExpanded(rendererId, materialIndex);
+
+        internal RuntimeMaterialEditScope GetMaterialScope(RuntimeObjectId rendererId, int materialIndex) =>
+            _inspector.GetMaterialScope(rendererId, materialIndex);
+
+        internal bool IsMaterialScopeAllowed(RuntimeMaterialEditScope scope) =>
+            _inspector.ScopeAllowed(scope);
+
+        internal bool MatchesShaderProperty(RuntimeShaderPropertyDescriptor property) =>
+            _inspector.MatchesShaderProperty(property);
+
+        internal void SetShaderPropertySearch(string value) => _inspector.SetShaderPropertySearch(value);
+
         internal void BeginEditFromView(RuntimeComponentDescriptor component, RuntimeMemberDescriptor member,
             int rowIndex)
         {
             SetFocusedPanel(RuntimeDebuggerPanel.Inspector);
             _error = string.Empty;
             _inspector.BeginEdit(component, member, rowIndex);
+        }
+
+        internal void ToggleMaterialsFoldout(int rowIndex)
+        {
+            if (_inspector.IsEditing)
+                CancelEdit();
+            SetFocusedPanel(RuntimeDebuggerPanel.Inspector);
+            _inspector.ToggleMaterialsFoldout(rowIndex);
+        }
+
+        internal void ToggleMaterialRendererFoldout(RuntimeObjectId rendererId, int rowIndex)
+        {
+            if (_inspector.IsEditing)
+                CancelEdit();
+            SetFocusedPanel(RuntimeDebuggerPanel.Inspector);
+            _inspector.ToggleMaterialRendererFoldout(rendererId, rowIndex);
+        }
+
+        internal void ToggleMaterialSlotFoldout(RuntimeObjectId rendererId, int materialIndex, int rowIndex)
+        {
+            if (_inspector.IsEditing)
+                CancelEdit();
+            SetFocusedPanel(RuntimeDebuggerPanel.Inspector);
+            _inspector.ToggleMaterialSlotFoldout(rendererId, materialIndex, rowIndex);
+        }
+
+        internal void SetMaterialScope(RuntimeObjectId rendererId, int materialIndex,
+            RuntimeMaterialEditScope scope)
+        {
+            SetFocusedPanel(RuntimeDebuggerPanel.Inspector);
+            _inspector.SetMaterialScope(rendererId, materialIndex, scope);
+        }
+
+        internal void BeginShaderEditFromView(RuntimeObjectId rendererId, int materialIndex,
+            RuntimeShaderPropertyView property, int rowIndex)
+        {
+            SetFocusedPanel(RuntimeDebuggerPanel.Inspector);
+            _error = string.Empty;
+            _inspector.BeginShaderEdit(rendererId, materialIndex, property, rowIndex);
         }
 
         internal void CancelEdit()
@@ -255,6 +316,44 @@ namespace SAS.Utilities.RuntimeDebugger
             }
         }
 
+        internal bool ApplyShaderProperty(RuntimeObjectId rendererId, int materialIndex, int propertyId,
+            RuntimeMaterialEditScope scope, string value)
+        {
+            RuntimeCommandResult result = _service.Execute(new SetRuntimeShaderPropertyCommand
+            {
+                RendererId = rendererId,
+                MaterialIndex = materialIndex,
+                PropertyId = propertyId,
+                Scope = scope,
+                Value = value
+            });
+            ApplyCommand(result, result.Success);
+            return result.Success;
+        }
+
+        internal void RestoreShaderProperty(RuntimeObjectId rendererId, int materialIndex, int propertyId,
+            RuntimeMaterialEditScope scope)
+        {
+            ApplyCommand(_service.Execute(new RestoreRuntimeShaderPropertyCommand
+            {
+                RendererId = rendererId,
+                MaterialIndex = materialIndex,
+                PropertyId = propertyId,
+                Scope = scope
+            }), true);
+        }
+
+        internal void RestoreShaderMaterial(RuntimeObjectId rendererId, int materialIndex,
+            RuntimeMaterialEditScope scope)
+        {
+            ApplyCommand(_service.Execute(new RestoreRuntimeMaterialCommand
+            {
+                RendererId = rendererId,
+                MaterialIndex = materialIndex,
+                Scope = scope
+            }), true);
+        }
+
         internal void SetInputEnabled(bool value) => _input.SetEnabled(value);
 
         public void Dispose()
@@ -271,10 +370,6 @@ namespace SAS.Utilities.RuntimeDebugger
                 CancelEdit();
             else if (_input.Confirm)
                 CommitEdit();
-            else if (_input.Left)
-                _inspector.AdjustEdit(-1f, _input);
-            else if (_input.Right)
-                _inspector.AdjustEdit(1f, _input);
         }
 
         private void HandleHierarchyInput()

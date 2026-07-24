@@ -11,23 +11,53 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9c7fc693a0953ad4ba429a6296949950, type: 3}
   m_Name: URP Shadow Console Command
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier:
   m_CommandName: Shadow
   m_Presets: []
   <CloseOnCompletion>k__BackingField: 1
   m_SubCommands:
+  - Name: Status
+    HelpText: Shadow.Status - Logs active URP shadow settings.
+    Presets: [Status]
+    MethodName: Status
+  - Name: Restore
+    HelpText: Shadow.Restore - Restores captured shadow settings.
+    Presets: [Restore]
+    MethodName: Restore
+  - Name: SetEnabled
+    HelpText: Shadow.SetEnabled <On|Off> - Toggles main and additional-light shadows.
+    Presets: [SetEnabled On, SetEnabled Off]
+    MethodName: SetEnabled
+  - Name: SetMainLight
+    HelpText: Shadow.SetMainLight <On|Off>
+    Presets: [SetMainLight On, SetMainLight Off]
+    MethodName: SetMainLight
+  - Name: SetAdditionalLights
+    HelpText: Shadow.SetAdditionalLights <On|Off>
+    Presets: [SetAdditionalLights On, SetAdditionalLights Off]
+    MethodName: SetAdditionalLights
+  - Name: SetSoftShadows
+    HelpText: Shadow.SetSoftShadows <On|Off>
+    Presets: [SetSoftShadows On, SetSoftShadows Off]
+    MethodName: SetSoftShadows
   - Name: SetShadowDistance
-    HelpText: 'Shadow.SetShadowDistance <distance> \nSets the maximum distance Unity
-      renders real-time shadows.\nExample: Shadow.SetShadowDistance 50'
-    Presets:
-    - SetShadowDistance 50
+    HelpText: Shadow.SetShadowDistance <non-negative-distance>
+    Presets: [SetShadowDistance 25, SetShadowDistance 50, SetShadowDistance 100]
     MethodName: SetShadowDistance
   - Name: SetShadowCascadeCount
-    HelpText: 'Shadow.SetShadowCascadeCount <1|2|4> \nSets the number of shadow cascades
-      used in URP.\nExample: Shadow.SetShadowCascadeCount 2'
-    Presets:
-    - SetShadowCascadeCount 1
-    - SetShadowCascadeCount 2
-    - SetShadowCascadeCount 4
+    HelpText: Shadow.SetShadowCascadeCount <1-4>
+    Presets: [SetShadowCascadeCount 1, SetShadowCascadeCount 2, SetShadowCascadeCount 4]
     MethodName: SetShadowCascadeCount
-  m_HelpText: Commands for modifying URP shadow settings at runtime.
+  - Name: SetMainAtlas
+    HelpText: Shadow.SetMainAtlas <256|512|1024|2048|4096|8192>
+    Presets: [SetMainAtlas 1024, SetMainAtlas 2048, SetMainAtlas 4096]
+    MethodName: SetMainAtlas
+  - Name: SetAdditionalAtlas
+    HelpText: Shadow.SetAdditionalAtlas <256|512|1024|2048|4096|8192>
+    Presets: [SetAdditionalAtlas 1024, SetAdditionalAtlas 2048, SetAdditionalAtlas 4096]
+    MethodName: SetAdditionalAtlas
+  - Name: SetBias
+    HelpText: Shadow.SetBias <depth-bias-0..10> <normal-bias-0..10>
+    Presets: [SetBias 1 1]
+    MethodName: SetBias
+  m_HelpText: Inspect, modify, and restore active URP shadow settings.

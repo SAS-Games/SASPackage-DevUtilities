@@ -16,14 +16,53 @@ MonoBehaviour:
   m_Presets: []
   <CloseOnCompletion>k__BackingField: 1
   m_SubCommands:
+  - Name: Status
+    HelpText: 'Usage: Light.Status [type]\n Reports enabled, disabled, inactive,
+      on-screen, and off-screen light counts.\n Types: all, directional, point,
+      spot, area.'
+    Presets:
+    - Status
+    - Status point
+    - Status spot
+    MethodName: Status
+  - Name: SetAll
+    HelpText: 'Usage: Light.SetAll <On|Off> [type]\n Enables or disables matching
+      Light components. Use Light.Restore to restore their original states.\n Types:
+      all, directional, point, spot, area.'
+    Presets:
+    - SetAll Off
+    - SetAll On
+    MethodName: SetAll
+  - Name: Cull
+    HelpText: 'Usage: Light.Cull <onscreen|offscreen> <On|Off> [type]\n Changes
+      matching Light components based on their current Main Camera visibility. Use
+      Light.Restore to undo.\n Example: Light.Cull offscreen Off point'
+    Presets:
+    - Cull offscreen Off
+    - Cull offscreen Off point
+    - Cull onscreen Off
+    MethodName: CullLightsByVisibility
+  - Name: Restore
+    HelpText: 'Usage: Light.Restore\n Restores enabled states changed by Light.SetAll
+      and Light.Cull.'
+    Presets:
+    - Restore
+    MethodName: Restore
   - Name: Offset
-    HelpText: 'Usage: Light.Offset <x> <y> <z>\n Example: Light.Offset 0 5 0'
+    HelpText: 'Usage: Light.Offset <x> <y> <z> [type]\n Moves matching lights while
+      remembering their original positions.\n Example: Light.Offset 0 5 0 point'
     Presets:
     - Offset 0 0 10000
     - Offset 0 0 -10000
     MethodName: OffsetLights
   - Name: ResetOffset
-    HelpText: 'Usage: Light.ResetOffset \n Example: Light.ResetOffset'
+    HelpText: 'Usage: Light.ResetOffset\n Restores positions changed by Light.Offset.'
     Presets:
     - ResetOffset
     MethodName: ResetOffset
+  - Name: Reset
+    HelpText: 'Usage: Light.Reset\n Restores both enabled states and positions changed
+      by Light commands.'
+    Presets:
+    - Reset
+    MethodName: Reset
