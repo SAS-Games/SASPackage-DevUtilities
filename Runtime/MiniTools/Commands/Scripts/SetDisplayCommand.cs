@@ -7,7 +7,7 @@ namespace SAS.Utilities.DeveloperConsole
     public class SetDisplayCommand : ConsoleCommand
     {
         public override string HelpText =>
-            "Usage: SetCanvasDisplay <canvasName> <displayIndex>.\nExample: SetCanvasDisplay DebugCanvas 1.\n" +
+            "Usage: SetDisplay <canvasName> <displayIndex>.\nExample: SetDisplay DebugCanvas 1.\n" +
             "Moves the specified UI Canvas to the given display.";
 
         public override bool Process(DeveloperConsoleBehaviour developerConsole, string command, string[] args)
@@ -18,18 +18,21 @@ namespace SAS.Utilities.DeveloperConsole
                 return false;
             }
 
-            string canvasName = string.Join(" ", args, 0, args.Length - 1);
-            if (!int.TryParse(args[^1], out int displayIndex))
+            string canvasName = args[0];
+            if (!int.TryParse(args[1], out int displayIndex))
             {
                 Debug.LogError("Invalid display index. Provide a number.");
                 return false;
             }
 
-            if (displayIndex < 0 || displayIndex >= Display.displays.Length)
+            if (displayIndex >= Display.displays.Length)
             {
                 Debug.LogError($"Display {displayIndex} not available. Total displays: {Display.displays.Length}");
                 return false;
             }
+
+            // Activate the display if not main
+            Display.displays[displayIndex].Activate();
 
             Canvas targetCanvas = FindCanvasByName(canvasName);
             if (targetCanvas == null)
@@ -38,9 +41,6 @@ namespace SAS.Utilities.DeveloperConsole
                 return false;
             }
 
-            // Activate only after all input and target validation has succeeded.
-            Display.displays[displayIndex].Activate();
-
             // Set canvas to render on the target display
             targetCanvas.targetDisplay = displayIndex;
             Debug.Log($"Canvas '{canvasName}' is now displayed on Display {displayIndex}.");
@@ -48,7 +48,7 @@ namespace SAS.Utilities.DeveloperConsole
             return true;
         }
 
-        private static Canvas FindCanvasByName(string canvasName)
+        private Canvas FindCanvasByName(string canvasName)
         {
             for (int i = 0; i < SceneManager.sceneCount; i++)
             {
