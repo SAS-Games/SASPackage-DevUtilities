@@ -17,8 +17,10 @@ namespace SAS.BuildValidation
 
             if (!isDevelopmentBuild)
                 result.AddIssue(
-                    "DevUtility is enabled for a non-development build. " +
-                    "Disable debug defines before creating a release build.", ValidationSeverity.Error);
+                    "ENABLE_DEBUG is enabled for a non-Development build. The complete Dev Utilities " +
+                    "runtime and its direct TCP debugging transport will be included. Remove the " +
+                    "define before distributing a public production build.",
+                    ValidationSeverity.Warning);
 #endif
 
             return result;
