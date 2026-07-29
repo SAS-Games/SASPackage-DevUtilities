@@ -85,10 +85,53 @@ namespace SAS.Utilities.RemoteDevUtilities.Transport.Tcp
             catch (Exception exception)
             {
                 _running = false;
-                _listener = null;
+                StopListener();
+                LogStartFailure(exception);
+            }
+        }
+
+        private void LogStartFailure(Exception exception)
+        {
+            string listenScope = IPAddress.Any.Equals(_listenAddress)
+                ? "All network interfaces"
+                : IPAddress.Loopback.Equals(_listenAddress)
+                    ? "Loopback only"
+                    : "Specific interface";
+            string commonDetails =
+                $"Endpoint={_listenAddress}:{_port}, " +
+                $"Scope={listenScope}, " +
+                $"Platform={Application.platform}, " +
+                $"Unity={Application.unityVersion}";
+
+            if (exception is SocketException socketException)
+            {
                 Debug.LogError(
-                    $"[RemoteDevUtilities] Could not start the ENABLE_DEBUG TCP transport on " +
-                    $"{_listenAddress}:{_port}: {exception.Message}");
+                    $"[RemoteDevUtilities] Could not start the ENABLE_DEBUG TCP transport. " +
+                    $"{commonDetails}, " +
+                    $"SocketError={socketException.SocketErrorCode}, " +
+                    $"NativeErrorCode={socketException.NativeErrorCode}, " +
+                    $"ErrorCode={socketException.ErrorCode}. " +
+                    $"Message: {socketException.Message}");
+                return;
+            }
+
+            Debug.LogError(
+                $"[RemoteDevUtilities] Could not start the ENABLE_DEBUG TCP transport. " +
+                $"{commonDetails}, " +
+                $"Exception={exception.GetType().FullName}. " +
+                $"Message: {exception.Message}");
+        }
+
+        private void StopListener()
+        {
+            TcpListener listener = _listener;
+            _listener = null;
+            try
+            {
+                listener?.Stop();
+            }
+            catch (SocketException)
+            {
             }
         }
 
@@ -144,16 +187,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Transport.Tcp
         public void Dispose()
         {
             _running = false;
-
-            TcpListener listener = _listener;
-            _listener = null;
-            try
-            {
-                listener?.Stop();
-            }
-            catch (SocketException)
-            {
-            }
+            StopListener();
 
             TcpClient client;
             lock (_clientLock)
