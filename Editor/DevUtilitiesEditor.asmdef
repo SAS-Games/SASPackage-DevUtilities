@@ -2,7 +2,9 @@
     "name": "DevUtilitiesEditor",
     "rootNamespace": "",
     "references": [
-        "GUID:cfbcb856ed571e04480857f2fe81e499"
+        "GUID:cfbcb856ed571e04480857f2fe81e499",
+        "GUID:d61f416ef9cd48a2970aa918896bd945",
+        "Unity.TextMeshPro"
     ],
     "includePlatforms": [
         "Editor"

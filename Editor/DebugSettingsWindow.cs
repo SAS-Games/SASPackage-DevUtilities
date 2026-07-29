@@ -5,7 +5,7 @@ namespace SAS.Utilities.DeveloperConsole.Editor
 {
     public class DebugSettingsWindow : EditorWindow
     {
-        [MenuItem("Tools/DevUtilities/Debug Settings")]
+        [MenuItem("Tools/Dev Utilities/Debug Settings")]
         public static void ShowWindow()
         {
             GetWindow<DebugSettingsWindow>("Debug Settings");

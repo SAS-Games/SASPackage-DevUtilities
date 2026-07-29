@@ -8,7 +8,7 @@ namespace SAS.Utilities.RuntimeDebugger
 {
     internal sealed class RuntimeDebuggerInspectorController
     {
-        private readonly RuntimeDebuggerService _service;
+        private readonly IRuntimeDebugger _service;
         private readonly RuntimeDebuggerSettings _settings;
         private readonly HashSet<long> _expandedComponents = new();
         private readonly HashSet<long> _knownMaterialRenderers = new();
@@ -27,7 +27,7 @@ namespace SAS.Utilities.RuntimeDebugger
         private int _cursor;
         private bool _materialsExpanded = true;
 
-        internal RuntimeDebuggerInspectorController(RuntimeDebuggerService service,
+        internal RuntimeDebuggerInspectorController(IRuntimeDebugger service,
             RuntimeDebuggerSettings settings)
         {
             _service = service;

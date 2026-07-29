@@ -1,5 +1,19 @@
 #if ENABLE_DEBUG
-public sealed class InputLatencyStatistics : IGraphStatisticsSource
+using System;
+using System.Collections.Generic;
+
+public interface IInputLatencyStatisticsSource
+{
+    float Average { get; }
+    float Min { get; }
+    float Max { get; }
+    int SampleCount { get; }
+    int RecentSampleCount { get; }
+
+    ref readonly InputLatencySample GetRecentSample(int index);
+}
+
+public sealed class InputLatencyStatistics : IInputLatencyStatisticsSource
 {
     public float MinLatency { get; private set; }
     public float Min => MinLatency;
@@ -15,6 +29,8 @@ public sealed class InputLatencyStatistics : IGraphStatisticsSource
     public float MaxLatency { get; private set; }
 
     public int SampleCount => _samples.Count;
+    public int RecentSampleCount => _samples.Count;
+    internal long TotalSampleCount { get; private set; }
 
     public InputLatencyStatistics(int capacity)
     {
@@ -24,6 +40,7 @@ public sealed class InputLatencyStatistics : IGraphStatisticsSource
     public void AddSample(InputLatencySample sample)
     {
         bool overwritten = _samples.Add(sample, out InputLatencySample removed);
+        TotalSampleCount++;
         if (overwritten)
             _totalLatency -= removed.LatencyMs;
         _totalLatency += sample.LatencyMs;
@@ -44,6 +61,58 @@ public sealed class InputLatencyStatistics : IGraphStatisticsSource
         GetRecentSample(int index)
     {
         return ref _samples.GetRecent(index);
+    }
+
+    internal void CopySamplesSince(ref long cursor, ICollection<InputLatencySample> destination, int maximumCount, out int droppedSampleCount)
+    {
+        droppedSampleCount = 0;
+        long total = TotalSampleCount;
+        if (cursor >= total || total == 0)
+        {
+            cursor = total;
+            return;
+        }
+
+        long earliestAvailable =
+            total - _samples.Count + 1;
+        long firstRequested = cursor + 1;
+        if (firstRequested < earliestAvailable)
+        {
+            AddDropped(
+                ref droppedSampleCount,
+                earliestAvailable - firstRequested);
+            firstRequested = earliestAvailable;
+        }
+
+        int boundedMaximum = Math.Max(1, maximumCount);
+        long available = total - firstRequested + 1;
+        if (available > boundedMaximum)
+        {
+            long skipped = available - boundedMaximum;
+            AddDropped(ref droppedSampleCount, skipped);
+            firstRequested += skipped;
+        }
+
+        for (long sequence = firstRequested;
+             sequence <= total;
+             sequence++)
+        {
+            int recentIndex =
+                checked((int)(total - sequence));
+            destination.Add(
+                GetRecentSample(recentIndex));
+        }
+
+        cursor = total;
+    }
+
+    private static void AddDropped(
+        ref int destination,
+        long count)
+    {
+        destination = (int)Math.Min(
+            int.MaxValue,
+            (long)destination + Math.Max(0L, count));
     }
 
     private void RecalculateRange()

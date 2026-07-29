@@ -1,12 +1,12 @@
 using UnityEditor;
+using UnityEngine;
 using UnityEditor.Build.Reporting;
 using UnityEditor.SceneManagement;
-using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace SAS.BuildValidation
 {
-    [BuildValidation(optional: true)]
+    [BuildValidation(optional: true, order: 2)]
     public sealed class SceneMissingReferencesValidation : IBuildValidation
     {
         public string Name => "Scene Missing References";

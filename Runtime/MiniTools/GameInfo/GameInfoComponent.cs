@@ -1,18 +1,22 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class GameInfoComponent : MonoBehaviour
+namespace SAS.DevUtilities
 {
-    [SerializeField] private Text m_TextInfo;
-
-    private void Start()
+    /// <summary>
+    /// View-only component for the GameInfo prefab.
+    /// </summary>
+    public sealed class GameInfoComponent : MonoBehaviour, IMiniToolSnapshotView<GameInfoSnapshot>
     {
-        DisplayInfo();
-    }
+        [SerializeField] private Text m_TextInfo;
 
-    private void DisplayInfo()
-    {
-        m_TextInfo.text = $"Game Version: <color=cyan>{Application.version}</color>\n" +
-            $"Unity Version: <color=cyan>{Application.unityVersion}</color>";
+        public void ApplySnapshot(in GameInfoSnapshot snapshot)
+        {
+            if (m_TextInfo == null)
+                return;
+
+            m_TextInfo.text = $"Game Version: <color=cyan>{snapshot.GameVersion}</color>\n" +
+                              $"Unity Version: <color=cyan>{snapshot.UnityVersion}</color>";
+        }
     }
 }

@@ -14,6 +14,15 @@ namespace SAS.BuildValidation
             BuildValidationResult result = BuildValidationResult.Create();
 
             var originalSetup = EditorSceneManager.GetSceneManagerSetup();
+            bool hasLoadedScene = false;
+            foreach (SceneSetup setup in originalSetup)
+            {
+                if (setup.isLoaded)
+                {
+                    hasLoadedScene = true;
+                    break;
+                }
+            }
 
             try
             {
@@ -28,7 +37,17 @@ namespace SAS.BuildValidation
             }
             finally
             {
-                EditorSceneManager.RestoreSceneManagerSetup(originalSetup);
+                if (hasLoadedScene)
+                {
+                    EditorSceneManager.RestoreSceneManagerSetup(
+                        originalSetup);
+                }
+                else
+                {
+                    EditorSceneManager.NewScene(
+                        NewSceneSetup.EmptyScene,
+                        NewSceneMode.Single);
+                }
             }
 
             return result;

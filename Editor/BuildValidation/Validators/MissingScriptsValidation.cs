@@ -5,7 +5,7 @@ using UnityEngine.SceneManagement;
 
 namespace SAS.BuildValidation
 {
-    [BuildValidation(optional:false, order: 10)]
+    [BuildValidation(optional:false, order: 1)]
     public class MissingScriptsValidation : SceneBuildValidationBase
     {
         public override string Name => "Missing Scripts Validation";

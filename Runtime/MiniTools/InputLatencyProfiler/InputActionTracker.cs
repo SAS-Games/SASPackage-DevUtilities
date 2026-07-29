@@ -24,14 +24,12 @@ public sealed class InputActionTracker
     public void Enable()
     {
         RegisterExistingActions();
-
         InputSystem.onActionChange += OnActionChange;
     }
 
     public void Disable()
     {
         InputSystem.onActionChange -= OnActionChange;
-
         UnregisterAllActions();
     }
 
@@ -130,37 +128,24 @@ public sealed class InputActionTracker
         double now = Time.realtimeSinceStartupAsDouble;
         float latencyMs = InputLatencyCalculator.Between(context.time, now);
 
-        InputLatencySample sample = new InputLatencySample(
-                InputLatencyEventType.Action,
+        InputLatencySample sample = new InputLatencySample(InputLatencyEventType.Action,
                 context.action != null ? context.action.name : "Unknown",
                 context.control != null ? context.control.path : "Unknown",
-                phase,
-                latencyMs,
-                Time.frameCount,
-                InputState.currentUpdateType);
+                phase, latencyMs, Time.frameCount, InputState.currentUpdateType);
         _statistics.AddSample(sample);
 
         if (context.control != null && _correlation.TryGetDequeuedTime(context.control.device.deviceId, context.time, out double eventDequeuedTime))
         {
             string actionName = context.action != null ? context.action.name : "Unknown";
-            _queueStatistics.AddSample(new InputLatencySample(
-                InputLatencyEventType.Raw,
-                actionName,
-                context.control.path,
-                phase,
+            _queueStatistics.AddSample(new InputLatencySample(InputLatencyEventType.Raw,
+                actionName, context.control.path, phase,
                 InputLatencyCalculator.Between(context.time, eventDequeuedTime),
-                Time.frameCount,
-                InputState.currentUpdateType));
+                Time.frameCount, InputState.currentUpdateType));
 
             float pipelineLatencyMs = InputLatencyCalculator.Between(eventDequeuedTime, now);
-            _pipelineStatistics.AddSample(new InputLatencySample(
-                InputLatencyEventType.Pipeline,
-                actionName,
-                context.control.path,
-                phase,
-                pipelineLatencyMs,
-                Time.frameCount,
-                InputState.currentUpdateType));
+            _pipelineStatistics.AddSample(new InputLatencySample(InputLatencyEventType.Pipeline,
+                actionName, context.control.path, phase, pipelineLatencyMs,
+                Time.frameCount, InputState.currentUpdateType));
         }
     }
 }

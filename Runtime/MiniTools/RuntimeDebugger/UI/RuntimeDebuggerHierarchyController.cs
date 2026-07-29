@@ -22,7 +22,7 @@ namespace SAS.Utilities.RuntimeDebugger
     internal sealed class RuntimeDebuggerHierarchyController
     {
         private static readonly ProfilerMarker RebuildMarker = new("RuntimeDebugger.UI.Rebuild");
-        private readonly RuntimeDebuggerService _service;
+        private readonly IRuntimeDebugger _service;
         private readonly HashSet<long> _expanded = new();
         private readonly HashSet<long> _knownScenes = new();
         private readonly List<RuntimeHierarchyEntry> _visible = new();
@@ -30,7 +30,7 @@ namespace SAS.Utilities.RuntimeDebugger
         private string _search = string.Empty;
         private int _cursor;
 
-        internal RuntimeDebuggerHierarchyController(RuntimeDebuggerService service) => _service = service;
+        internal RuntimeDebuggerHierarchyController(IRuntimeDebugger service) => _service = service;
 
         internal RuntimeHierarchySnapshot Snapshot => _snapshot;
         internal List<RuntimeHierarchyEntry> VisibleEntries => _visible;

@@ -169,7 +169,6 @@ namespace SAS.Utilities.DeveloperConsole
 
         private void OnDestroy()
         {
-            SetCommandGateway(null);
             if (Instance == this)
                 Instance = null;
         }
@@ -512,38 +511,36 @@ namespace SAS.Utilities.DeveloperConsole
             }
         }
 
-        private void RebuildGatewayCommands()
-        {
-            if (_commandGateway == null)
-                return;
-
-            var commands = new List<IConsoleCommand>();
-            DeveloperConsoleCommandDescriptor[] descriptors =
-                _commandGateway.Commands ??
-                Array.Empty<DeveloperConsoleCommandDescriptor>();
-            foreach (DeveloperConsoleCommandDescriptor descriptor in descriptors)
-            {
+        private void RebuildGatewayCommands()                                       
+        {                                                                          
+            if (_commandGateway == null)                                           
+                return;                                                            
+                                                                                   
+            var commands = new List<IConsoleCommand>();                            
+            DeveloperConsoleCommandDescriptor[] descriptors =                      
+                _commandGateway.Commands ??                                        
+                Array.Empty<DeveloperConsoleCommandDescriptor>();                  
+            foreach (DeveloperConsoleCommandDescriptor descriptor in descriptors)  
+            {                                                                      
                 if (descriptor != null && !string.IsNullOrWhiteSpace(descriptor.Name))
-                    commands.Add(new GatewayConsoleCommandProxy(
-                        descriptor,
-                        _commandGateway));
-            }
-
-            _developerConsole = new DeveloperConsole(
-                _commandGateway.Prefix ?? string.Empty,
-                commands);
-            CommandsChanged?.Invoke();
+                    commands.Add(new GatewayConsoleCommandProxy(                   
+                        descriptor,                                                
+                        _commandGateway));                                         
+            }                                                                      
+                                                                                   
+            _developerConsole = new DeveloperConsole(                              
+                _commandGateway.Prefix ?? string.Empty,                            
+                commands);                                                         
+            CommandsChanged?.Invoke();                                             
             InputChangedEvent?.Invoke(m_InputField != null ? m_InputField.text : string.Empty);
-        }
-
-        private void OnGatewayCommandCompleted(
-            DeveloperConsoleCommandResult response)
-        {
-            if (response == null)
-                return;
-            DisplayHelpText(response.Message ?? string.Empty);
-        }
-
+        }                                                                           
+                                                                                    
+        private void OnGatewayCommandCompleted(DeveloperConsoleCommandResult response)                                 
+        {                                                                           
+            if (response == null)                                                   
+                return;                                                             
+            DisplayHelpText(response.Message ?? string.Empty);                      
+        }  
         private void OnPresentationSuppressionChanged()
         {
             if (DevUtilityPresentationRegistry.CanShowLocalUi)
@@ -557,6 +554,5 @@ namespace SAS.Utilities.DeveloperConsole
             _inputActions?.Developer.Disable();
             ApplyConsoleVisibility();
         }
-
     }
 }

@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc68988919cf2f3489c882326ad54603, type: 3}
+  m_Name: Input Visualizer Command
+  m_EditorClassIdentifier: 
+  m_CommandName: InputVisualizer
+  m_Presets: []
+  <CloseOnCompletion>k__BackingField: 1
+  m_SubCommands:
+  - Name: Gamepad
+    HelpText: Pass args 0|1 to toggle; TL, TR, BR, BL to anchor to screen edge
+    Presets:
+    - Gamepad 0
+    - Gamepad 1 TL
+    MethodName: ShowGamepadVisualizer
+  - Name: Mouse
+    HelpText: Pass args 0|1 to toggle; TL, TR, BR, BL to anchor to screen edge
+    Presets:
+    - Mouse 0
+    - Mouse 1 TR
+    MethodName: ShowMouseVisualizer
+  m_gamepadVisualizerPrefab: {fileID: 5430831075476541849, guid: 0cf18305be4b21f45bf7246532236b92, type: 3}
+  m_MouseVisualizerPrefab: {fileID: 2680667830796240929, guid: a2909e84909e8ac4b91cc2414fffb223, type: 3}

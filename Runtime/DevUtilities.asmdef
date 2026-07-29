@@ -23,7 +23,7 @@
         },
         {
             "name": "com.unity.render-pipelines.high-definition",
-            "expression": "14.0.0",
+            "expression": "17.0.0",
             "define": "UNITY_RENDER_PIPELINE_HIGH_DEFINITION"
         }
     ],

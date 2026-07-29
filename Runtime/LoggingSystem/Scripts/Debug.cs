@@ -18,7 +18,14 @@ namespace SAS
         public void LogFormat(LogType logType, UnityEngine.Object context, string format, params object[] args)
         {
 #if ENABLE_DEBUG
-            LogLevel level = LogLevel.Info;
+            LogLevel level = LogLevel.None;
+            if (logType == LogType.Log)
+                level = LogLevel.Info;
+            else if (logType == LogType.Warning)
+                level = LogLevel.Warning;
+            else if (logType == LogType.Error)
+                level = LogLevel.Error;
+            
             int slotIndex = -1;
             string tag = string.Empty;
             if (args.Length > 1)

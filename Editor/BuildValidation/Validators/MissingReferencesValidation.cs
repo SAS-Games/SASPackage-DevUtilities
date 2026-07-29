@@ -1,12 +1,11 @@
+using System.Reflection;
 using UnityEditor;
 using UnityEditor.Build.Reporting;
-using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace SAS.BuildValidation
 {
-    [BuildValidation(optional: false, order: int.MinValue + 1)]
+    [BuildValidation(optional: false, order: 3)]
     public sealed class MissingReferencesValidation : IBuildValidation
     {
         public string Name => "Missing References";
@@ -19,41 +18,10 @@ namespace SAS.BuildValidation
             ValidateScriptableObjects(result);
             return result;
         }
-        
-        private static void ValidateScenes(BuildValidationResult result)
-        {
-            foreach (var scene in EditorBuildSettings.scenes)
-            {
-                if (!scene.enabled)
-                    continue;
-
-                Scene openedScene = EditorSceneManager.OpenScene(scene.path, OpenSceneMode.Additive);
-
-                try
-                {
-                    foreach (GameObject rootObject in openedScene.GetRootGameObjects())
-                    {
-                        Component[] components = rootObject.GetComponentsInChildren<Component>(true);
-
-                        foreach (Component component in components)
-                        {
-                            if (component == null)
-                                continue;
-
-                            ValidateSerializedObject(new SerializedObject(component), scene.path, component, result);
-                        }
-                    }
-                }
-                finally
-                {
-                    EditorSceneManager.CloseScene(openedScene, true);
-                }
-            }
-        }
 
         private static void ValidatePrefabs(BuildValidationResult result)
         {
-            string[] guids = AssetDatabase.FindAssets("t:Prefab");
+            string[] guids = AssetDatabase.FindAssets("t:Prefab", new[] { "Assets" });
 
             foreach (string guid in guids)
             {
@@ -87,8 +55,7 @@ namespace SAS.BuildValidation
 
         private static void ValidateScriptableObjects(BuildValidationResult result)
         {
-            string[] guids = AssetDatabase.FindAssets("t:ScriptableObject");
-
+            string[] guids = AssetDatabase.FindAssets("t:ScriptableObject", new[] { "Assets" });
             foreach (string guid in guids)
             {
                 string path = AssetDatabase.GUIDToAssetPath(guid);
@@ -129,7 +96,21 @@ namespace SAS.BuildValidation
             if (property.objectReferenceValue != null)
                 return false;
 
-            return property.objectReferenceInstanceIDValue != 0;
+            return property.objectReferenceInstanceIDValue != 0 && IsVisibleInInspector(property);
+        }
+
+        private static bool IsVisibleInInspector(SerializedProperty property)
+        {
+            if (!property.editable)
+                return false;
+
+            var field = property.serializedObject.targetObject
+                .GetType().GetField(property.name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+            if (field == null)
+                return false;
+
+            return field.GetCustomAttribute<HideInInspector>() == null;
         }
     }
 }

@@ -1,4 +1,5 @@
 using SAS.Utilities.RuntimeDebugger.Core;
+using SAS.Utilities.Presentation;
 using UnityEngine;
 
 namespace SAS.Utilities.RuntimeDebugger
@@ -14,6 +15,7 @@ namespace SAS.Utilities.RuntimeDebugger
         private RuntimeDebuggerSettings _settings;
         private RuntimeDebuggerController _controller;
         private RuntimeDebuggerView _view;
+        private bool _overlayRequested;
 
         internal void Initialize(RuntimeDebuggerSettings settings) => _settings = settings;
 
@@ -29,6 +31,7 @@ namespace SAS.Utilities.RuntimeDebugger
             DontDestroyOnLoad(gameObject);
             _settings ??= RuntimeDebuggerSettings.LoadOrCreateDefaults();
             StartSubsystem();
+            ApplyPresentationState();
         }
 
         private void OnDestroy()
@@ -38,8 +41,19 @@ namespace SAS.Utilities.RuntimeDebugger
                 Instance = null;
         }
 
-        private void OnEnable() => _controller?.SetInputEnabled(true);
-        private void OnDisable() => _controller?.SetInputEnabled(false);
+        private void OnEnable()
+        {
+            DevUtilityPresentationRegistry.SuppressionChanged -= ApplyPresentationState;
+            DevUtilityPresentationRegistry.SuppressionChanged += ApplyPresentationState;
+            _controller?.SetInputEnabled(true);
+            ApplyPresentationState();
+        }
+
+        private void OnDisable()
+        {
+            DevUtilityPresentationRegistry.SuppressionChanged -= ApplyPresentationState;
+            _controller?.SetInputEnabled(false);
+        }
         private void Update() => _controller?.Tick();
 
         private void OnGUI()
@@ -58,6 +72,7 @@ namespace SAS.Utilities.RuntimeDebugger
 
             if (!value)
             {
+                _overlayRequested = false;
                 StopSubsystem();
                 enabled = false;
                 return;
@@ -72,7 +87,8 @@ namespace SAS.Utilities.RuntimeDebugger
             if (visible && !IsDebuggerEnabled)
                 SetDebuggerEnabled(true);
 
-            _controller?.SetOpen(visible && IsDebuggerEnabled);
+            _overlayRequested = visible;
+            ApplyPresentationState();
         }
 
         public static RuntimeDebuggerHost GetOrCreateEnabledHost()
@@ -108,6 +124,11 @@ namespace SAS.Utilities.RuntimeDebugger
             _view = null;
             _controller?.Dispose();
             _controller = null;
+        }
+
+        private void ApplyPresentationState()
+        {
+            _controller?.SetOpen(_overlayRequested && IsDebuggerEnabled && DevUtilityPresentationRegistry.CanShowLocalUi);
         }
     }
 }

@@ -15,11 +15,9 @@ public sealed class InputLatencyOverlay : IDisposable
     private static readonly Color EventQueueColor = new(0.45f, 0.9f, 0.55f);
     private static readonly Color DispatchColor = new(0.85f, 0.55f, 1f);
     private static readonly Color UserMethodColor = new(1f, 0.67f, 0.28f);
-    private readonly InputLatencyStatistics _raw;
-    private readonly InputLatencyStatistics _action;
-    private readonly InputLatencyStatistics _dispatch;
-    private readonly InputLatencyStatistics _userMethod;
+    private readonly IInputLatencyOverlayModel _model;
     private readonly bool _controllerCloseEnabled;
+    private readonly bool _showCloseHint;
     private readonly StringBuilder _builder = new(192);
 
     private Rect _window = new(24f, 24f, 920f, 590f);
@@ -43,18 +41,12 @@ public sealed class InputLatencyOverlay : IDisposable
     private bool _graphScaleClamped;
     private bool _graphVisible;
 
-    public InputLatencyOverlay(
-        InputLatencyStatistics raw,
-        InputLatencyStatistics action,
-        InputLatencyStatistics dispatch,
-        InputLatencyStatistics userMethod,
-        bool controllerCloseEnabled)
+    internal InputLatencyOverlay(IInputLatencyOverlayModel model, bool controllerCloseEnabled, bool showCloseHint)
     {
-        _raw = raw;
-        _action = action;
-        _dispatch = dispatch;
-        _userMethod = userMethod;
+        _model = model ??
+                 throw new ArgumentNullException(nameof(model));
         _controllerCloseEnabled = controllerCloseEnabled;
+        _showCloseHint = showCloseHint;
     }
 
     public void Draw()
@@ -84,10 +76,22 @@ public sealed class InputLatencyOverlay : IDisposable
 
         GUILayout.Space(10f);
         GUILayout.BeginHorizontal();
-        DrawMetricCard("ACTION CALLBACK", _action, ActionColor);
-        DrawMetricCard("EVENT QUEUE", _raw, EventQueueColor);
-        DrawMetricCard("INPUT DISPATCH", _dispatch, DispatchColor);
-        DrawMetricCard("USER METHOD", _userMethod, UserMethodColor);
+        DrawMetricCard(
+            "ACTION CALLBACK",
+            _model.ActionStatistics,
+            ActionColor);
+        DrawMetricCard(
+            "EVENT QUEUE",
+            _model.RawStatistics,
+            EventQueueColor);
+        DrawMetricCard(
+            "INPUT DISPATCH",
+            _model.PipelineStatistics,
+            DispatchColor);
+        DrawMetricCard(
+            "USER METHOD",
+            _model.UserMethodStatistics,
+            UserMethodColor);
         GUILayout.EndHorizontal();
 
         if (_graphVisible)
@@ -115,13 +119,23 @@ public sealed class InputLatencyOverlay : IDisposable
         GUILayout.EndHorizontal();
 
         GUILayout.Space(5f);
-        string closeHint = _controllerCloseEnabled ? "Esc / B closes." : "Esc closes.";
-        GUILayout.Label("Event Queue + Input Dispatch = Action Callback. User Method is measured where " +
-                        "InputLatencyProfilerMarker.Measure is called.  " + closeHint, _mutedStyle);
+        string closeHint = _showCloseHint
+            ? _controllerCloseEnabled
+                ? "  Esc / B closes."
+                : "  Esc closes."
+            : string.Empty;
+        GUILayout.Label(
+            "Event Queue + Input Dispatch = Action Callback. User Method is measured where " +
+            "InputLatencyProfilerMarker.Measure is called." +
+            closeHint,
+            _mutedStyle);
         GUI.DragWindow(new Rect(0f, 0f, Mathf.Max(0f, _window.width - 180f), 55f));
     }
 
-    private void DrawMetricCard(string title, InputLatencyStatistics source, Color accent)
+    private void DrawMetricCard(
+        string title,
+        IInputLatencyStatisticsSource source,
+        Color accent)
     {
         Color previous = GUI.color;
         GUILayout.BeginVertical(_cardStyle, GUILayout.ExpandWidth(true), GUILayout.Height(78f));
@@ -161,23 +175,27 @@ public sealed class InputLatencyOverlay : IDisposable
     {
         float labelWidth = Mathf.Clamp(area.width * 0.17f, 96f, 124f);
         const float valueWidth = 57f;
-        Rect plotArea = new(area.x + labelWidth, area.y, Mathf.Max(1f, area.width - labelWidth - valueWidth), area.height);
+        Rect plotArea = new(area.x + labelWidth, area.y, Mathf.Max(1f, area.width - labelWidth - valueWidth),
+            area.height);
         float rowHeight = area.height * 0.25f;
 
-        DrawGraphRow(new Rect(area.x, area.y, area.width, rowHeight), "ACTION CALLBACK", _action, ActionColor,
+        DrawGraphRow(new Rect(area.x, area.y, area.width, rowHeight), "ACTION CALLBACK", _model.ActionStatistics,
+            ActionColor,
             plotArea.x, plotArea.width);
-        DrawGraphRow(new Rect(area.x, area.y + rowHeight, area.width, rowHeight), "EVENT QUEUE", _raw,
+        DrawGraphRow(new Rect(area.x, area.y + rowHeight, area.width, rowHeight), "EVENT QUEUE", _model.RawStatistics,
             EventQueueColor, plotArea.x, plotArea.width);
-        DrawGraphRow(new Rect(area.x, area.y + rowHeight * 2f, area.width, rowHeight), "INPUT DISPATCH", _dispatch,
+        DrawGraphRow(new Rect(area.x, area.y + rowHeight * 2f, area.width, rowHeight), "INPUT DISPATCH",
+            _model.PipelineStatistics,
             DispatchColor, plotArea.x, plotArea.width);
-        DrawGraphRow(new Rect(area.x, area.y + rowHeight * 3f, area.width, rowHeight), "USER METHOD", _userMethod,
+        DrawGraphRow(new Rect(area.x, area.y + rowHeight * 3f, area.width, rowHeight), "USER METHOD",
+            _model.UserMethodStatistics,
             UserMethodColor, plotArea.x, plotArea.width);
     }
 
     private void DrawGraphRow(
         Rect row,
         string label,
-        InputLatencyStatistics source,
+        IInputLatencyStatisticsSource source,
         Color color,
         float plotX,
         float plotWidth)
@@ -229,7 +247,8 @@ public sealed class InputLatencyOverlay : IDisposable
             _graphValueStyle);
     }
 
-    private static float FindRecentPeak(InputLatencyStatistics source)
+    private float FindRecentPeak(
+        IInputLatencyStatisticsSource source)
     {
         float peak = 0f;
         int count = GetRecentGraphSampleCount(source, GraphVisibleSamples);
@@ -239,13 +258,18 @@ public sealed class InputLatencyOverlay : IDisposable
             if (!float.IsNaN(latencyMs) && !float.IsInfinity(latencyMs) && latencyMs > peak)
                 peak = latencyMs;
         }
+
         return peak;
     }
 
-    private static int GetRecentGraphSampleCount(InputLatencyStatistics source, int maximumCount)
+    private int GetRecentGraphSampleCount(
+        IInputLatencyStatisticsSource source,
+        int maximumCount)
     {
-        int available = Mathf.Min(source.SampleCount, maximumCount);
-        int currentFrame = Time.frameCount;
+        int available = Mathf.Min(
+            source.RecentSampleCount,
+            maximumCount);
+        int currentFrame = _model.CurrentFrame;
         int count = 0;
         for (int i = 0; i < available; i++)
         {
@@ -254,15 +278,23 @@ public sealed class InputLatencyOverlay : IDisposable
                 break;
             count++;
         }
+
         return count;
     }
 
     private float FindRecentGraphPeak()
     {
-        float peak = FindRecentPeak(_action);
-        peak = Mathf.Max(peak, FindRecentPeak(_raw));
-        peak = Mathf.Max(peak, FindRecentPeak(_dispatch));
-        return Mathf.Max(peak, FindRecentPeak(_userMethod));
+        float peak =
+            FindRecentPeak(_model.ActionStatistics);
+        peak = Mathf.Max(
+            peak,
+            FindRecentPeak(_model.RawStatistics));
+        peak = Mathf.Max(
+            peak,
+            FindRecentPeak(_model.PipelineStatistics));
+        return Mathf.Max(
+            peak,
+            FindRecentPeak(_model.UserMethodStatistics));
     }
 
     private void UpdateGraphScale(float peak)
@@ -310,10 +342,13 @@ public sealed class InputLatencyOverlay : IDisposable
         GUILayout.Label("Control", _mutedStyle);
         GUILayout.Label("Latency", _mutedStyle, GUILayout.Width(66f));
         GUILayout.EndHorizontal();
-        int count = Mathf.Min(VisibleSamples, _action.SampleCount);
+        int count = Mathf.Min(
+            VisibleSamples,
+            _model.ActionStatistics.RecentSampleCount);
         for (int i = 0; i < count; i++)
         {
-            ref readonly InputLatencySample sample = ref _action.GetRecentSample(i);
+            ref readonly InputLatencySample sample =
+                ref _model.ActionStatistics.GetRecentSample(i);
             GUILayout.BeginHorizontal(_rowStyle);
             GUILayout.Label(sample.ActionName, GUILayout.Width(135f));
             GUILayout.Label(sample.Phase.ToString(), GUILayout.Width(72f));
@@ -321,6 +356,7 @@ public sealed class InputLatencyOverlay : IDisposable
             GUILayout.Label($"{sample.LatencyMs:F2} ms", GUILayout.Width(66f));
             GUILayout.EndHorizontal();
         }
+
         if (count == 0) GUILayout.Label("Waiting for an InputAction callback...", _mutedStyle);
     }
 
@@ -331,16 +367,20 @@ public sealed class InputLatencyOverlay : IDisposable
         GUILayout.Label("Phase", _mutedStyle, GUILayout.Width(72f));
         GUILayout.Label("Latency", _mutedStyle, GUILayout.Width(66f));
         GUILayout.EndHorizontal();
-        int count = Mathf.Min(VisibleSamples, _userMethod.SampleCount);
+        int count = Mathf.Min(
+            VisibleSamples,
+            _model.UserMethodStatistics.RecentSampleCount);
         for (int i = 0; i < count; i++)
         {
-            ref readonly InputLatencySample sample = ref _userMethod.GetRecentSample(i);
+            ref readonly InputLatencySample sample =
+                ref _model.UserMethodStatistics.GetRecentSample(i);
             GUILayout.BeginHorizontal(_rowStyle);
             GUILayout.Label(sample.ActionName);
             GUILayout.Label(sample.Phase.ToString(), GUILayout.Width(72f));
             GUILayout.Label($"{sample.LatencyMs:F2} ms", GUILayout.Width(66f));
             GUILayout.EndHorizontal();
         }
+
         if (count == 0)
             GUILayout.Label("Add InputLatencyProfilerMarker.Measure at the first line of your callback.", _mutedStyle);
     }
@@ -349,9 +389,15 @@ public sealed class InputLatencyOverlay : IDisposable
     {
         _builder.Clear();
         _builder.Append("Update: ");
-        _builder.Append(UnityEngine.InputSystem.LowLevel.InputState.currentUpdateType);
+        _builder.Append(_model.CurrentUpdateType);
         _builder.Append("  |  Frame ");
-        _builder.Append(Time.frameCount);
+        _builder.Append(_model.CurrentFrame);
+        if (_model.DroppedSampleCount > 0)
+        {
+            _builder.Append("  |  Dropped ");
+            _builder.Append(_model.DroppedSampleCount);
+        }
+
         return _builder.ToString();
     }
 
@@ -368,9 +414,12 @@ public sealed class InputLatencyOverlay : IDisposable
         _windowStyle = new GUIStyle(GUI.skin.window) { padding = new RectOffset(16, 16, 14, 14) };
         _windowTexture = MakeTexture(new Color(0.055f, 0.065f, 0.085f, 0.86f));
         _windowStyle.normal.background = _windowTexture;
-        _headerStyle = new GUIStyle(GUI.skin.label) { fontSize = 18, fontStyle = FontStyle.Bold, normal = { textColor = new Color(0.92f, 0.95f, 1f) } };
-        _subHeaderStyle = new GUIStyle(GUI.skin.label) { fontSize = 11, fontStyle = FontStyle.Bold, normal = { textColor = new Color(0.72f, 0.78f, 0.88f) } };
-        _mutedStyle = new GUIStyle(GUI.skin.label) { fontSize = 10, normal = { textColor = new Color(0.55f, 0.61f, 0.7f) } };
+        _headerStyle = new GUIStyle(GUI.skin.label)
+            { fontSize = 18, fontStyle = FontStyle.Bold, normal = { textColor = new Color(0.92f, 0.95f, 1f) } };
+        _subHeaderStyle = new GUIStyle(GUI.skin.label)
+            { fontSize = 11, fontStyle = FontStyle.Bold, normal = { textColor = new Color(0.72f, 0.78f, 0.88f) } };
+        _mutedStyle = new GUIStyle(GUI.skin.label)
+            { fontSize = 10, normal = { textColor = new Color(0.55f, 0.61f, 0.7f) } };
         _cardStyle = new GUIStyle(GUI.skin.box) { padding = new RectOffset(10, 10, 8, 8) };
         _cardTexture = MakeTexture(new Color(0.09f, 0.11f, 0.145f, 0.72f));
         _cardStyle.normal.background = _cardTexture;

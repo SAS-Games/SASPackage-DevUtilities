@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace SAS.Utilities.DeveloperConsole
 {
@@ -32,9 +33,17 @@ namespace SAS.Utilities.DeveloperConsole
                 return false;
 
             inputValue = inputValue.Remove(0, _prefix.Length);
-            string[] inputSplit = inputValue.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+            // This regex matches non-whitespace sequences OR text inside double quotes
+            var matches = Regex.Matches(inputValue, @"[^\s""]+|""([^""]*)""");
+
+            string[] inputSplit = matches
+                .Cast<Match>()
+                .Select(m => m.Groups[1].Success ? m.Groups[1].Value : m.Value)
+                .ToArray();
+
             if (inputSplit.Length == 0)
-                return false;
+                return false; 
             string commandInput = inputSplit[0];
             string[] args = inputSplit.Skip(1).ToArray();
             if (inputValue.Equals("clear", StringComparison.OrdinalIgnoreCase))

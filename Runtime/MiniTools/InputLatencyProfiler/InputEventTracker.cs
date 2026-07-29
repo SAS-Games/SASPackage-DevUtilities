@@ -23,8 +23,7 @@ public sealed class InputEventTracker
     
     private void OnInputEvent(InputEventPtr eventPtr, InputDevice device)
     {
-        if (!eventPtr.IsA<StateEvent>() &&
-            !eventPtr.IsA<DeltaStateEvent>())
+        if (!eventPtr.IsA<StateEvent>() && !eventPtr.IsA<DeltaStateEvent>())
             return;
 
         _correlation.Record(eventPtr.deviceId, eventPtr.time, UnityEngine.Time.realtimeSinceStartupAsDouble);

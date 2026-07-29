@@ -102,6 +102,7 @@ GameObject:
   - component: {fileID: 5181882616318872658}
   - component: {fileID: 5015909938340262309}
   - component: {fileID: 4609079454717472447}
+  - component: {fileID: -8977998862764192151}
   - component: {fileID: 9000000000000000001}
   m_Layer: 5
   m_Name: AnimatorStats
@@ -220,6 +221,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Display: {fileID: 7919385023625728094}
   m_UpdateInterval: 1
+--- !u!114 &-8977998862764192151
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4840794096766531456}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9dbc13e29b18761468ba1550e11b2cfe, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
 --- !u!1 &7232403671296343171
 GameObject:
   m_ObjectHideFlags: 0

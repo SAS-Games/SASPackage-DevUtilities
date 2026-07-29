@@ -9,7 +9,8 @@ namespace SAS.Utilities.RuntimeDebugger
     internal sealed class RuntimeDebuggerController : IDisposable
     {
         private readonly RuntimeDebuggerSettings _settings;
-        private readonly RuntimeDebuggerService _service;
+        private readonly IRuntimeDebugger _service;
+        private readonly IDisposable _ownedService;
         private readonly InputSystemRuntimeDebuggerInput _input;
         private readonly RuntimeDebuggerHierarchyController _hierarchy;
         private readonly RuntimeDebuggerInspectorController _inspector;
@@ -21,10 +22,15 @@ namespace SAS.Utilities.RuntimeDebugger
         private bool _focusSearchField;
         private bool _clearGuiFocus;
 
-        internal RuntimeDebuggerController(RuntimeDebuggerSettings settings)
+        internal RuntimeDebuggerController(RuntimeDebuggerSettings settings) : this(settings, new RuntimeDebuggerService(settings), true)
+        {
+        }
+
+        internal RuntimeDebuggerController(RuntimeDebuggerSettings settings, IRuntimeDebugger service, bool ownsService)
         {
             _settings = settings;
-            _service = new RuntimeDebuggerService(settings);
+            _service = service ?? throw new ArgumentNullException(nameof(service));
+            _ownedService = ownsService ? service as IDisposable : null;
             _input = new InputSystemRuntimeDebuggerInput(settings);
             _hierarchy = new RuntimeDebuggerHierarchyController(_service);
             _inspector = new RuntimeDebuggerInspectorController(_service, settings);
@@ -145,6 +151,9 @@ namespace SAS.Utilities.RuntimeDebugger
 
         internal void SetOpen(bool value)
         {
+            if (_open == value)
+                return;
+
             _open = value;
             if (value)
             {
@@ -316,8 +325,7 @@ namespace SAS.Utilities.RuntimeDebugger
             }
         }
 
-        internal bool ApplyShaderProperty(RuntimeObjectId rendererId, int materialIndex, int propertyId,
-            RuntimeMaterialEditScope scope, string value)
+        internal bool ApplyShaderProperty(RuntimeObjectId rendererId, int materialIndex, int propertyId, RuntimeMaterialEditScope scope, string value)
         {
             RuntimeCommandResult result = _service.Execute(new SetRuntimeShaderPropertyCommand
             {
@@ -331,8 +339,7 @@ namespace SAS.Utilities.RuntimeDebugger
             return result.Success;
         }
 
-        internal void RestoreShaderProperty(RuntimeObjectId rendererId, int materialIndex, int propertyId,
-            RuntimeMaterialEditScope scope)
+        internal void RestoreShaderProperty(RuntimeObjectId rendererId, int materialIndex, int propertyId, RuntimeMaterialEditScope scope)
         {
             ApplyCommand(_service.Execute(new RestoreRuntimeShaderPropertyCommand
             {
@@ -343,8 +350,7 @@ namespace SAS.Utilities.RuntimeDebugger
             }), true);
         }
 
-        internal void RestoreShaderMaterial(RuntimeObjectId rendererId, int materialIndex,
-            RuntimeMaterialEditScope scope)
+        internal void RestoreShaderMaterial(RuntimeObjectId rendererId, int materialIndex, RuntimeMaterialEditScope scope)
         {
             ApplyCommand(_service.Execute(new RestoreRuntimeMaterialCommand
             {
@@ -361,7 +367,7 @@ namespace SAS.Utilities.RuntimeDebugger
             if (_open)
                 SetOpen(false);
             _input.Dispose();
-            _service.Dispose();
+            _ownedService?.Dispose();
         }
 
         private void HandleEditingInput()

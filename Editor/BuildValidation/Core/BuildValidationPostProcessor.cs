@@ -6,8 +6,7 @@ using UnityEngine;
 
 namespace SAS.BuildValidation
 {
-    public class BuildValidationPostProcessor
-        : IPostprocessBuildWithReport
+    public class BuildValidationPostProcessor : IPostprocessBuildWithReport
     {
         public int callbackOrder => 0;
 
