@@ -19,6 +19,10 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools
         [SerializeField, TextArea(2, 5)] private string _description = string.Empty;
         [SerializeField, Min(0.1f)] private float _updateInterval = 1f;
         [SerializeField, Min(0.02f)] private float _streamInterval = 0.1f;
+        // The Editor uses the stable script GUID to refresh the runtime type
+        // identity after namespace or asmdef changes. Players use only the
+        // baked provider type name and never depend on UnityEditor.MonoScript.
+        [SerializeField, HideInInspector] private string _providerScriptGuid = string.Empty;
         [SerializeField, HideInInspector] private string _providerTypeName = string.Empty;
         [SerializeField] private ConsoleCommand _command;
         [SerializeField, HideInInspector] private string _commandName = string.Empty;
@@ -178,6 +182,8 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools
 
             _displayName = _displayName?.Trim() ?? string.Empty;
             _description = _description?.Trim() ?? string.Empty;
+            _providerScriptGuid =
+                _providerScriptGuid?.Trim() ?? string.Empty;
             _providerTypeName = _providerTypeName?.Trim() ?? string.Empty;
             _commandName = _commandName?.Trim() ?? string.Empty;
             _debugHostPrefabGuid = _debugHostPrefabGuid?.Trim() ?? string.Empty;

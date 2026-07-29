@@ -14,6 +14,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
         private SerializedProperty _displayName;
         private SerializedProperty _description;
         private SerializedProperty _updateInterval;
+        private SerializedProperty _providerScriptGuid;
         private SerializedProperty _providerTypeName;
         private SerializedProperty _command;
         private SerializedProperty _commandName;
@@ -28,6 +29,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
             _description = serializedObject.FindProperty("_description");
             _updateInterval =
                 serializedObject.FindProperty("_updateInterval");
+            _providerScriptGuid =
+                serializedObject.FindProperty("_providerScriptGuid");
             _providerTypeName =
                 serializedObject.FindProperty("_providerTypeName");
             _command = serializedObject.FindProperty("_command");
@@ -128,6 +131,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
         private void DrawProvider()
         {
             MonoScript currentScript = FindProviderScript(
+                _providerScriptGuid.stringValue,
                 _providerTypeName.stringValue);
             EditorGUI.BeginChangeCheck();
             MonoScript selectedScript =
@@ -145,6 +149,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
 
             if (selectedScript == null)
             {
+                _providerScriptGuid.stringValue = string.Empty;
                 _providerTypeName.stringValue = string.Empty;
                 return;
             }
@@ -160,6 +165,20 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
                 return;
             }
 
+            string scriptPath =
+                AssetDatabase.GetAssetPath(selectedScript);
+            string scriptGuid =
+                AssetDatabase.AssetPathToGUID(scriptPath);
+            if (string.IsNullOrWhiteSpace(scriptGuid))
+            {
+                EditorUtility.DisplayDialog(
+                    "Invalid Data Provider",
+                    "The selected provider script does not have a valid asset GUID.",
+                    "OK");
+                return;
+            }
+
+            _providerScriptGuid.stringValue = scriptGuid;
             _providerTypeName.stringValue =
                 $"{type.FullName}, {type.Assembly.GetName().Name}";
         }
@@ -294,8 +313,23 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
             return actions;
         }
 
-        private static MonoScript FindProviderScript(string typeName)
+        private static MonoScript FindProviderScript(
+            string scriptGuid,
+            string typeName)
         {
+            if (!string.IsNullOrWhiteSpace(scriptGuid))
+            {
+                string scriptPath =
+                    AssetDatabase.GUIDToAssetPath(scriptGuid);
+                MonoScript script =
+                    string.IsNullOrWhiteSpace(scriptPath)
+                        ? null
+                        : AssetDatabase.LoadAssetAtPath<MonoScript>(
+                            scriptPath);
+                if (script != null)
+                    return script;
+            }
+
             Type type = string.IsNullOrWhiteSpace(typeName)
                 ? null
                 : Type.GetType(typeName, false);

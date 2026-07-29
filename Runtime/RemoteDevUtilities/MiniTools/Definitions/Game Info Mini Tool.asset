@@ -16,7 +16,10 @@ MonoBehaviour:
   _displayName: Game Info
   _description: Application, scene, platform, and display information.
   _updateInterval: 1
-  _providerTypeName: SAS.Utilities.RemoteDevUtilities.MiniTools.Providers.RuntimeGameInfoMiniToolProvider, DevUtilities.RemoteDevUtilities
+  _streamInterval: 0.1
+  _providerScriptGuid: 072992e1f5408f4429276236ed32ec82
+  _providerTypeName: SAS.Utilities.RemoteDevUtilities.MiniTools.Providers.RuntimeGameInfoMiniToolProvider,
+    DevUtilities.RemoteDevUtilities
   _command: {fileID: 11400000, guid: 236d96f8432ad2d40abd4e856cf2b242, type: 2}
   _commandName: GameInfo
   _commandRouting: 1

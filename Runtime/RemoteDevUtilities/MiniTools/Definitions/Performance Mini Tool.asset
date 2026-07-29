@@ -16,7 +16,10 @@ MonoBehaviour:
   _displayName: Performance
   _description: FPS, frame time, target frame rate, VSync, and runtime memory.
   _updateInterval: 0.5
-  _providerTypeName: SAS.Utilities.RemoteDevUtilities.MiniTools.Providers.RuntimePerformanceMiniToolProvider, DevUtilities.RemoteDevUtilities
+  _streamInterval: 0.1
+  _providerScriptGuid: 67b0583706a29844185ab9c77045309b
+  _providerTypeName: SAS.Utilities.RemoteDevUtilities.MiniTools.Providers.RuntimePerformanceMiniToolProvider,
+    DevUtilities.RemoteDevUtilities
   _command: {fileID: 11400000, guid: c18cce79228ccb24d952b07d98a231fb, type: 2}
   _commandName: Stats.FPS
   _commandRouting: 1

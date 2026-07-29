@@ -203,6 +203,19 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
                     continue;
                 }
 
+                if (!MiniToolProviderReferenceResolver.TrySynchronize(
+                        definition,
+                        path,
+                        out string providerError,
+                        out string providerWarning))
+                {
+                    errors.Add($"{path}: {providerError}");
+                    continue;
+                }
+
+                if (!string.IsNullOrWhiteSpace(providerWarning))
+                    warnings.Add($"{path}: {providerWarning}");
+
                 if (!definition.TryValidate(out string error))
                 {
                     errors.Add($"{path}: {error}");

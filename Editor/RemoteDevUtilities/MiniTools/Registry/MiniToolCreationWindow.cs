@@ -89,6 +89,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
 
             string classStem = ToIdentifier(_toolName);
             string providerTypeName;
+            string providerScriptGuid;
 
             if (_generateProvider)
             {
@@ -96,6 +97,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
                 string className = ToIdentifier(Path.GetFileNameWithoutExtension(scriptPath));
                 File.WriteAllText(ToAbsolutePath(scriptPath), CreateProviderSource(className), new UTF8Encoding(false));
                 AssetDatabase.ImportAsset(scriptPath);
+                providerScriptGuid =
+                    AssetDatabase.AssetPathToGUID(scriptPath);
                 string assemblyName = CompilationPipeline.GetAssemblyNameFromScriptPath(scriptPath);
                 if (string.IsNullOrWhiteSpace(assemblyName))
                     assemblyName = "Assembly-CSharp";
@@ -108,6 +111,9 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
             {
                 Type providerType = _existingProvider.GetClass();
                 providerTypeName = $"{providerType.FullName}, {providerType.Assembly.GetName().Name}";
+                providerScriptGuid =
+                    AssetDatabase.AssetPathToGUID(
+                        AssetDatabase.GetAssetPath(_existingProvider));
             }
 
             var definition = CreateInstance<MiniToolDefinition>();
@@ -122,6 +128,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
             serialized.FindProperty("_toolId").stringValue = $"custom.{slug}.{suffix}";
             serialized.FindProperty("_displayName").stringValue = _toolName.Trim();
             serialized.FindProperty("_updateInterval").floatValue = Mathf.Max(0.1f, _updateInterval);
+            serialized.FindProperty("_providerScriptGuid").stringValue =
+                providerScriptGuid;
             serialized.FindProperty("_providerTypeName").stringValue = providerTypeName;
             serialized.FindProperty("_command").objectReferenceValue = _command;
             serialized.FindProperty("_commandName").stringValue = GetDefaultCommandAction(_command);

@@ -17,7 +17,9 @@ MonoBehaviour:
   _description: Pause, resume, and advance the connected Player one frame at a time.
   _updateInterval: 0.1
   _streamInterval: 0.1
-  _providerTypeName: SAS.Utilities.RemoteDevUtilities.MiniTools.Providers.RuntimeFrameStepperMiniToolProvider, DevUtilities.RemoteDevUtilities
+  _providerScriptGuid: b81d56b95ea94812a45c6bf7566840bb
+  _providerTypeName: SAS.Utilities.RemoteDevUtilities.MiniTools.Providers.RuntimeFrameStepperMiniToolProvider,
+    DevUtilities.RemoteDevUtilities
   _command: {fileID: 11400000, guid: 93465742319232649afaf598f84c1392, type: 2}
   _commandName: FrameStepper
   _commandRouting: 1
