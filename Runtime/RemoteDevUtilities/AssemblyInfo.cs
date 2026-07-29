@@ -1,0 +1,4 @@
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("DevUtilities.RemoteDevUtilities.Editor")]
+[assembly: InternalsVisibleTo("DevUtilities.RemoteDevUtilities.EditorTests")]
