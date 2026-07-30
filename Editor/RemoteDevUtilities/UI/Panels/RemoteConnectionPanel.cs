@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using SAS.Utilities.RemoteDevUtilities;
 using SAS.Utilities.RemoteDevUtilities.Editor.Client;
+using SAS.Utilities.RemoteDevUtilities.Editor.Configuration;
 using SAS.Utilities.RemoteDevUtilities.Editor.Connection;
 using SAS.Utilities.RemoteDevUtilities.Protocol;
 using UnityEditor;
@@ -30,17 +31,14 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
         private int _tcpPort;
         private string _accessToken;
         private bool _expanded;
-        private readonly RemoteDevUtilitiesRuntimeSettings _runtimeSettings;
-        private readonly int _configuredTcpPort;
+
+        private RemoteDevUtilitiesRuntimeConfiguration RuntimeSettings =>
+            RemoteDevUtilitiesProjectSettings.instance.Runtime;
+        private int ConfiguredTcpPort => RuntimeSettings?.TcpPort ??
+                                         RemoteProtocolConstants.DefaultTcpPort;
 
         public RemoteConnectionPanel()
         {
-            _runtimeSettings =
-                Resources.Load<RemoteDevUtilitiesRuntimeSettings>(
-                    "RemoteDevUtilitiesSettings");
-            _configuredTcpPort = _runtimeSettings != null
-                ? _runtimeSettings.TcpPort
-                : RemoteProtocolConstants.DefaultTcpPort;
             _mode = (ConnectionMode)Mathf.Clamp(
                 EditorPrefs.GetInt(
                     ModePreferenceKey,
@@ -50,7 +48,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
             _tcpHost = EditorPrefs.GetString(HostPreferenceKey, "127.0.0.1");
             _tcpPort = EditorPrefs.GetInt(
                 PortPreferenceKey,
-                _configuredTcpPort);
+                ConfiguredTcpPort);
             _accessToken = SessionState.GetString(TokenSessionKey, string.Empty);
             _expanded = EditorPrefs.GetBool(
                 ExpandedPreferenceKey,
@@ -188,6 +186,10 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
 
         private void DrawTcpTarget()
         {
+            RemoteDevUtilitiesRuntimeConfiguration runtimeSettings =
+                RuntimeSettings;
+            int configuredTcpPort = ConfiguredTcpPort;
+
             EditorGUI.BeginChangeCheck();
             _tcpHost = EditorGUILayout.TextField("Host", _tcpHost);
             _tcpPort = EditorGUILayout.IntField("Port", _tcpPort);
@@ -203,33 +205,31 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
                 PersistTcpTarget();
             }
             if (GUILayout.Button(
-                    $"Use Port {_configuredTcpPort}",
+                    $"Use Port {configuredTcpPort}",
                     GUILayout.Width(112f)))
             {
-                _tcpPort = _configuredTcpPort;
+                _tcpPort = configuredTcpPort;
                 PersistTcpTarget();
             }
-            if (_runtimeSettings != null &&
-                GUILayout.Button("Select Settings", GUILayout.Width(100f)))
+            if (GUILayout.Button("Open Settings", GUILayout.Width(100f)))
             {
-                Selection.activeObject = _runtimeSettings;
-                EditorGUIUtility.PingObject(_runtimeSettings);
+                RemoteDevUtilitiesProjectSettings.Open();
             }
             EditorGUILayout.EndHorizontal();
 
             string listenerScope =
-                _runtimeSettings != null &&
-                _runtimeSettings.AllowTcpConnectionsFromOtherMachines
+                runtimeSettings != null &&
+                runtimeSettings.AllowTcpConnectionsFromOtherMachines
                     ? "local network"
                     : "this machine only";
             EditorGUILayout.LabelField(
-                $"The current build settings use TCP port {_configuredTcpPort} " +
+                $"The current build settings use TCP port {configuredTcpPort} " +
                 $"and allow connections from {listenerScope}.",
                 EditorStyles.wordWrappedMiniLabel);
 
             if (!IsLoopbackHost(_tcpHost) &&
-                (_runtimeSettings == null ||
-                 !_runtimeSettings.AllowTcpConnectionsFromOtherMachines))
+                (runtimeSettings == null ||
+                 !runtimeSettings.AllowTcpConnectionsFromOtherMachines))
             {
                 EditorGUILayout.HelpBox(
                     "The runtime settings are loopback-only. Enable " +
@@ -239,7 +239,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
             }
             else if (!IsLoopbackHost(_tcpHost) &&
                      string.IsNullOrWhiteSpace(
-                         _runtimeSettings?.TcpAccessToken))
+                         runtimeSettings?.TcpAccessToken))
             {
                 EditorGUILayout.HelpBox(
                     "Connections from another machine require a non-empty " +

@@ -2,10 +2,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using SAS.Utilities.RemoteDevUtilities.Editor.Configuration;
 using SAS.Utilities.RemoteDevUtilities.MiniTools;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
+using UnityEngine;
 
 namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
 {
@@ -13,14 +15,16 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
     /// Temporarily adds validated definitions to the build's preloaded assets.
     /// PlayerSettings are restored immediately afterwards.
     /// </summary>
-    internal sealed class MiniToolBuildProcessor :
+    internal sealed class RemoteDevUtilitiesBuildProcessor :
         IPreprocessBuildWithReport,
         IPostprocessBuildWithReport
     {
         private static readonly string BackupPath = Path.Combine(
             "Library",
             "RemoteDevUtilities",
-            "MiniToolPreloadedAssetsBackup.txt");
+            "PreloadedAssetsBackup.txt");
+        private const string GeneratedRuntimeSettingsPath =
+            "Assets/RemoteDevUtilitiesSettings.generated.asset";
 
         public int callbackOrder => 100;
 
@@ -49,6 +53,9 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
 
             try
             {
+                RemoteDevUtilitiesRuntimeSettings runtimeSettings =
+                    CreateRuntimeSettingsSnapshot();
+                combined.Add(runtimeSettings);
                 PlayerSettings.SetPreloadedAssets(combined.ToArray());
                 ScheduleRestore();
             }
@@ -66,13 +73,15 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
 
         private static void RestorePreloadedAssets()
         {
-            if (!File.Exists(BackupPath))
-                return;
+            if (File.Exists(BackupPath))
+            {
+                string serialized = File.ReadAllText(BackupPath);
+                PlayerSettings.SetPreloadedAssets(
+                    DeserializeAssets(serialized));
+                File.Delete(BackupPath);
+            }
 
-            string serialized = File.ReadAllText(BackupPath);
-            PlayerSettings.SetPreloadedAssets(
-                DeserializeAssets(serialized));
-            File.Delete(BackupPath);
+            DeleteGeneratedRuntimeSettings();
         }
 
         private static void ScheduleRestore()
@@ -141,6 +150,53 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
             }
 
             return assets.ToArray();
+        }
+
+        private static RemoteDevUtilitiesRuntimeSettings
+            CreateRuntimeSettingsSnapshot()
+        {
+            DeleteGeneratedRuntimeSettings(true);
+
+            RemoteDevUtilitiesRuntimeSettings settings =
+                ScriptableObject.CreateInstance<
+                    RemoteDevUtilitiesRuntimeSettings>();
+            settings.Apply(
+                RemoteDevUtilitiesProjectSettings.instance.Runtime,
+                true);
+            settings.name = "RemoteDevUtilitiesSettings";
+            settings.hideFlags =
+                HideFlags.HideInHierarchy | HideFlags.NotEditable;
+            AssetDatabase.CreateAsset(
+                settings,
+                GeneratedRuntimeSettingsPath);
+            AssetDatabase.SaveAssets();
+            return settings;
+        }
+
+        private static void DeleteGeneratedRuntimeSettings(
+            bool failIfOccupied = false)
+        {
+            UnityEngine.Object existing =
+                AssetDatabase.LoadMainAssetAtPath(
+                    GeneratedRuntimeSettingsPath);
+            if (existing == null)
+                return;
+
+            if (existing is RemoteDevUtilitiesRuntimeSettings settings &&
+                settings.IsBuildSnapshot)
+            {
+                AssetDatabase.DeleteAsset(
+                    GeneratedRuntimeSettingsPath);
+                return;
+            }
+
+            if (failIfOccupied)
+            {
+                throw new BuildFailedException(
+                    $"Cannot create the temporary Remote Dev Utilities " +
+                    $"runtime settings snapshot because " +
+                    $"'{GeneratedRuntimeSettingsPath}' is already occupied.");
+            }
         }
     }
 }

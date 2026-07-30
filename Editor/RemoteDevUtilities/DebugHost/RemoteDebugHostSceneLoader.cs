@@ -11,40 +11,72 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
 {
     internal static class RemoteDebugHostSceneLoader
     {
-        private const string SceneAssetGuid =
-            "15b437ea13444955a2f2e05c81eedf72";
+        private const string EnvironmentPrefabGuid =
+            "37a03349eaf30bc4cafc546d68d1bef3";
+        private const string ConsolePrefabGuid =
+            "6590d4eca4ab3de42a2372b05d8cc2e2";
 
-        internal static string SceneAssetPath =>
-            AssetDatabase.GUIDToAssetPath(SceneAssetGuid);
-
-        internal static bool TryOpen(out string error)
+        internal static bool TryCreate(out string error)
         {
             error = string.Empty;
-            string scenePath = SceneAssetPath;
-            if (string.IsNullOrWhiteSpace(scenePath) ||
-                AssetDatabase.LoadAssetAtPath<SceneAsset>(scenePath) == null)
-            {
-                error = "The Debug Host scene asset could not be resolved.";
-                return false;
-            }
-
             try
             {
-                Scene scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
-                if (scene.IsValid() && scene.isLoaded && ValidateScene(scene, out error))
-                {
-                    return true;
-                }
+                Scene scene = EditorSceneManager.NewScene(
+                    NewSceneSetup.EmptyScene,
+                    NewSceneMode.Single);
+                if (!TryInstantiatePrefab(
+                        EnvironmentPrefabGuid,
+                        "Debug Host environment",
+                        scene,
+                        out error) ||
+                    !TryInstantiatePrefab(
+                        ConsolePrefabGuid,
+                        "Developer Console",
+                        scene,
+                        out error))
+                    return false;
 
-                if (string.IsNullOrEmpty(error))
-                    error = $"Unity did not load the Debug Host scene at '{scenePath}'.";
-                return false;
+                return ValidateScene(scene, out error);
             }
             catch (Exception exception)
             {
-                error = $"Debug Host scene '{scenePath}' could not be opened. " + exception.Message;
+                error =
+                    "The temporary Debug Host scene could not be created. " +
+                    exception.Message;
                 return false;
             }
+        }
+
+        private static bool TryInstantiatePrefab(
+            string guid,
+            string displayName,
+            Scene scene,
+            out string error)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+            GameObject prefab = string.IsNullOrWhiteSpace(path)
+                ? null
+                : AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            if (prefab == null)
+            {
+                error =
+                    $"{displayName} prefab could not be resolved from GUID " +
+                    $"'{guid}'.";
+                return false;
+            }
+
+            GameObject instance =
+                PrefabUtility.InstantiatePrefab(prefab, scene) as GameObject;
+            if (instance == null)
+            {
+                error =
+                    $"{displayName} prefab at '{path}' could not be " +
+                    "instantiated.";
+                return false;
+            }
+
+            error = string.Empty;
+            return true;
         }
 
         private static bool ValidateScene(Scene scene, out string error)

@@ -65,10 +65,12 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
             }
 
             SaveCurrentSceneSetup();
-            if (!RemoteDebugHostSceneLoader.TryOpen(out string error))
+            if (!RemoteDebugHostSceneLoader.TryCreate(out string error))
             {
-                Debug.LogWarning(error + " Falling back to a temporary empty Debug Host scene.");
-                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                Debug.LogWarning(
+                    error +
+                    " The Debug Host will continue with the available " +
+                    "temporary scene objects.");
             }
             EditorApplication.EnterPlaymode();
         }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using SAS.Utilities.RemoteDevUtilities.Editor.Configuration;
 using SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools;
 
 namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
@@ -19,7 +20,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
         internal static event Action Changed;
 
         internal RemoteMiniToolVisibilityConfiguration Configuration =>
-            RemoteMiniToolSettings.instance.Visibility;
+            RemoteDevUtilitiesProjectSettings.instance.Visibility;
 
         internal bool IsVisible(string toolId) =>
             Configuration.IsVisible(toolId);
@@ -69,7 +70,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
 
         private static void Persist(bool notify)
         {
-            RemoteMiniToolSettings.instance.Persist();
+            RemoteDevUtilitiesProjectSettings.instance.Persist();
             if (notify)
                 Changed?.Invoke();
         }

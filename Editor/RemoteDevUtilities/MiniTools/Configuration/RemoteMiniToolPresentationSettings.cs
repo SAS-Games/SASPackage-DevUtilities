@@ -1,4 +1,5 @@
 using System;
+using SAS.Utilities.RemoteDevUtilities.Editor.Configuration;
 using SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry;
 using UnityEditor;
 using UnityEngine;
@@ -15,7 +16,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
         internal static event Action Changed;
 
         internal RemoteMiniToolPresentationConfiguration Configuration =>
-            RemoteMiniToolSettings.instance.Presentations;
+            RemoteDevUtilitiesProjectSettings.instance.Presentations;
 
         internal bool TryGetOverride(string toolId, out GameObject prefab)
         {
@@ -83,7 +84,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
 
         private void Persist()
         {
-            RemoteMiniToolSettings.instance.Persist();
+            RemoteDevUtilitiesProjectSettings.instance.Persist();
             Changed?.Invoke();
         }
     }

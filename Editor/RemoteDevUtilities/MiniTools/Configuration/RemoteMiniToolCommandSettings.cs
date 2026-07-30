@@ -1,5 +1,6 @@
 using System;
 using SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation;
+using SAS.Utilities.RemoteDevUtilities.Editor.Configuration;
 using SAS.Utilities.RemoteDevUtilities.Protocol.Commands;
 using UnityEditor;
 
@@ -15,7 +16,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
         internal static event Action Changed;
 
         internal RemoteMiniToolCommandConfiguration Configuration =>
-            RemoteMiniToolSettings.instance.Commands;
+            RemoteDevUtilitiesProjectSettings.instance.Commands;
 
         internal bool TryGetOverride(
             string toolId,
@@ -66,7 +67,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
 
         private void Persist()
         {
-            RemoteMiniToolSettings.instance.Persist();
+            RemoteDevUtilitiesProjectSettings.instance.Persist();
             Changed?.Invoke();
         }
     }
