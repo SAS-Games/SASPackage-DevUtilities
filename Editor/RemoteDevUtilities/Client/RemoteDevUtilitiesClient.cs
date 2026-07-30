@@ -289,6 +289,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
             RuntimeSessionId = response.RuntimeSessionId;
             Target = response.Target;
             Commands.RequestCatalog();
+            Logs.RequestSettings();
             MiniTools.RequestCatalog();
             RuntimeDebugger.RequestHierarchy(true);
             NotifyStateChanged();

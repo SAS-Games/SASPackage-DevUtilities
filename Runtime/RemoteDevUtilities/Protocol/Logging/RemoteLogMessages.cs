@@ -3,6 +3,19 @@ using System;
 namespace SAS.Utilities.RemoteDevUtilities.Protocol.Logging
 {
     [Serializable]
+    public sealed class RemoteLogSettingsRequest
+    {
+    }
+
+    [Serializable]
+    public sealed class RemoteLogSettingsResponse
+    {
+        public bool InfoEnabled;
+        public bool WarningEnabled;
+        public bool ErrorEnabled;
+    }
+
+    [Serializable]
     public sealed class RemoteLogBatch
     {
         public RemoteLogEntry[] Entries = Array.Empty<RemoteLogEntry>();

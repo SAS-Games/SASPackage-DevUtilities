@@ -65,11 +65,16 @@ namespace SAS
         const string DEBUG = "ENABLE_DEBUG";
         private static LogLevel LogLevel = (LogLevel)(7);
         private static HashSet<string> AllowedTags = new HashSet<string>();
+        public static event Action LogLevelsChanged;
 
         public static void SetLogLevel(int level)
         {
-            LogLevel = (LogLevel)level;
+            LogLevel nextLevel = (LogLevel)level;
+            bool changed = LogLevel != nextLevel;
+            LogLevel = nextLevel;
             Debug.Log($"Updated LogLevel: {LogLevel}");
+            if (changed)
+                LogLevelsChanged?.Invoke();
         }
 
         public static void SetLogLevel(LogLevel level, bool isOn)

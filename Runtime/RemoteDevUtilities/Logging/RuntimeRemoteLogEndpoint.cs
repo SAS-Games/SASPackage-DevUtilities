@@ -12,7 +12,10 @@ namespace SAS.Utilities.RemoteDevUtilities.Logging
         IRuntimeRemoteEndpoint,
         IRuntimeRemoteSessionListener
     {
-        private static readonly string[] NoMessages = Array.Empty<string>();
+        private static readonly string[] SupportedMessages =
+        {
+            RemoteMessageTypes.LogSettingsRequest
+        };
         private readonly object _queueLock = new();
         private readonly Queue<RemoteLogEntry> _queue = new();
         private RuntimeRemoteEndpointContext _context;
@@ -20,24 +23,34 @@ namespace SAS.Utilities.RemoteDevUtilities.Logging
         private int _lastRuntimeFrame;
         private int _maxQueuedLogs;
         private bool _sessionActive;
+        private int _settingsDirty;
 
-        public IEnumerable<string> MessageTypes => NoMessages;
+        public IEnumerable<string> MessageTypes => SupportedMessages;
 
         public void Initialize(RuntimeRemoteEndpointContext context)
         {
             _context = context;
             _maxQueuedLogs = context.Settings.MaxQueuedLogs;
+            SAS.Debug.LogLevelsChanged += OnLogLevelsChanged;
             if (context.Settings.StreamLogs)
                 Application.logMessageReceivedThreaded += OnLog;
         }
 
         public void Handle(RemoteEnvelope envelope)
         {
+            if (envelope.MessageType == RemoteMessageTypes.LogSettingsRequest)
+                SendSettings(envelope.RequestId);
         }
 
         public void Tick()
         {
-            if (_context == null || !_context.Settings.StreamLogs || !_sessionActive)
+            if (_context == null || !_sessionActive)
+                return;
+
+            if (Interlocked.Exchange(ref _settingsDirty, 0) != 0)
+                SendSettings(0);
+
+            if (!_context.Settings.StreamLogs)
                 return;
 
             Volatile.Write(ref _lastRuntimeFrame, Time.frameCount);
@@ -61,9 +74,11 @@ namespace SAS.Utilities.RemoteDevUtilities.Logging
 
         public void Dispose()
         {
+            SAS.Debug.LogLevelsChanged -= OnLogLevelsChanged;
             Application.logMessageReceivedThreaded -= OnLog;
             lock (_queueLock)
                 _queue.Clear();
+            Volatile.Write(ref _settingsDirty, 0);
             _context = null;
         }
 
@@ -72,9 +87,31 @@ namespace SAS.Utilities.RemoteDevUtilities.Logging
             _sessionActive = active;
             if (!active)
             {
+                Volatile.Write(ref _settingsDirty, 0);
                 lock (_queueLock)
                     _queue.Clear();
             }
+        }
+
+        private void OnLogLevelsChanged()
+        {
+            Volatile.Write(ref _settingsDirty, 1);
+        }
+
+        private void SendSettings(long requestId)
+        {
+            _context.Sender.Send(
+                RemoteMessageTypes.LogSettingsResponse,
+                requestId,
+                new RemoteLogSettingsResponse
+                {
+                    InfoEnabled =
+                        SAS.Debug.IsLogLevelEnabled(SAS.LogLevel.Info),
+                    WarningEnabled =
+                        SAS.Debug.IsLogLevelEnabled(SAS.LogLevel.Warning),
+                    ErrorEnabled =
+                        SAS.Debug.IsLogLevelEnabled(SAS.LogLevel.Error)
+                });
         }
 
         private void OnLog(string condition, string stackTrace, LogType type)

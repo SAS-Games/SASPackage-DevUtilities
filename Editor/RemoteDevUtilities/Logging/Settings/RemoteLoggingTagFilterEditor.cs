@@ -15,7 +15,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Logging.Settings
             EditorGUILayout.Space(3f);
             EditorGUILayout.LabelField("Tag Filters", EditorStyles.boldLabel);
             EditorGUILayout.LabelField(
-                "Target tags apply to SAS.Debug tagged logs. An empty list allows every tag.",
+                "Target tags apply to tagged debug logs. An empty list allows every tag.",
                 EditorStyles.wordWrappedMiniLabel);
 
             int removeIndex = -1;

@@ -46,7 +46,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
                 client.Clear();
             EditorGUILayout.EndHorizontal();
 
-            _targetSettings.Draw(commandClient, connected);
+            _targetSettings.Draw(client, commandClient, connected);
 
             if (!connected)
             {

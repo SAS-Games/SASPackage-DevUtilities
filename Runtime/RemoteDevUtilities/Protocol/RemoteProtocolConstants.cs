@@ -28,6 +28,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Protocol
         public const string CommandExecuteResponse = "commands.execute.response";
 
         public const string LogBatch = "logging.batch";
+        public const string LogSettingsRequest = "logging.settings.request";
+        public const string LogSettingsResponse = "logging.settings.response";
 
         public const string MiniToolCatalogRequest = "minitools.catalog.request";
         public const string MiniToolCatalogResponse = "minitools.catalog.response";

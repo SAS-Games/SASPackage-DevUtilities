@@ -1,4 +1,5 @@
 using SAS.Utilities.RemoteDevUtilities.Editor.Commands;
+using SAS.Utilities.RemoteDevUtilities.Editor.Logging;
 using UnityEditor;
 using UnityEngine;
 
@@ -17,9 +18,12 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Logging.Settings
         private RemoteStackTraceTarget _stackTraceTarget = RemoteStackTraceTarget.All;
         private StackTraceLogType _stackTraceMode = StackTraceLogType.ScriptOnly;
 
-        internal void Draw(RemoteCommandClient commandClient, bool connected)
+        internal void Draw(
+            RemoteLogClient logClient,
+            RemoteCommandClient commandClient,
+            bool connected)
         {
-            CaptureResult(commandClient);
+            CaptureResult(logClient, commandClient);
             if (!connected)
             {
                 _awaitingResult = false;
@@ -59,14 +63,31 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Logging.Settings
                     commandClient.RequestCatalog();
             }
 
-            EditorGUILayout.LabelField(
-                "These controls send actions to the Player; the current target state is not queried.",
-                EditorStyles.wordWrappedMiniLabel);
+            EditorGUILayout.LabelField("Debug Log Levels", EditorStyles.boldLabel);
+            if (connected && !logClient.HasTargetSettings)
+            {
+                EditorGUILayout.HelpBox(
+                    "The current Player log-level state has not been received.",
+                    MessageType.Info);
+                if (GUILayout.Button("Refresh Status", GUILayout.Width(110f)))
+                    logClient.RequestSettings();
+            }
 
-            EditorGUILayout.LabelField("SAS.Debug Log Levels", EditorStyles.boldLabel);
-            DrawLogLevel(commandClient, commandAvailable, RemoteLoggingLevel.Info);
-            DrawLogLevel(commandClient, commandAvailable, RemoteLoggingLevel.Warning);
-            DrawLogLevel(commandClient, commandAvailable, RemoteLoggingLevel.Error);
+            DrawLogLevel(
+                logClient,
+                commandClient,
+                commandAvailable,
+                RemoteLoggingLevel.Info);
+            DrawLogLevel(
+                logClient,
+                commandClient,
+                commandAvailable,
+                RemoteLoggingLevel.Warning);
+            DrawLogLevel(
+                logClient,
+                commandClient,
+                commandAvailable,
+                RemoteLoggingLevel.Error);
 
             EditorGUILayout.Space(3f);
             EditorGUILayout.LabelField("Stack Traces", EditorStyles.boldLabel);
@@ -99,26 +120,31 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Logging.Settings
         }
 
         private void DrawLogLevel(
+            RemoteLogClient logClient,
             RemoteCommandClient commandClient,
             bool canExecute,
             RemoteLoggingLevel level)
         {
+            bool enabled = IsEnabled(logClient, level);
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField(level.ToString(), GUILayout.Width(80f));
-            using (new EditorGUI.DisabledScope(!canExecute))
+            using (new EditorGUI.DisabledScope(
+                       !canExecute ||
+                       !logClient.HasTargetSettings ||
+                       _awaitingResult))
             {
-                if (GUILayout.Button("Enable", GUILayout.Width(70f)))
+                bool requested = GUILayout.Toggle(
+                    enabled,
+                    enabled ? "Enabled" : "Disabled",
+                    GUI.skin.button,
+                    GUILayout.Width(90f));
+                if (requested != enabled)
                 {
                     Execute(
                         commandClient,
-                        RemoteLoggingCommandBuilder.SetLogLevel(level, true));
-                }
-
-                if (GUILayout.Button("Disable", GUILayout.Width(70f)))
-                {
-                    Execute(
-                        commandClient,
-                        RemoteLoggingCommandBuilder.SetLogLevel(level, false));
+                        RemoteLoggingCommandBuilder.SetLogLevel(
+                            level,
+                            requested));
                 }
             }
 
@@ -133,7 +159,9 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Logging.Settings
             _awaitingResult = _pendingRequestId != 0;
         }
 
-        private void CaptureResult(RemoteCommandClient commandClient)
+        private void CaptureResult(
+            RemoteLogClient logClient,
+            RemoteCommandClient commandClient)
         {
             if (!_awaitingResult ||
                 commandClient.LastResult == null ||
@@ -145,6 +173,20 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Logging.Settings
             _resultMessage = commandClient.LastResult.Message ?? "Command completed.";
             _resultType =
                 commandClient.LastResult.Success ? MessageType.Info : MessageType.Error;
+            logClient.RequestSettings();
+        }
+
+        private static bool IsEnabled(
+            RemoteLogClient logClient,
+            RemoteLoggingLevel level)
+        {
+            return level switch
+            {
+                RemoteLoggingLevel.Info => logClient.InfoEnabled,
+                RemoteLoggingLevel.Warning => logClient.WarningEnabled,
+                RemoteLoggingLevel.Error => logClient.ErrorEnabled,
+                _ => false
+            };
         }
     }
 }
