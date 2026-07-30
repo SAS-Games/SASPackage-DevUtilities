@@ -11,7 +11,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
     /// settings.
     /// </summary>
     internal sealed class RemoteMiniToolCommandSettings :
-        ScriptableSingleton<RemoteMiniToolCommandSettings>
+       ScriptableSingleton<RemoteMiniToolCommandSettings>
     {
         internal static event Action Changed;
 

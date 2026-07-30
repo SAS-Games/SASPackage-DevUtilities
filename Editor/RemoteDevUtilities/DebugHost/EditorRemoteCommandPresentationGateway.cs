@@ -5,9 +5,7 @@ using SAS.Utilities.RemoteDevUtilities.Protocol.Commands;
 
 namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
 {
-    internal sealed class EditorRemoteCommandPresentationGateway :
-        IDeveloperConsoleCommandGateway,
-        IDisposable
+    internal sealed class EditorRemoteCommandPresentationGateway : IDeveloperConsoleCommandGateway, IDisposable
     {
         private readonly RemoteDevUtilitiesClient _client;
         private RemoteCommandDescriptor[] _lastCatalog;
@@ -50,8 +48,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
         {
             RemoteCommandDescriptor[] catalog = _client.Commands.Commands;
             string prefix = _client.Commands.Prefix;
-            if (!ReferenceEquals(_lastCatalog, catalog) ||
-                !string.Equals(_lastPrefix, prefix, StringComparison.Ordinal))
+            if (!ReferenceEquals(_lastCatalog, catalog) || !string.Equals(_lastPrefix, prefix, StringComparison.Ordinal))
             {
                 _lastCatalog = catalog;
                 _lastPrefix = prefix;
@@ -65,17 +62,12 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
                 _lastResult = result;
                 if (result != null)
                 {
-                    CommandCompleted?.Invoke(
-                        new DeveloperConsoleCommandResult(
-                            result.Success,
-                            result.CloseRequested,
-                            result.Message));
+                    CommandCompleted?.Invoke(new DeveloperConsoleCommandResult(result.Success, result.CloseRequested, result.Message));
                 }
             }
         }
 
-        private static DeveloperConsoleCommandDescriptor[] MapCommands(
-            RemoteCommandDescriptor[] commands)
+        private static DeveloperConsoleCommandDescriptor[] MapCommands(RemoteCommandDescriptor[] commands)
         {
             if (commands == null || commands.Length == 0)
                 return Array.Empty<DeveloperConsoleCommandDescriptor>();
@@ -84,13 +76,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
             for (int i = 0; i < commands.Length; i++)
             {
                 RemoteCommandDescriptor command = commands[i];
-                mapped[i] = command == null
-                    ? null
-                    : new DeveloperConsoleCommandDescriptor(
-                        command.Name,
-                        command.HelpText,
-                        command.Presets,
-                        command.CloseOnCompletion);
+                mapped[i] = command == null ? null : new DeveloperConsoleCommandDescriptor(command.Name, command.HelpText, command.Presets, command.CloseOnCompletion);
             }
 
             return mapped;

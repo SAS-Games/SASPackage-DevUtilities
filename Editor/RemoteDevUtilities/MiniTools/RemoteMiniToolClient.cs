@@ -21,9 +21,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools
         private const int MaximumQueuedStreamBatchesPerTool = 64;
         private readonly IRemoteEditorSession _session;
         private readonly Dictionary<string, RemoteMiniToolSample> _samples = new(StringComparer.OrdinalIgnoreCase);
-        private readonly Dictionary<string, Queue<RemoteMiniToolStreamBatch>>
-            _streamBatches =
-                new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, Queue<RemoteMiniToolStreamBatch>> _streamBatches = new(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> _subscriptions = new(StringComparer.OrdinalIgnoreCase);
 
         public RemoteMiniToolClient(IRemoteEditorSession session)
@@ -41,8 +39,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools
             _session.Send(RemoteMessageTypes.MiniToolCatalogRequest, new RemoteMiniToolCatalogRequest());
         }
 
-        public bool IsSubscribed(string toolId) =>
-            !string.IsNullOrWhiteSpace(toolId) && _subscriptions.Contains(toolId);
+        public bool IsSubscribed(string toolId) => !string.IsNullOrWhiteSpace(toolId) && _subscriptions.Contains(toolId);
 
         public bool TryGetTool(string toolId, out RemoteMiniToolDescriptor descriptor)
         {
@@ -65,23 +62,18 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools
         public void SetSubscription(string toolId, bool subscribe, float intervalSeconds)
         {
             float streamIntervalSeconds = 0f;
-            if (TryGetTool(
-                    toolId,
-                    out RemoteMiniToolDescriptor descriptor))
+            if (TryGetTool(toolId, out RemoteMiniToolDescriptor descriptor))
             {
-                streamIntervalSeconds =
-                    descriptor.DefaultStreamIntervalSeconds;
+                streamIntervalSeconds = descriptor.DefaultStreamIntervalSeconds;
             }
 
-            _session.Send(
-                RemoteMessageTypes.MiniToolSubscriptionRequest,
+            _session.Send(RemoteMessageTypes.MiniToolSubscriptionRequest,
                 new RemoteMiniToolSubscriptionRequest
                 {
                     ToolId = toolId,
                     Subscribe = subscribe,
                     IntervalSeconds = intervalSeconds,
-                    StreamIntervalSeconds =
-                        streamIntervalSeconds
+                    StreamIntervalSeconds = streamIntervalSeconds
                 });
         }
 
@@ -94,24 +86,16 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools
                 return;
             }
 
-            _session.Send(
-                RemoteMessageTypes.MiniToolActionRequest,
-                new RemoteMiniToolActionRequest
+            _session.Send(RemoteMessageTypes.MiniToolActionRequest, new RemoteMiniToolActionRequest
                 {
                     ToolId = toolId,
                     ActionId = actionId
                 });
         }
 
-        public void DrainStreamBatches(
-            string toolId,
-            ICollection<RemoteMiniToolStreamBatch> destination)
+        public void DrainStreamBatches(string toolId, ICollection<RemoteMiniToolStreamBatch> destination)
         {
-            if (string.IsNullOrWhiteSpace(toolId) ||
-                destination == null ||
-                !_streamBatches.TryGetValue(
-                    toolId,
-                    out Queue<RemoteMiniToolStreamBatch> batches))
+            if (string.IsNullOrWhiteSpace(toolId) || destination == null || !_streamBatches.TryGetValue(toolId, out Queue<RemoteMiniToolStreamBatch> batches))
             {
                 return;
             }
@@ -125,10 +109,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools
             switch (envelope.MessageType)
             {
                 case RemoteMessageTypes.MiniToolCatalogResponse:
-                    if (RemoteProtocolSerializer.TryDeserializePayload(
-                            envelope,
-                            out RemoteMiniToolCatalogResponse catalog,
-                            out string catalogError))
+                    if (RemoteProtocolSerializer.TryDeserializePayload(envelope, out RemoteMiniToolCatalogResponse catalog, out string catalogError))
                     {
                         Tools = catalog.Tools ?? Array.Empty<RemoteMiniToolDescriptor>();
                         Error = null;
@@ -140,10 +121,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools
 
                     break;
                 case RemoteMessageTypes.MiniToolSubscriptionResponse:
-                    if (RemoteProtocolSerializer.TryDeserializePayload(
-                            envelope,
-                            out RemoteMiniToolSubscriptionResponse subscription,
-                            out string subscriptionError))
+                    if (RemoteProtocolSerializer.TryDeserializePayload(envelope, out RemoteMiniToolSubscriptionResponse subscription, out string subscriptionError))
                     {
                         if (subscription.Success)
                         {
@@ -155,8 +133,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools
                             {
                                 _subscriptions.Remove(subscription.ToolId);
                                 _samples.Remove(subscription.ToolId);
-                                _streamBatches.Remove(
-                                    subscription.ToolId);
+                                _streamBatches.Remove(subscription.ToolId);
                             }
                         }
                         Error = subscription.Success ? null : subscription.Error;
@@ -168,10 +145,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools
 
                     break;
                 case RemoteMessageTypes.MiniToolActionResponse:
-                    if (RemoteProtocolSerializer.TryDeserializePayload(
-                            envelope,
-                            out RemoteMiniToolActionResponse action,
-                            out string actionError))
+                    if (RemoteProtocolSerializer.TryDeserializePayload(envelope, out RemoteMiniToolActionResponse action, out string actionError))
                     {
                         Error = action.Success ? null : action.Error;
                     }
@@ -182,34 +156,19 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools
 
                     break;
                 case RemoteMessageTypes.MiniToolSample:
-                    if (RemoteProtocolSerializer.TryDeserializePayload(
-                            envelope,
-                            out RemoteMiniToolSample sample,
-                            out _))
+                    if (RemoteProtocolSerializer.TryDeserializePayload(envelope, out RemoteMiniToolSample sample, out _))
                         _samples[sample.ToolId] = sample;
                     break;
                 case RemoteMessageTypes.MiniToolStreamBatch:
-                    if (RemoteProtocolSerializer.TryDeserializePayload(
-                            envelope,
-                            out RemoteMiniToolStreamBatch batch,
-                            out _) &&
-                        batch != null &&
-                        !string.IsNullOrWhiteSpace(batch.ToolId))
+                    if (RemoteProtocolSerializer.TryDeserializePayload(envelope, out RemoteMiniToolStreamBatch batch, out _) && batch != null && !string.IsNullOrWhiteSpace(batch.ToolId))
                     {
-                        if (!_streamBatches.TryGetValue(
-                                batch.ToolId,
-                                out Queue<RemoteMiniToolStreamBatch>
-                                    batches))
+                        if (!_streamBatches.TryGetValue(batch.ToolId, out Queue<RemoteMiniToolStreamBatch> batches))
                         {
-                            batches =
-                                new Queue<RemoteMiniToolStreamBatch>();
-                            _streamBatches.Add(
-                                batch.ToolId,
-                                batches);
+                            batches = new Queue<RemoteMiniToolStreamBatch>();
+                            _streamBatches.Add(batch.ToolId, batches);
                         }
 
-                        while (batches.Count >=
-                               MaximumQueuedStreamBatchesPerTool)
+                        while (batches.Count >= MaximumQueuedStreamBatchesPerTool)
                         {
                             batches.Dequeue();
                             batch.DroppedEventCount++;

@@ -27,10 +27,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
             if (RemoteRuntimeDebuggerCommandPresentation.TryExecute(_client, commandName, arguments))
                 return;
 
-            if (!TryResolveBinding(
-                    commandName,
-                    out RemoteCommandPresentationBinding binding) ||
-                binding.Routing == RemoteCommandRouting.ExecuteInBuildOnly)
+            if (!TryResolveBinding(commandName, out RemoteCommandPresentationBinding binding) || binding.Routing == RemoteCommandRouting.ExecuteInBuildOnly)
             {
                 _client.Commands.Execute(commandLine);
                 return;
@@ -56,8 +53,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
 
             ApplyPresentation(binding, descriptor, visible);
 
-            if (binding.Routing ==
-                RemoteCommandRouting.ExecuteInBuildAndControlEditorTool)
+            if (binding.Routing == RemoteCommandRouting.ExecuteInBuildAndControlEditorTool)
             {
                 _client.Commands.Execute(commandLine);
                 return;
@@ -68,36 +64,21 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
             Complete(true, $"{action} Editor presentation for '{displayName}'.");
         }
 
-        private bool TryResolveBinding(
-            string commandName,
-            out RemoteCommandPresentationBinding binding)
+        private bool TryResolveBinding(string commandName, out RemoteCommandPresentationBinding binding)
         {
-            if (RemoteCommandPresentationRegistry
-                    .TryGetAdvancedRegistration(
-                        commandName,
-                        out binding))
+            if (RemoteCommandPresentationRegistry.TryGetAdvancedRegistration(commandName, out binding))
                 return true;
 
-            if (RemoteCommandPresentationRegistry.TryGetProjectOverride(
-                    commandName,
-                    out binding))
+            if (RemoteCommandPresentationRegistry.TryGetProjectOverride(commandName, out binding))
                 return true;
 
-            if (RemoteMiniToolCommandManifestResolver.TryFindBinding(
-                    _client.MiniTools.Tools,
-                    commandName,
-                    out RemoteCommandPresentationBinding targetBinding) &&
-                !RemoteCommandPresentationRegistry
-                    .HasProjectOverrideForMiniTool(
-                        targetBinding.MiniToolId))
+            if (RemoteMiniToolCommandManifestResolver.TryFindBinding(_client.MiniTools.Tools, commandName, out RemoteCommandPresentationBinding targetBinding) && !RemoteCommandPresentationRegistry.HasProjectOverrideForMiniTool(targetBinding.MiniToolId))
             {
                 binding = targetBinding;
                 return true;
             }
 
-            return RemoteCommandPresentationRegistry.TryGetDefinitionBinding(
-                commandName,
-                out binding);
+            return RemoteCommandPresentationRegistry.TryGetDefinitionBinding(commandName, out binding);
         }
 
         private void ApplyPresentation(RemoteCommandPresentationBinding binding, RemoteMiniToolDescriptor descriptor, bool visible)

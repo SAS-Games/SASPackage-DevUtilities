@@ -13,6 +13,8 @@ GameObject:
   - component: {fileID: 5181882616318872658}
   - component: {fileID: 5015909938340262309}
   - component: {fileID: -3520410633918169989}
+  - component: {fileID: 9200000000000000001}
+  - component: {fileID: 9200000000000000002}
   - component: {fileID: 9000000000000000001}
   m_Layer: 5
   m_Name: GraphicsInfo
@@ -130,6 +132,32 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Display: {fileID: 1724246866650035880}
+--- !u!114 &9200000000000000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4840794096766531456}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a182a49bb7045c1af33a8907c9c3ba2, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+--- !u!114 &9200000000000000002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4840794096766531456}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed2ad72ea3fc4e88b88f5bc2c53cc51a, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  m_SnapshotProvider: {fileID: 9200000000000000001}
+  m_View: {fileID: -3520410633918169989}
 --- !u!1 &6637460683620314620
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,82 +1,62 @@
-﻿using TMPro;
+using System.Text;
+using SAS.DevUtilities;
+using TMPro;
 using UnityEngine;
-using UnityEngine.Rendering;
-#if UNITY_RENDER_PIPELINE_UNIVERSAL
-using UnityEngine.Rendering.Universal;
-#endif
 
-public class GraphicsInfo : MonoBehaviour
+/// <summary>
+/// View-only renderer shared by the Player and Editor Debug Host.
+/// </summary>
+public sealed class GraphicsInfo :
+    MonoBehaviour,
+    IMiniToolSnapshotView<GraphicsInfoSnapshot>
 {
     [SerializeField] private TMP_Text m_Display = default;
 
-    public void Refresh(bool verbose)
+    public void ApplySnapshot(in GraphicsInfoSnapshot snapshot)
     {
-        m_Display.text = Info(verbose);
-    }
-    private string Info(bool verbose)
-    {
-        // Graphics API & GPU Info
-        string api = SystemInfo.graphicsDeviceType.ToString();
-        string gpu = SystemInfo.graphicsDeviceName;
-        int vram = SystemInfo.graphicsMemorySize;
+        if (m_Display == null)
+            return;
 
-        // Quality Settings (shared)
-        string quality = QualitySettings.names[QualitySettings.GetQualityLevel()];
-        int vSync = QualitySettings.vSyncCount;
-        float lodBias = QualitySettings.lodBias;
+        var text = new StringBuilder(512);
+        text.AppendLine("<b>Graphics Info</b>")
+            .Append("GPU: ").AppendLine(snapshot.GraphicsDeviceName)
+            .Append("VRAM: ").Append(snapshot.GraphicsMemorySizeMb)
+            .AppendLine(" MB")
+            .Append("API: ").AppendLine(snapshot.GraphicsApi)
+            .Append("Quality: ").AppendLine(snapshot.QualityName)
+            .Append("VSync: ").AppendLine(snapshot.VSyncCount.ToString())
+            .Append("Shadows: ").AppendLine(snapshot.Shadows)
+            .Append("LOD Bias: ").AppendLine(snapshot.LodBias.ToString())
+            .Append("Target FPS: ")
+            .AppendLine(
+                snapshot.TargetFrameRate <= 0
+                    ? "Platform Default"
+                    : snapshot.TargetFrameRate.ToString());
 
-        // Application Target FPS
-        int fpsTarget = Application.targetFrameRate;
-
-        // Defaults (classic pipeline)
-        string shadows = QualitySettings.shadows.ToString();
-        string aa = QualitySettings.antiAliasing > 0 ? $"{QualitySettings.antiAliasing}x MSAA" : "None";
-        bool hdr = Camera.main != null && Camera.main.allowHDR;
-        float renderScale = -1f;
-        string anisotropic = QualitySettings.anisotropicFiltering.ToString();
-
-        // If URP is active, override with URP asset values
-#if UNITY_RENDER_PIPELINE_UNIVERSAL
-
-        if (GraphicsSettings.currentRenderPipeline is UniversalRenderPipelineAsset urp)
+        if (snapshot.HasRenderScale)
         {
-            shadows = urp.supportsMainLightShadows ? "Enabled" : "Disabled";
-            renderScale = urp.renderScale;
-            aa = urp.msaaSampleCount > 1 ? $"{urp.msaaSampleCount}x MSAA" : "None";
-            hdr = urp.supportsHDR;
+            text.Append("Render Scale: ")
+                .AppendLine(snapshot.RenderScale.ToString());
         }
-#endif
 
-        // Build base summary
-        string info =
-            $"<b>Graphics Info</b>\n" +
-            $"GPU: {gpu}\n" +
-            $"VRAM: {vram} MB\n" +
-            $"API: {api}\n" +
-            $"Quality: {quality}\n" +
-            $"VSync: {vSync}\n" +
-            $"Shadows: {shadows}\n" +
-            $"LOD Bias: {lodBias}\n" +
-            $"Target FPS: {(fpsTarget <= 0 ? "Platform Default" : fpsTarget.ToString())}\n" +
-            (renderScale > 0 ? $"Render Scale: {renderScale}\n" : "");
-
-        // Add extended info if verbose mode
-        if (verbose)
+        if (snapshot.Verbose)
         {
-            string renderResolution = $"{Screen.width}x{Screen.height}";
-            string screenResolution = $"{Screen.currentResolution.width}x{Screen.currentResolution.height} @ {Screen.currentResolution.refreshRateRatio}Hz";
-            string fullscreen = Screen.fullScreen ? "Fullscreen" : "Windowed";
-
-            info +=
-                "\n--- Extended Info ---\n" +
-                $"Render Resolution: {renderResolution}\n"+
-                $"Screen Resolution: {screenResolution}\n" +
-                $"Mode: {fullscreen}\n" +
-                $"Anti-Aliasing: {aa}\n" +
-                $"HDR: {hdr}\n" +
-                $"Anisotropic: {anisotropic}\n";
+            text.AppendLine()
+                .AppendLine("--- Extended Info ---")
+                .Append("Render Resolution: ")
+                .AppendLine(snapshot.RenderResolution)
+                .Append("Screen Resolution: ")
+                .AppendLine(snapshot.ScreenResolution)
+                .Append("Mode: ")
+                .AppendLine(snapshot.WindowMode)
+                .Append("Anti-Aliasing: ")
+                .AppendLine(snapshot.AntiAliasing)
+                .Append("HDR: ")
+                .AppendLine(snapshot.HdrEnabled.ToString())
+                .Append("Anisotropic: ")
+                .AppendLine(snapshot.AnisotropicFiltering);
         }
-        return info;
-    }
 
+        m_Display.text = text.ToString();
+    }
 }

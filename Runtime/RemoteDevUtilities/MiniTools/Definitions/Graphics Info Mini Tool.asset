@@ -22,6 +22,6 @@ MonoBehaviour:
     DevUtilities.RemoteDevUtilities
   _command: {fileID: 11400000, guid: 2866690c879503b4ba21fbd27ea85ea6, type: 2}
   _commandName: GraphicsInfo
-  _commandRouting: 1
+  _commandRouting: 2
   _debugHostPrefabGuid: bd1979776bb352b4f810c758891710fb
   _visibleByDefault: 1

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using SAS.Utilities.DeveloperConsole;
 using SAS.Utilities.RemoteDevUtilities.Protocol.Commands;
 
 namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
@@ -16,12 +17,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
     {
         private readonly RemoteCommandVisibilityParser _visibilityParser;
 
-        public RemoteCommandPresentationBinding(
-            string commandName,
-            string miniToolId,
-            RemoteCommandRouting routing =
-                RemoteCommandRouting.ControlEditorToolOnly,
-            RemoteCommandVisibilityParser visibilityParser = null)
+        public RemoteCommandPresentationBinding(string commandName, string miniToolId, RemoteCommandRouting routing = RemoteCommandRouting.ControlEditorToolOnly, RemoteCommandVisibilityParser visibilityParser = null)
         {
             if (string.IsNullOrWhiteSpace(commandName))
                 throw new ArgumentException("A command name is required.", nameof(commandName));
@@ -31,8 +27,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
             }
             if (!Enum.IsDefined(typeof(RemoteCommandRouting), routing))
                 throw new ArgumentOutOfRangeException(nameof(routing));
-            if (routing != RemoteCommandRouting.ExecuteInBuildOnly &&
-                string.IsNullOrWhiteSpace(miniToolId))
+            if (routing != RemoteCommandRouting.ExecuteInBuildOnly && string.IsNullOrWhiteSpace(miniToolId))
                 throw new ArgumentException("A mini-tool id is required.", nameof(miniToolId));
 
             CommandName = commandName.Trim();
@@ -51,8 +46,9 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
         }
 
         /// <summary>
-        /// Default parser used by a binding. No argument means show; the first argument accepts
-        /// on/off, true/false, or 1/0. Additional arguments are left for the command.
+        /// Default parser used by a binding. No argument means show; the first
+        /// argument uses the same BoolUtil syntax as Player commands.
+        /// Additional arguments are left for the command.
         /// </summary>
         public static bool TryParseToggle(IReadOnlyList<string> arguments, out bool visible)
         {
@@ -60,20 +56,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
             if (arguments == null || arguments.Count == 0)
                 return true;
 
-            string value = arguments[0];
-            if (value.Equals("on", StringComparison.OrdinalIgnoreCase) || value.Equals("true", StringComparison.OrdinalIgnoreCase) || value == "1")
-            {
-                visible = true;
-                return true;
-            }
-
-            if (value.Equals("off", StringComparison.OrdinalIgnoreCase) || value.Equals("false", StringComparison.OrdinalIgnoreCase) || value == "0")
-            {
-                visible = false;
-                return true;
-            }
-
-            return false;
+            return BoolUtil.TryParse(arguments[0], out visible);
         }
     }
 }

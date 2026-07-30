@@ -7,9 +7,7 @@ namespace SAS.Utilities.DeveloperConsole
         private readonly DeveloperConsoleCommandDescriptor _descriptor;
         private readonly IDeveloperConsoleCommandGateway _gateway;
 
-        public GatewayConsoleCommandProxy(
-            DeveloperConsoleCommandDescriptor descriptor,
-            IDeveloperConsoleCommandGateway gateway)
+        public GatewayConsoleCommandProxy(DeveloperConsoleCommandDescriptor descriptor, IDeveloperConsoleCommandGateway gateway)
         {
             _descriptor = descriptor;
             _gateway = gateway;
@@ -24,21 +22,13 @@ namespace SAS.Utilities.DeveloperConsole
         {
         }
 
-        public bool HelpRequest(
-            string command,
-            string[] args,
-            out string message)
+        public bool HelpRequest(string command, string[] args, out string message)
         {
             message = HelpText;
-            return args != null &&
-                   args.Length > 0 &&
-                   args[0].Equals("help", StringComparison.OrdinalIgnoreCase);
+            return args != null && args.Length > 0 && args[0].Equals("help", StringComparison.OrdinalIgnoreCase);
         }
 
-        public bool Process(
-            DeveloperConsoleBehaviour developerConsole,
-            string command,
-            string[] args = null)
+        public bool Process(DeveloperConsoleBehaviour developerConsole, string command, string[] args = null)
         {
             string commandLine = command;
             if (args != null && args.Length > 0)
@@ -50,8 +40,7 @@ namespace SAS.Utilities.DeveloperConsole
 
         public bool Contains(string commandName)
         {
-            if (string.IsNullOrWhiteSpace(commandName) ||
-                string.IsNullOrWhiteSpace(Name))
+            if (string.IsNullOrWhiteSpace(commandName) || string.IsNullOrWhiteSpace(Name))
                 return false;
 
             string root = commandName.Split('.')[0];

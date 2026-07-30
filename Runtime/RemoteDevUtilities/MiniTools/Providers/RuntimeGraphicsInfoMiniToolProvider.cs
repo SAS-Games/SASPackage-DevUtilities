@@ -1,27 +1,76 @@
+using SAS.DevUtilities;
 using SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools;
-using UnityEngine;
 
 namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
 {
     [UnityEngine.Scripting.Preserve]
     internal sealed class RuntimeGraphicsInfoMiniToolProvider :
-        MiniToolFieldDataProvider
+        MiniToolDataProvider<GraphicsInfoSnapshot>,
+        IMiniToolFieldProvider
     {
-        public override RemoteMiniToolField[] CaptureFields()
+        public override bool TryGetSnapshot(
+            out GraphicsInfoSnapshot snapshot)
         {
+            snapshot = CaptureSnapshot();
+            return true;
+        }
+
+        public RemoteMiniToolField[] CaptureFields()
+        {
+            GraphicsInfoSnapshot snapshot = CaptureSnapshot();
             return new[]
             {
-                Field("device", "Graphics Device", SystemInfo.graphicsDeviceName),
-                Field("vendor", "Vendor", SystemInfo.graphicsDeviceVendor),
-                Field("api", "Graphics API", SystemInfo.graphicsDeviceType.ToString()),
-                Field("version", "Driver/API Version", SystemInfo.graphicsDeviceVersion),
-                Field("memory", "Graphics Memory", SystemInfo.graphicsMemorySize.ToString(), "MiB"),
-                Field("shaderLevel", "Shader Level", SystemInfo.graphicsShaderLevel.ToString()),
-                Field("maxTexture", "Max Texture Size", SystemInfo.maxTextureSize.ToString(), "px"),
-                Field("compute", "Compute Shaders", SystemInfo.supportsComputeShaders.ToString()),
-                Field("instancing", "GPU Instancing", SystemInfo.supportsInstancing.ToString()),
-                Field("rayTracing", "Ray Tracing", SystemInfo.supportsRayTracing.ToString())
+                Field(
+                    "device",
+                    "Graphics Device",
+                    snapshot.GraphicsDeviceName),
+                Field(
+                    "vendor",
+                    "Vendor",
+                    snapshot.GraphicsDeviceVendor),
+                Field(
+                    "api",
+                    "Graphics API",
+                    snapshot.GraphicsApi),
+                Field(
+                    "version",
+                    "Driver/API Version",
+                    snapshot.GraphicsDeviceVersion),
+                Field(
+                    "memory",
+                    "Graphics Memory",
+                    snapshot.GraphicsMemorySizeMb.ToString(),
+                    "MiB"),
+                Field(
+                    "shaderLevel",
+                    "Shader Level",
+                    snapshot.GraphicsShaderLevel.ToString()),
+                Field(
+                    "maxTexture",
+                    "Max Texture Size",
+                    snapshot.MaxTextureSize.ToString(),
+                    "px"),
+                Field(
+                    "compute",
+                    "Compute Shaders",
+                    snapshot.SupportsComputeShaders.ToString()),
+                Field(
+                    "instancing",
+                    "GPU Instancing",
+                    snapshot.SupportsInstancing.ToString()),
+                Field(
+                    "rayTracing",
+                    "Ray Tracing",
+                    snapshot.SupportsRayTracing.ToString())
             };
+        }
+
+        private static GraphicsInfoSnapshot CaptureSnapshot()
+        {
+            return GraphicsInfoSnapshotProvider
+                .TryGetRequestedSnapshot(out GraphicsInfoSnapshot snapshot)
+                    ? snapshot
+                    : GraphicsInfoSnapshotCollector.Capture(false);
         }
 
         private static RemoteMiniToolField Field(
