@@ -99,7 +99,10 @@ namespace SAS.Utilities.DeveloperConsole
                     }
                 }
 
-                return _developerConsole = new DeveloperConsole(m_Prefix, allCommands);
+                SetDeveloperConsole(
+                    new DeveloperConsole(m_Prefix, allCommands),
+                    false);
+                return _developerConsole;
             }
         }
 
@@ -169,6 +172,7 @@ namespace SAS.Utilities.DeveloperConsole
 
         private void OnDestroy()
         {
+            SetDeveloperConsole(null, false);
             if (Instance == this)
                 Instance = null;
         }
@@ -328,7 +332,7 @@ namespace SAS.Utilities.DeveloperConsole
             _commandGateway = gateway;
             if (_commandGateway == null)
             {
-                _developerConsole = null;
+                SetDeveloperConsole(null, true);
                 return;
             }
 
@@ -528,12 +532,37 @@ namespace SAS.Utilities.DeveloperConsole
                         _commandGateway));                                         
             }                                                                      
                                                                                    
-            _developerConsole = new DeveloperConsole(                              
-                _commandGateway.Prefix ?? string.Empty,                            
-                commands);                                                         
-            CommandsChanged?.Invoke();                                             
+            SetDeveloperConsole(
+                new DeveloperConsole(
+                    _commandGateway.Prefix ?? string.Empty,
+                    commands),
+                true);
             InputChangedEvent?.Invoke(m_InputField != null ? m_InputField.text : string.Empty);
-        }                                                                           
+        }
+
+        private void SetDeveloperConsole(
+            DeveloperConsole console,
+            bool notify)
+        {
+            if (ReferenceEquals(_developerConsole, console))
+                return;
+
+            if (_developerConsole != null)
+                _developerConsole.CommandsChanged -= OnCommandsChanged;
+
+            _developerConsole = console;
+
+            if (_developerConsole != null)
+                _developerConsole.CommandsChanged += OnCommandsChanged;
+
+            if (notify)
+                OnCommandsChanged();
+        }
+
+        private void OnCommandsChanged()
+        {
+            CommandsChanged?.Invoke();
+        }
                                                                                     
         private void OnGatewayCommandCompleted(DeveloperConsoleCommandResult response)                                 
         {                                                                           

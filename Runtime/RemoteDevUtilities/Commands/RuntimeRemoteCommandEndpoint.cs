@@ -9,7 +9,9 @@ using RuntimeConsole = SAS.Utilities.DeveloperConsole.DeveloperConsole;
 
 namespace SAS.Utilities.RemoteDevUtilities.Commands
 {
-    internal sealed class RuntimeRemoteCommandEndpoint : IRuntimeRemoteEndpoint
+    internal sealed class RuntimeRemoteCommandEndpoint :
+        IRuntimeRemoteEndpoint,
+        IRuntimeRemoteSessionListener
     {
         private static readonly string[] SupportedMessages =
         {
@@ -18,10 +20,17 @@ namespace SAS.Utilities.RemoteDevUtilities.Commands
         };
 
         private RuntimeRemoteEndpointContext _context;
+        private DeveloperConsoleBehaviour _behaviour;
+        private bool _catalogDirty;
+        private bool _remoteSessionActive;
 
         public IEnumerable<string> MessageTypes => SupportedMessages;
 
-        public void Initialize(RuntimeRemoteEndpointContext context) => _context = context;
+        public void Initialize(RuntimeRemoteEndpointContext context)
+        {
+            _context = context;
+            EnsureConsoleSubscription();
+        }
 
         public void Handle(RemoteEnvelope envelope)
         {
@@ -38,13 +47,32 @@ namespace SAS.Utilities.RemoteDevUtilities.Commands
 
         public void Tick()
         {
+            EnsureConsoleSubscription();
+            if (!_remoteSessionActive || !_catalogDirty)
+                return;
+
+            SendCatalog(0);
         }
 
-        public void Dispose() => _context = null;
+        public void Dispose()
+        {
+            SetConsoleBehaviour(null);
+            _remoteSessionActive = false;
+            _catalogDirty = false;
+            _context = null;
+        }
+
+        public void OnRemoteSessionStateChanged(bool active)
+        {
+            _remoteSessionActive = active;
+            if (!active)
+                _catalogDirty = false;
+        }
 
         private void SendCatalog(long requestId)
         {
             DeveloperConsoleBehaviour behaviour = RuntimeDeveloperConsoleProvider.GetOrCreate();
+            SetConsoleBehaviour(behaviour);
             if (behaviour == null)
             {
                 _context.Sender.Send(
@@ -54,6 +82,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Commands
                     {
                         Error = "The runtime Developer Console has not been created."
                     });
+                _catalogDirty = false;
                 return;
             }
 
@@ -82,6 +111,40 @@ namespace SAS.Utilities.RemoteDevUtilities.Commands
                     Prefix = console._prefix ?? string.Empty,
                     Commands = descriptors.ToArray()
                 });
+            _catalogDirty = false;
+        }
+
+        private void EnsureConsoleSubscription()
+        {
+            DeveloperConsoleBehaviour current =
+                DeveloperConsoleBehaviour.Instance;
+            if (current == null && _behaviour == null)
+                current = RuntimeDeveloperConsoleProvider.GetOrCreate();
+
+            SetConsoleBehaviour(current);
+        }
+
+        private void SetConsoleBehaviour(
+            DeveloperConsoleBehaviour behaviour)
+        {
+            if (_behaviour == behaviour)
+                return;
+
+            if (_behaviour != null)
+                _behaviour.CommandsChanged -= OnCommandsChanged;
+
+            _behaviour = behaviour;
+
+            if (_behaviour != null)
+            {
+                _ = _behaviour.DeveloperConsole;
+                _behaviour.CommandsChanged += OnCommandsChanged;
+            }
+        }
+
+        private void OnCommandsChanged()
+        {
+            _catalogDirty = true;
         }
 
         private void Execute(RemoteEnvelope envelope)

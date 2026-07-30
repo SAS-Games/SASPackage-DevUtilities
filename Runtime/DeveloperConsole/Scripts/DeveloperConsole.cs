@@ -13,6 +13,7 @@ namespace SAS.Utilities.DeveloperConsole
         private readonly CommandHistory _commandHistory = new();
         public readonly List<IConsoleCommand> ConsoleCommands = new List<IConsoleCommand>();
         public CommandHistory CommandHistory => _commandHistory;
+        public event Action CommandsChanged;
 
         public DeveloperConsole(string prefix, IEnumerable<IConsoleCommand> consoleCommands)
         {
@@ -109,6 +110,7 @@ namespace SAS.Utilities.DeveloperConsole
             _commandSuggester.Insert($"{this._prefix}{cmd.Name}");
             foreach (var preset in cmd.Presets)
                 _commandSuggester.Insert($"{this._prefix}{preset}");
+            CommandsChanged?.Invoke();
         }
 
         public void RemoveCommand(IConsoleCommand cmd)
@@ -126,6 +128,8 @@ namespace SAS.Utilities.DeveloperConsole
                 foreach (var preset in cmd.Presets)
                     _commandSuggester.Remove($"{this._prefix}{preset}");
             }
+
+            CommandsChanged?.Invoke();
         }
     }
 }
