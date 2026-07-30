@@ -53,21 +53,35 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
 
             return new[]
             {
-                Field("renderers", "Renderers", renderers.Length),
-                Field("activeRenderers", "Active Renderers", activeRenderers),
-                Field("visibleRenderers", "Visible Renderers", visibleRenderers),
-                Field("shadowCasters", "Shadow Casters", shadowCasters),
-                Field("materials", "Unique Materials", materials.Count),
-                Field("cameras", "Active Cameras", activeCameras),
-                Field("lights", "Active Lights", activeLights)
+                CreateField(
+                    "renderers",
+                    "Renderers",
+                    renderers.Length.ToString()),
+                CreateField(
+                    "activeRenderers",
+                    "Active Renderers",
+                    activeRenderers.ToString()),
+                CreateField(
+                    "visibleRenderers",
+                    "Visible Renderers",
+                    visibleRenderers.ToString()),
+                CreateField(
+                    "shadowCasters",
+                    "Shadow Casters",
+                    shadowCasters.ToString()),
+                CreateField(
+                    "materials",
+                    "Unique Materials",
+                    materials.Count.ToString()),
+                CreateField(
+                    "cameras",
+                    "Active Cameras",
+                    activeCameras.ToString()),
+                CreateField(
+                    "lights",
+                    "Active Lights",
+                    activeLights.ToString())
             };
         }
-
-        private static RemoteMiniToolField Field(string name, string displayName, int value) => new()
-        {
-            Name = name,
-            DisplayName = displayName,
-            Value = value.ToString()
-        };
     }
 }

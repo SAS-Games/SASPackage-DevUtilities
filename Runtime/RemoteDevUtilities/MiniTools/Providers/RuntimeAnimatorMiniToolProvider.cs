@@ -33,19 +33,27 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
 
             return new[]
             {
-                Field("total", "Total Animators", animators.Length),
-                Field("active", "Active Animators", active),
-                Field("initialized", "Initialized", initialized),
-                Field("alwaysAnimate", "Always Animate", alwaysAnimate),
-                Field("cullCompletely", "Cull Completely", culled)
+                CreateField(
+                    "total",
+                    "Total Animators",
+                    animators.Length.ToString()),
+                CreateField(
+                    "active",
+                    "Active Animators",
+                    active.ToString()),
+                CreateField(
+                    "initialized",
+                    "Initialized",
+                    initialized.ToString()),
+                CreateField(
+                    "alwaysAnimate",
+                    "Always Animate",
+                    alwaysAnimate.ToString()),
+                CreateField(
+                    "cullCompletely",
+                    "Cull Completely",
+                    culled.ToString())
             };
         }
-
-        private static RemoteMiniToolField Field(string name, string displayName, int value) => new()
-        {
-            Name = name,
-            DisplayName = displayName,
-            Value = value.ToString()
-        };
     }
 }

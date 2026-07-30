@@ -80,17 +80,14 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
             string displayName,
             InputLatencyStatistics statistics)
         {
-            return new RemoteMiniToolField
-            {
-                Name = name,
-                DisplayName = displayName,
-                Value =
-                    statistics == null ||
-                    statistics.SampleCount == 0
-                        ? "0.00"
-                        : statistics.Average.ToString("F2"),
-                Unit = "ms"
-            };
+            return CreateField(
+                name,
+                displayName,
+                statistics == null ||
+                statistics.SampleCount == 0
+                    ? "0.00"
+                    : statistics.Average.ToString("F2"),
+                "ms");
         }
 
         private static RemoteMiniToolField CountField(
@@ -98,13 +95,10 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
             string displayName,
             InputLatencyStatistics statistics)
         {
-            return new RemoteMiniToolField
-            {
-                Name = name,
-                DisplayName = displayName,
-                Value =
-                    (statistics?.SampleCount ?? 0).ToString()
-            };
+            return CreateField(
+                name,
+                displayName,
+                (statistics?.SampleCount ?? 0).ToString());
         }
 #else
         public override bool TryGetSnapshot(
@@ -131,12 +125,10 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
         {
             return new[]
             {
-                new RemoteMiniToolField
-                {
-                    Name = "status",
-                    DisplayName = "Status",
-                    Value = "Requires ENABLE_DEBUG"
-                }
+                CreateField(
+                    "status",
+                    "Status",
+                    "Requires ENABLE_DEBUG")
             };
         }
 #endif

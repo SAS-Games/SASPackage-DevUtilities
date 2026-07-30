@@ -4,12 +4,9 @@ using SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools;
 namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
 {
     [UnityEngine.Scripting.Preserve]
-    internal sealed class RuntimeGraphicsInfoMiniToolProvider :
-        MiniToolDataProvider<GraphicsInfoSnapshot>,
-        IMiniToolFieldProvider
+    internal sealed class RuntimeGraphicsInfoMiniToolProvider : MiniToolDataProvider<GraphicsInfoSnapshot>, IMiniToolFieldProvider
     {
-        public override bool TryGetSnapshot(
-            out GraphicsInfoSnapshot snapshot)
+        public override bool TryGetSnapshot(out GraphicsInfoSnapshot snapshot)
         {
             snapshot = CaptureSnapshot();
             return true;
@@ -20,45 +17,45 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
             GraphicsInfoSnapshot snapshot = CaptureSnapshot();
             return new[]
             {
-                Field(
+                CreateField(
                     "device",
                     "Graphics Device",
                     snapshot.GraphicsDeviceName),
-                Field(
+                CreateField(
                     "vendor",
                     "Vendor",
                     snapshot.GraphicsDeviceVendor),
-                Field(
+                CreateField(
                     "api",
                     "Graphics API",
                     snapshot.GraphicsApi),
-                Field(
+                CreateField(
                     "version",
                     "Driver/API Version",
                     snapshot.GraphicsDeviceVersion),
-                Field(
+                CreateField(
                     "memory",
                     "Graphics Memory",
                     snapshot.GraphicsMemorySizeMb.ToString(),
                     "MiB"),
-                Field(
+                CreateField(
                     "shaderLevel",
                     "Shader Level",
                     snapshot.GraphicsShaderLevel.ToString()),
-                Field(
+                CreateField(
                     "maxTexture",
                     "Max Texture Size",
                     snapshot.MaxTextureSize.ToString(),
                     "px"),
-                Field(
+                CreateField(
                     "compute",
                     "Compute Shaders",
                     snapshot.SupportsComputeShaders.ToString()),
-                Field(
+                CreateField(
                     "instancing",
                     "GPU Instancing",
                     snapshot.SupportsInstancing.ToString()),
-                Field(
+                CreateField(
                     "rayTracing",
                     "Ray Tracing",
                     snapshot.SupportsRayTracing.ToString())
@@ -67,23 +64,8 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
 
         private static GraphicsInfoSnapshot CaptureSnapshot()
         {
-            return GraphicsInfoSnapshotProvider
-                .TryGetRequestedSnapshot(out GraphicsInfoSnapshot snapshot)
-                    ? snapshot
-                    : GraphicsInfoSnapshotCollector.Capture(false);
+            return GraphicsInfoSnapshotProvider.TryGetRequestedSnapshot(out GraphicsInfoSnapshot snapshot) ? snapshot : GraphicsInfoSnapshotCollector.Capture(false);
         }
 
-        private static RemoteMiniToolField Field(
-            string name,
-            string displayName,
-            string value,
-            string unit = "") =>
-            new()
-            {
-                Name = name,
-                DisplayName = displayName,
-                Value = value,
-                Unit = unit
-            };
     }
 }

@@ -18,54 +18,38 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
                 return Array.Empty<Type>();
 
             var snapshotTypes = new List<Type>();
-            foreach (MonoBehaviour behaviour in
-                     prefab.GetComponentsInChildren<MonoBehaviour>(true))
+            foreach (MonoBehaviour behaviour in prefab.GetComponentsInChildren<MonoBehaviour>(true))
             {
                 if (behaviour == null)
                     continue;
 
-                foreach (Type implementedInterface in
-                         behaviour.GetType().GetInterfaces())
+                foreach (Type implementedInterface in behaviour.GetType().GetInterfaces())
                 {
-                    if (!implementedInterface.IsGenericType ||
-                        implementedInterface.GetGenericTypeDefinition() !=
-                        SnapshotViewType)
+                    if (!implementedInterface.IsGenericType || implementedInterface.GetGenericTypeDefinition() != SnapshotViewType)
                     {
                         continue;
                     }
 
-                    Type snapshotType =
-                        implementedInterface.GetGenericArguments()[0];
+                    Type snapshotType = implementedInterface.GetGenericArguments()[0];
                     if (!snapshotTypes.Contains(snapshotType))
                         snapshotTypes.Add(snapshotType);
                 }
             }
 
-            snapshotTypes.Sort(
-                (left, right) => string.Compare(
-                    left.FullName,
-                    right.FullName,
-                    StringComparison.Ordinal));
+            snapshotTypes.Sort((left, right) => string.Compare(left.FullName, right.FullName, StringComparison.Ordinal));
             return snapshotTypes.ToArray();
         }
 
-        internal static bool HasCompatibleSnapshot(
-            Type providerType,
-            IEnumerable<Type> viewSnapshotTypes)
+        internal static bool HasCompatibleSnapshot(Type providerType, IEnumerable<Type> viewSnapshotTypes)
         {
             if (providerType == null || viewSnapshotTypes == null)
                 return false;
 
-            Type[] providerSnapshotTypes =
-                MiniToolProviderCapabilities.GetSnapshotTypes(providerType);
+            Type[] providerSnapshotTypes = MiniToolProviderCapabilities.GetSnapshotTypes(providerType);
             foreach (Type viewSnapshotType in viewSnapshotTypes)
             {
-                if (Array.IndexOf(
-                        providerSnapshotTypes,
-                        viewSnapshotType) >= 0)
-                {
+                if (Array.IndexOf(providerSnapshotTypes, viewSnapshotType) >= 0)
                     return true;
-                }
             }
 
             return false;
@@ -87,12 +71,7 @@ public sealed class {className} : MiniToolFieldDataProvider
     {{
         return new[]
         {{
-            new RemoteMiniToolField
-            {{
-                Name = ""status"",
-                DisplayName = ""Status"",
-                Value = ""Running""
-            }}
+            CreateField(""status"", ""Status"", ""Running"")
         }};
     }}
 }}
@@ -130,22 +109,15 @@ public sealed class {className} :
             if (type == null)
                 throw new ArgumentNullException(nameof(type));
             if (type.IsArray)
-            {
-                return GetCSharpTypeName(type.GetElementType()) +
-                       "[]";
-            }
+                return GetCSharpTypeName(type.GetElementType()) + "[]";
 
             if (!type.IsGenericType)
             {
-                return "global::" +
-                       (type.FullName ?? type.Name)
-                       .Replace('+', '.');
+                return "global::" + (type.FullName ?? type.Name).Replace('+', '.');
             }
 
             Type definition = type.GetGenericTypeDefinition();
-            string definitionName =
-                (definition.FullName ?? definition.Name)
-                .Replace('+', '.');
+            string definitionName = (definition.FullName ?? definition.Name).Replace('+', '.');
             int arityMarker = definitionName.IndexOf('`');
             if (arityMarker >= 0)
                 definitionName = definitionName.Substring(0, arityMarker);

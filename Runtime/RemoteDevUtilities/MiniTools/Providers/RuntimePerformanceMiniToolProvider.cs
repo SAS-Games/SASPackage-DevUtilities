@@ -99,35 +99,35 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
                 TryGetStatsSnapshot(out StatsSnapshot snapshot);
             var fields = new List<RemoteMiniToolField>(8)
             {
-                Field(
+                CreateField(
                     "fps",
                     "FPS",
                     (hasSnapshot
                         ? snapshot.AverageFps
                         : 0d).ToString("F1"),
                     "fps"),
-                Field(
+                CreateField(
                     "frameTime",
                     "Average Frame Time",
                     (hasSnapshot
                         ? snapshot.AverageFrameTimeMs
                         : 0d).ToString("F2"),
                     "ms"),
-                Field(
+                CreateField(
                     "targetFrameRate",
                     "Target Frame Rate",
                     (hasSnapshot
                         ? snapshot.TargetFrameRate
                         : Application.targetFrameRate).ToString(),
                     "fps"),
-                Field(
+                CreateField(
                     "vSync",
                     "VSync Count",
                     (hasSnapshot
                         ? snapshot.VSyncCount
                         : QualitySettings.vSyncCount).ToString(),
                     string.Empty),
-                Field(
+                CreateField(
                     "allocatedMemory",
                     "Allocated Memory",
                     ToMebibytes(
@@ -135,7 +135,7 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
                             ? snapshot.AllocatedMemoryBytes
                             : 0L).ToString("F2"),
                     "MiB"),
-                Field(
+                CreateField(
                     "reservedMemory",
                     "Reserved Memory",
                     ToMebibytes(
@@ -143,7 +143,7 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
                             ? snapshot.ReservedMemoryBytes
                             : 0L).ToString("F2"),
                     "MiB"),
-                Field(
+                CreateField(
                     "monoHeap",
                     "Mono Heap",
                     ToMebibytes(
@@ -217,19 +217,5 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
             _hasPendingFpsSnapshot = false;
         }
 
-        private static RemoteMiniToolField Field(
-            string name,
-            string displayName,
-            string value,
-            string unit)
-        {
-            return new RemoteMiniToolField
-            {
-                Name = name,
-                DisplayName = displayName,
-                Value = value,
-                Unit = unit
-            };
-        }
     }
 }

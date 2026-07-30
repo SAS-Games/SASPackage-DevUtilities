@@ -51,11 +51,11 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
                 FrameStepperSnapshotCollector.Capture();
             return new[]
             {
-                Field(
+                CreateField(
                     "state",
                     "State",
                     snapshot.IsPaused ? "Paused" : "Running"),
-                Field(
+                CreateField(
                     "timeScale",
                     "Time Scale",
                     snapshot.TimeScale.ToString("0.###"))
@@ -101,15 +101,5 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
             };
         }
 
-        private static RemoteMiniToolField Field(string name, string displayName, string value)
-        {
-            return new RemoteMiniToolField
-            {
-                Name = name,
-                DisplayName = displayName,
-                Value = value,
-                Unit = string.Empty
-            };
-        }
     }
 }

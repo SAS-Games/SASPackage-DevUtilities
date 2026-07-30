@@ -29,18 +29,23 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
 
             return new[]
             {
-                Field("total", "Particle Systems", systems.Length),
-                Field("active", "Active Systems", active),
-                Field("alive", "Alive Systems", alive),
-                Field("particles", "Live Particles", particles)
+                CreateField(
+                    "total",
+                    "Particle Systems",
+                    systems.Length.ToString()),
+                CreateField(
+                    "active",
+                    "Active Systems",
+                    active.ToString()),
+                CreateField(
+                    "alive",
+                    "Alive Systems",
+                    alive.ToString()),
+                CreateField(
+                    "particles",
+                    "Live Particles",
+                    particles.ToString())
             };
         }
-
-        private static RemoteMiniToolField Field(string name, string displayName, int value) => new()
-        {
-            Name = name,
-            DisplayName = displayName,
-            Value = value.ToString()
-        };
     }
 }

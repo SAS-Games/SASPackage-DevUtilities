@@ -24,6 +24,21 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools
     public abstract class MiniToolDataProvider : IMiniToolDataProvider
     {
         /// <summary>
+        /// Creates a consistently initialized Native Workspace field.
+        /// Providers remain responsible for formatting values and units.
+        /// </summary>
+        protected static RemoteMiniToolField CreateField(string name, string displayName, string value, string unit = "")
+        {
+            return new RemoteMiniToolField
+            {
+                Name = name,
+                DisplayName = displayName,
+                Value = value ?? string.Empty,
+                Unit = unit ?? string.Empty
+            };
+        }
+
+        /// <summary>
         /// Describes optional controls that Native Workspace and a shared
         /// Debug Host prefab can send to this provider.
         /// </summary>
@@ -36,9 +51,7 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools
         /// Executes one of the actions returned by <see cref="GetActions"/>.
         /// Data-only providers do not need to override this method.
         /// </summary>
-        public virtual bool TryExecuteAction(
-            string actionId,
-            out string error)
+        public virtual bool TryExecuteAction(string actionId, out string error)
         {
             error = "This mini-tool does not expose remote actions.";
             return false;
@@ -84,36 +97,21 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools
     /// Convenience base for a recoverable snapshot plus incremental
     /// event batches. Existing snapshot-only providers remain unchanged.
     /// </summary>
-    public abstract class MiniToolStreamingDataProvider<TSnapshot, TEvent> :
-        MiniToolDataProvider<TSnapshot>,
-        IMiniToolStreamProvider<TEvent>,
-        IRemoteMiniToolStreamCapture
-        where TSnapshot : IMiniToolSnapshot
-        where TEvent : IMiniToolStreamEvent
+    public abstract class MiniToolStreamingDataProvider<TSnapshot, TEvent> : MiniToolDataProvider<TSnapshot>, IMiniToolStreamProvider<TEvent>, IRemoteMiniToolStreamCapture where TSnapshot : IMiniToolSnapshot where TEvent : IMiniToolStreamEvent
     {
-        public abstract bool TryGetEvents(
-            out TEvent[] events,
-            out int droppedEventCount);
+        public abstract bool TryGetEvents(out TEvent[] events, out int droppedEventCount);
 
-        bool IRemoteMiniToolStreamCapture.TryCapture(
-            out string eventTypeName,
-            out string eventsJson,
-            out int droppedEventCount)
+        bool IRemoteMiniToolStreamCapture.TryCapture(out string eventTypeName, out string eventsJson, out int droppedEventCount)
         {
             eventTypeName = string.Empty;
             eventsJson = string.Empty;
             droppedEventCount = 0;
-            if (!TryGetEvents(
-                    out TEvent[] events,
-                    out droppedEventCount))
+            if (!TryGetEvents(out TEvent[] events, out droppedEventCount))
             {
                 return false;
             }
 
-            return RemoteMiniToolStreamSerializer.TrySerialize(
-                events,
-                out eventTypeName,
-                out eventsJson);
+            return RemoteMiniToolStreamSerializer.TrySerialize(events, out eventTypeName, out eventsJson);
         }
     }
 }
