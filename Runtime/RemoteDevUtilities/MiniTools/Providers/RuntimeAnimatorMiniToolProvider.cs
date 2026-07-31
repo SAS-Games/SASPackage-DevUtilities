@@ -1,59 +1,63 @@
+using SAS.DevUtilities;
 using SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools;
-using UnityEngine;
+using Unity.Profiling;
 
 namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
 {
     [UnityEngine.Scripting.Preserve]
-    internal sealed class RuntimeAnimatorMiniToolProvider :
-        MiniToolFieldDataProvider
+    internal sealed class RuntimeAnimatorMiniToolProvider : MiniToolDataProvider<AnimatorStatsSnapshot>, IMiniToolFieldProvider
     {
-        public override RemoteMiniToolField[] CaptureFields()
+        private ProfilerRecorder _animationUpdateRecorder;
+        private AnimatorStatsSnapshot _latestSnapshot;
+        private bool _hasLatestSnapshot;
+
+        public override void Start()
         {
-            Animator[] animators = Object.FindObjectsByType<Animator>(
-                FindObjectsInactive.Include,
-                FindObjectsSortMode.None);
-            int active = 0;
-            int initialized = 0;
-            int alwaysAnimate = 0;
-            int culled = 0;
+            DisposeRecorder();
+            _animationUpdateRecorder = ProfilerRecorder.StartNew(ProfilerCategory.Animation, "Animators.Update");
+            _hasLatestSnapshot = false;
+        }
 
-            foreach (Animator animator in animators)
-            {
-                if (animator == null)
-                    continue;
-                if (animator.enabled && animator.gameObject.activeInHierarchy)
-                    active++;
-                if (animator.isInitialized)
-                    initialized++;
-                if (animator.cullingMode == AnimatorCullingMode.AlwaysAnimate)
-                    alwaysAnimate++;
-                else if (animator.cullingMode == AnimatorCullingMode.CullCompletely)
-                    culled++;
-            }
+        public override void Stop()
+        {
+            DisposeRecorder();
+            _latestSnapshot = default;
+            _hasLatestSnapshot = false;
+        }
 
+        public override bool TryGetSnapshot(out AnimatorStatsSnapshot snapshot)
+        {
+            snapshot = AnimatorStatsSnapshotCollector.Capture(in _animationUpdateRecorder);
+            _latestSnapshot = snapshot;
+            _hasLatestSnapshot = true;
+            return true;
+        }
+
+        public RemoteMiniToolField[] CaptureFields()
+        {
+            if (!_hasLatestSnapshot)
+                TryGetSnapshot(out _latestSnapshot);
+
+            AnimatorStatsSnapshot snapshot = _latestSnapshot;
+            int active = snapshot.ActiveAlways + snapshot.ActiveCullUpdate + snapshot.ActiveCullCompletely;
+            int disabled = snapshot.DisabledAlways + snapshot.DisabledCullUpdate + snapshot.DisabledCullCompletely;
             return new[]
             {
-                CreateField(
-                    "total",
-                    "Total Animators",
-                    animators.Length.ToString()),
-                CreateField(
-                    "active",
-                    "Active Animators",
-                    active.ToString()),
-                CreateField(
-                    "initialized",
-                    "Initialized",
-                    initialized.ToString()),
-                CreateField(
-                    "alwaysAnimate",
-                    "Always Animate",
-                    alwaysAnimate.ToString()),
-                CreateField(
-                    "cullCompletely",
-                    "Cull Completely",
-                    culled.ToString())
+                CreateField("total", "Total Animators", snapshot.Total.ToString()),
+                CreateField("initialized", "Initialized", snapshot.Initialized.ToString()),
+                CreateField("active", "Active Animators", active.ToString()),
+                CreateField("disabled", "Disabled Animators", disabled.ToString()),
+                CreateField("activeAlways", "Active / Always", snapshot.ActiveAlways.ToString()),
+                CreateField("activeCullUpdate", "Active / Cull Update", snapshot.ActiveCullUpdate.ToString()),
+                CreateField("activeCullCompletely", "Active / Cull Completely", snapshot.ActiveCullCompletely.ToString()),
+                CreateField("cpu", "Animator CPU", snapshot.HasCpuTiming ? snapshot.CpuTimeMs.ToString("F3") : "Unavailable", snapshot.HasCpuTiming ? "ms" : string.Empty)
             };
+        }
+
+        private void DisposeRecorder()
+        {
+            if (_animationUpdateRecorder.Valid)
+                _animationUpdateRecorder.Dispose();
         }
     }
 }

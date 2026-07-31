@@ -211,7 +211,6 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost.MiniTools
             }
 
             // Legacy mini-tools have not adopted IMiniToolSnapshotProvider yet.
-            Disable<AnimatorStats>(instance);
             Disable<ParticleStats>(instance);
         }
 

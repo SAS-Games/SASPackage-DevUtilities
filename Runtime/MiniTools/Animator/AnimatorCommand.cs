@@ -1,32 +1,33 @@
+using SAS.DevUtilities;
 using UnityEngine;
 
 namespace SAS.Utilities.DeveloperConsole
 {
-    [CreateAssetMenu(fileName = "New Animator Command", menuName = DeveloperConsole.CommandBasePath + "Animator Command")]
+    [CreateAssetMenu(
+        fileName = "New Animator Command",
+        menuName =
+            DeveloperConsole.CommandBasePath + "Animator Command")]
     public class AnimatorCommand : CompositeConsoleCommand
     {
         [SerializeField] private GameObject m_AnimatorStatsPrefab;
         private GameObject _statsInstance;
+
         public override string HelpText => "";
 
         private bool ShowStats(string[] args)
         {
-            if (args != null && args.Length > 0)
+            if (args == null ||
+                args.Length == 0 ||
+                !BoolUtil.TryParse(args[0], out bool isVisible))
             {
-                if (BoolUtil.TryParse(args[0], out var isVisible))
-                {
-                    if (_statsInstance == null)
-                    {
-                        _statsInstance = Object.Instantiate(m_AnimatorStatsPrefab);
-                        _statsInstance.name = "AnimatorStatsUI";
-                    }
-
-                    Presentation.DevUtilityUiVisibility.SetVisible(_statsInstance, isVisible);
-                    return true;
-                }
+                return false;
             }
 
-            return false;
+            EnsureStatsInstance();
+            Presentation.DevUtilityUiVisibility.SetVisible(
+                _statsInstance,
+                isVisible);
+            return true;
         }
 
         private bool SetCulling(string[] args)
@@ -35,45 +36,66 @@ namespace SAS.Utilities.DeveloperConsole
                 return false;
 
             AnimatorCullingMode mode;
-
-            switch (args[0].ToLower())
+            switch (args[0].ToLowerInvariant())
             {
                 case "always":
                     mode = AnimatorCullingMode.AlwaysAnimate;
                     break;
                 case "cullupdate":
                 case "update":
-                    mode = AnimatorCullingMode.CullUpdateTransforms;
+                    mode =
+                        AnimatorCullingMode.CullUpdateTransforms;
                     break;
                 case "cull":
                     mode = AnimatorCullingMode.CullCompletely;
                     break;
                 default:
-                    Debug.LogError("Unknown mode. Use: always | cullupdate | cull");
+                    Debug.LogError(
+                        "Unknown mode. Use: always | cullupdate | cull");
                     return false;
             }
-            Animator[] animatorsInScene = FindObjectsByType<Animator>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-            foreach (var animator in animatorsInScene)
-                animator.cullingMode = mode;
 
-            Debug.Log($"AnimatorCull: Set mode = {mode} on {animatorsInScene.Length} animators");
+            Animator[] animatorsInScene =
+                Object.FindObjectsByType<Animator>(
+                    FindObjectsInactive.Include,
+                    FindObjectsSortMode.None);
+            foreach (Animator animator in animatorsInScene)
+            {
+                if (animator != null)
+                    animator.cullingMode = mode;
+            }
+
+            Debug.Log(
+                $"AnimatorCull: Set mode = {mode} on " +
+                $"{animatorsInScene.Length} animators");
             return true;
         }
 
         private bool Refresh(string[] args)
         {
+            EnsureStatsInstance();
+            AnimatorStatsSnapshotProvider provider =
+                _statsInstance.GetComponent<
+                    AnimatorStatsSnapshotProvider>();
+            if (provider == null)
+                return false;
 
-            if (_statsInstance == null)
-            {
-                _statsInstance = Instantiate(m_AnimatorStatsPrefab);
-                _statsInstance.name = "ParticleStatsUI";
-            }
-
-            Presentation.DevUtilityUiVisibility.SetVisible(_statsInstance, false);
-            Presentation.DevUtilityUiVisibility.SetVisible(_statsInstance, true);
-            Debug.Log("Particle Stats UI Refreshed.");
-
+            provider.Refresh();
+            Presentation.DevUtilityUiVisibility.SetVisible(
+                _statsInstance,
+                true);
+            Debug.Log("Animator Stats UI Refreshed.");
             return true;
+        }
+
+        private void EnsureStatsInstance()
+        {
+            if (_statsInstance != null)
+                return;
+
+            _statsInstance = Object.Instantiate(
+                m_AnimatorStatsPrefab);
+            _statsInstance.name = "AnimatorStatsUI";
         }
     }
 }
