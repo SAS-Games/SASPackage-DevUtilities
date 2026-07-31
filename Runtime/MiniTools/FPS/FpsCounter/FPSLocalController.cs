@@ -7,6 +7,7 @@ namespace SAS.DevUtilities
     /// </summary>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(FPSSnapshotProvider), typeof(FPS))]
+    [AddComponentMenu("Dev Utilities/FPS/Controller")]
     public sealed class FPSLocalController : MonoBehaviour, IMiniToolLocalController
     {
         [SerializeField] private FPSSnapshotProvider m_SnapshotProvider;

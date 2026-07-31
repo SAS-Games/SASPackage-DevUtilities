@@ -6,6 +6,7 @@ namespace SAS.DevUtilities
     /// <summary>
     /// View-only component for the GameInfo prefab.
     /// </summary>
+    [AddComponentMenu("Dev Utilities/GameInfo/View")]
     public sealed class GameInfoComponent : MonoBehaviour, IMiniToolSnapshotView<GameInfoSnapshot>
     {
         [SerializeField] private Text m_TextInfo;

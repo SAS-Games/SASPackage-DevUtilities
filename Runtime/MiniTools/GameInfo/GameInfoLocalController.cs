@@ -9,6 +9,7 @@ namespace SAS.DevUtilities
     /// </summary>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(GameInfoSnapshotProvider), typeof(GameInfoComponent))]
+    [AddComponentMenu("Dev Utilities/GameInfo/Controller")]
     public sealed class GameInfoLocalController : MonoBehaviour, IMiniToolLocalController
     {
         [SerializeField] private GameInfoSnapshotProvider m_SnapshotProvider;

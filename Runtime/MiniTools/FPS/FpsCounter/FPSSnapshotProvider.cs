@@ -6,6 +6,7 @@ namespace SAS.DevUtilities
     /// Publishes lightweight FPS snapshots for Players. It contains
     /// no UI rendering logic.
     /// </summary>
+    [AddComponentMenu("Dev Utilities/FPS/SnapshotProvider")]
     public sealed class FPSSnapshotProvider : MiniToolSnapshotProviderBehaviour<FPSSnapshot>
     {
         private const float MinimumUpdateInterval = 0.05f;

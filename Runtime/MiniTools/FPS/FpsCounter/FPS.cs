@@ -8,6 +8,7 @@ namespace SAS.DevUtilities
     /// <summary>
     /// View-only component for the lightweight FPS presentation.
     /// </summary>
+    [AddComponentMenu("Dev Utilities/FPS/view")]
     public sealed class FPS : UIBehaviour, IMiniToolSnapshotView<FPSSnapshot>
     {
         private const string ColorRed = "<color=#FF0000>";

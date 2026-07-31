@@ -6,9 +6,8 @@ using UnityEngine;
 /// <summary>
 /// View-only renderer shared by the Player and Editor Debug Host.
 /// </summary>
-public sealed class GraphicsInfo :
-    MonoBehaviour,
-    IMiniToolSnapshotView<GraphicsInfoSnapshot>
+[AddComponentMenu("Dev Utilities/GraphicInfo/View")]
+public sealed class GraphicsInfo : MonoBehaviour, IMiniToolSnapshotView<GraphicsInfoSnapshot>
 {
     [SerializeField] private TMP_Text m_Display = default;
 
@@ -28,16 +27,10 @@ public sealed class GraphicsInfo :
             .Append("Shadows: ").AppendLine(snapshot.Shadows)
             .Append("LOD Bias: ").AppendLine(snapshot.LodBias.ToString())
             .Append("Target FPS: ")
-            .AppendLine(
-                snapshot.TargetFrameRate <= 0
-                    ? "Platform Default"
-                    : snapshot.TargetFrameRate.ToString());
+            .AppendLine(snapshot.TargetFrameRate <= 0 ? "Platform Default" : snapshot.TargetFrameRate.ToString());
 
         if (snapshot.HasRenderScale)
-        {
-            text.Append("Render Scale: ")
-                .AppendLine(snapshot.RenderScale.ToString());
-        }
+            text.Append("Render Scale: ").AppendLine(snapshot.RenderScale.ToString());
 
         if (snapshot.Verbose)
         {

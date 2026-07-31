@@ -8,6 +8,7 @@ namespace SAS.DevUtilities.Stats
     /// </summary>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(StatsSnapshotProvider), typeof(Stats))]
+    [AddComponentMenu("Dev Utilities/Stats/Controller")]
     public sealed class StatsLocalController : MonoBehaviour, IMiniToolLocalController
     {
         [SerializeField] private StatsSnapshotProvider m_SnapshotProvider;

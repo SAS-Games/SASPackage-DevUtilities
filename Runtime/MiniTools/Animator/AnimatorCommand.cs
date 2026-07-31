@@ -3,10 +3,7 @@ using UnityEngine;
 
 namespace SAS.Utilities.DeveloperConsole
 {
-    [CreateAssetMenu(
-        fileName = "New Animator Command",
-        menuName =
-            DeveloperConsole.CommandBasePath + "Animator Command")]
+    [CreateAssetMenu(fileName = "New Animator Command", menuName = DeveloperConsole.CommandBasePath + "Animator Command")]
     public class AnimatorCommand : CompositeConsoleCommand
     {
         [SerializeField] private GameObject m_AnimatorStatsPrefab;
@@ -16,17 +13,11 @@ namespace SAS.Utilities.DeveloperConsole
 
         private bool ShowStats(string[] args)
         {
-            if (args == null ||
-                args.Length == 0 ||
-                !BoolUtil.TryParse(args[0], out bool isVisible))
-            {
+            if (args == null || args.Length == 0 || !BoolUtil.TryParse(args[0], out bool isVisible))
                 return false;
-            }
 
             EnsureStatsInstance();
-            Presentation.DevUtilityUiVisibility.SetVisible(
-                _statsInstance,
-                isVisible);
+            Presentation.DevUtilityUiVisibility.SetVisible(_statsInstance, isVisible);
             return true;
         }
 
@@ -55,35 +46,26 @@ namespace SAS.Utilities.DeveloperConsole
                     return false;
             }
 
-            Animator[] animatorsInScene =
-                Object.FindObjectsByType<Animator>(
-                    FindObjectsInactive.Include,
-                    FindObjectsSortMode.None);
+            Animator[] animatorsInScene = FindObjectsByType<Animator>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             foreach (Animator animator in animatorsInScene)
             {
                 if (animator != null)
                     animator.cullingMode = mode;
             }
 
-            Debug.Log(
-                $"AnimatorCull: Set mode = {mode} on " +
-                $"{animatorsInScene.Length} animators");
+            Debug.Log($"AnimatorCull: Set mode = {mode} on {animatorsInScene.Length} animators");
             return true;
         }
 
         private bool Refresh(string[] args)
         {
             EnsureStatsInstance();
-            AnimatorStatsSnapshotProvider provider =
-                _statsInstance.GetComponent<
-                    AnimatorStatsSnapshotProvider>();
+            AnimatorStatsSnapshotProvider provider = _statsInstance.GetComponent<AnimatorStatsSnapshotProvider>();
             if (provider == null)
                 return false;
 
             provider.Refresh();
-            Presentation.DevUtilityUiVisibility.SetVisible(
-                _statsInstance,
-                true);
+            Presentation.DevUtilityUiVisibility.SetVisible(_statsInstance, true);
             Debug.Log("Animator Stats UI Refreshed.");
             return true;
         }
@@ -93,8 +75,7 @@ namespace SAS.Utilities.DeveloperConsole
             if (_statsInstance != null)
                 return;
 
-            _statsInstance = Object.Instantiate(
-                m_AnimatorStatsPrefab);
+            _statsInstance = Object.Instantiate(m_AnimatorStatsPrefab);
             _statsInstance.name = "AnimatorStatsUI";
         }
     }

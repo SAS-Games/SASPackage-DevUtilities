@@ -6,6 +6,7 @@ namespace SAS.DevUtilities.Stats
     /// Samples performance data and publishes Stats snapshots for the local Player
     /// prefab. It contains no UI rendering logic.
     /// </summary>
+    [AddComponentMenu("Dev Utilities/Stats/SnapshotProvider")]
     public sealed class StatsSnapshotProvider : MiniToolSnapshotProviderBehaviour<StatsSnapshot>
     {
         private const float MinimumUpdateInterval = 0.05f;

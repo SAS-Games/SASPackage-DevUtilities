@@ -9,8 +9,8 @@ namespace SAS.DevUtilities
     /// Debug Host.
     /// </summary>
     [DisallowMultipleComponent]
-    public sealed class GraphicsInfoSnapshotProvider :
-        MiniToolSnapshotProviderBehaviour<GraphicsInfoSnapshot>
+    [AddComponentMenu("Dev Utilities/GraphicInfo/Provider")]
+    public sealed class GraphicsInfoSnapshotProvider : MiniToolSnapshotProviderBehaviour<GraphicsInfoSnapshot>
     {
         private static GraphicsInfoSnapshotProvider _requestedProvider;
         private bool _requestedVisible;
@@ -43,22 +43,15 @@ namespace SAS.DevUtilities
 
         public void Refresh(bool verbose)
         {
-            GraphicsInfoSnapshot snapshot =
-                GraphicsInfoSnapshotCollector.Capture(verbose);
+            GraphicsInfoSnapshot snapshot = GraphicsInfoSnapshotCollector.Capture(verbose);
             PublishSnapshot(in snapshot);
         }
 
-        public static bool TryGetRequestedSnapshot(
-            out GraphicsInfoSnapshot snapshot)
+        public static bool TryGetRequestedSnapshot(out GraphicsInfoSnapshot snapshot)
         {
-            GraphicsInfoSnapshotProvider provider =
-                _requestedProvider;
-            if (provider != null &&
-                provider._requestedVisible &&
-                provider.TryGetSnapshot(out snapshot))
-            {
+            GraphicsInfoSnapshotProvider provider = _requestedProvider;
+            if (provider != null && provider._requestedVisible && provider.TryGetSnapshot(out snapshot))
                 return true;
-            }
 
             snapshot = default;
             return false;

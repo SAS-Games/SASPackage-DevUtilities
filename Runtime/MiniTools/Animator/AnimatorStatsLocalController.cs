@@ -49,7 +49,7 @@ namespace SAS.DevUtilities
                 m_SnapshotProvider = GetComponent<AnimatorStatsSnapshotProvider>();
 
             if (m_View == null)
-                m_View = GetComponent<global::AnimatorStats>();
+                m_View = GetComponent<AnimatorStats>();
         }
 
 #if UNITY_EDITOR

@@ -8,6 +8,7 @@ namespace SAS.DevUtilities.Stats
     /// <summary>
     /// View-only component for the Stats prefab.
     /// </summary>
+    [AddComponentMenu("Dev Utilities/Stats/View")]
     public sealed class Stats : UIBehaviour, IMiniToolSnapshotView<StatsSnapshot>
     {
         private const double BytesPerGibibyte = 1073741824d;
