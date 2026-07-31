@@ -43,7 +43,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
 
             EditorGUILayout.LabelField(
                 "Use lightweight Editor-native panels, or launch the existing Developer Console, " +
-                "Runtime Debugger, and mini-tool prefabs in an isolated Play Mode scene.",
+                "Runtime Scene Inspector, and mini-tool prefabs in an isolated Play Mode scene.",
                 EditorStyles.wordWrappedMiniLabel);
             EditorGUILayout.Space(6f);
 

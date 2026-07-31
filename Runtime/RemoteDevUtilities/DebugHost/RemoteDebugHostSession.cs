@@ -1,32 +1,32 @@
 using System;
-using SAS.Utilities.RuntimeDebugger.Core;
+using SAS.Utilities.RuntimeSceneInspector.Core;
 
 namespace SAS.Utilities.RemoteDevUtilities.DebugHost
 {
     /// <summary>Shared state for the Editor-only Play Mode Debug Host.</summary>
     public static class RemoteDebugHostSession
     {
-        public static IRuntimeDebugger RuntimeDebugger { get; private set; }
-        public static bool RuntimeDebuggerPresentationVisible { get; private set; }
+        public static IRuntimeSceneInspector RuntimeSceneInspector { get; private set; }
+        public static bool RuntimeSceneInspectorPresentationVisible { get; private set; }
 
-        public static event Action<bool> RuntimeDebuggerPresentationVisibilityChanged;
+        public static event Action<bool> RuntimeSceneInspectorPresentationVisibilityChanged;
 
-        public static void Install(IRuntimeDebugger runtimeDebugger)
+        public static void Install(IRuntimeSceneInspector runtimeSceneInspector)
         {
-            RuntimeDebugger = runtimeDebugger;
-            SetRuntimeDebuggerPresentationVisible(false);
+            RuntimeSceneInspector = runtimeSceneInspector;
+            SetRuntimeSceneInspectorPresentationVisible(false);
         }
 
         public static void Clear()
         {
-            SetRuntimeDebuggerPresentationVisible(false);
-            RuntimeDebugger = null;
+            SetRuntimeSceneInspectorPresentationVisible(false);
+            RuntimeSceneInspector = null;
         }
 
-        public static void SetRuntimeDebuggerPresentationVisible(bool visible)
+        public static void SetRuntimeSceneInspectorPresentationVisible(bool visible)
         {
-            RuntimeDebuggerPresentationVisible = visible;
-            RuntimeDebuggerPresentationVisibilityChanged?.Invoke(visible);
+            RuntimeSceneInspectorPresentationVisible = visible;
+            RuntimeSceneInspectorPresentationVisibilityChanged?.Invoke(visible);
         }
     }
 }

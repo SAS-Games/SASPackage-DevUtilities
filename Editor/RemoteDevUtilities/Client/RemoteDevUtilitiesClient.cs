@@ -6,7 +6,7 @@ using SAS.Utilities.RemoteDevUtilities.Editor.Connection;
 using SAS.Utilities.RemoteDevUtilities.Editor.Connection.Tcp;
 using SAS.Utilities.RemoteDevUtilities.Editor.Logging;
 using SAS.Utilities.RemoteDevUtilities.Editor.MiniTools;
-using SAS.Utilities.RemoteDevUtilities.Editor.RuntimeDebugger;
+using SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector;
 using SAS.Utilities.RemoteDevUtilities.Protocol;
 using SAS.Utilities.RemoteDevUtilities.Protocol.Connection;
 using SAS.Utilities.RemoteDevUtilities.Protocol.Serialization;
@@ -38,13 +38,13 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
             Commands = new RemoteCommandClient(this);
             Logs = new RemoteLogClient(this);
             MiniTools = new RemoteMiniToolClient(this);
-            RuntimeDebugger = new RemoteRuntimeDebuggerClient(this);
+            RuntimeSceneInspector = new RemoteRuntimeSceneInspectorClient(this);
             CommandPresentation = new RemoteCommandPresentationCoordinator(this);
 
             AddFeature(Commands);
             AddFeature(Logs);
             AddFeature(MiniTools);
-            AddFeature(RuntimeDebugger);
+            AddFeature(RuntimeSceneInspector);
 
             _playerTransport.MessageReceived += OnPlayerMessage;
             _playerTransport.PlayerConnected += OnPlayerListChanged;
@@ -64,7 +64,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
         public RemoteCommandPresentationCoordinator CommandPresentation { get; }
         public RemoteLogClient Logs { get; }
         public RemoteMiniToolClient MiniTools { get; }
-        public RemoteRuntimeDebuggerClient RuntimeDebugger { get; }
+        public RemoteRuntimeSceneInspectorClient RuntimeSceneInspector { get; }
         public int SelectedPlayerId { get; private set; } = -1;
         public RemoteEditorConnectionKind ConnectionKind { get; private set; }
         public string SelectedTargetName { get; private set; }
@@ -291,7 +291,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
             Commands.RequestCatalog();
             Logs.RequestSettings();
             MiniTools.RequestCatalog();
-            RuntimeDebugger.RequestHierarchy(true);
+            RuntimeSceneInspector.RequestHierarchy(true);
             NotifyStateChanged();
         }
 

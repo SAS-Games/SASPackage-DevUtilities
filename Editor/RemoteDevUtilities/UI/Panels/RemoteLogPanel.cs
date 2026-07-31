@@ -20,9 +20,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
         private bool _showErrors = true;
         private bool _showStackTrace;
         private bool _autoScroll = true;
-        private Vector2 _scroll;
 
-        public void Draw(
+        public bool Draw(
             RemoteLogClient client,
             RemoteCommandClient commandClient,
             bool connected)
@@ -51,11 +50,10 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
             if (!connected)
             {
                 EditorGUILayout.HelpBox("Connect to a runtime Player to stream logs.", MessageType.Info);
-                return;
+                return false;
             }
 
             IReadOnlyList<RemoteLogEntry> entries = client.Entries;
-            _scroll = EditorGUILayout.BeginScrollView(_scroll);
             int first = Mathf.Max(0, entries.Count - 600);
             for (int i = first; i < entries.Count; i++)
             {
@@ -74,9 +72,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
                 EditorGUILayout.EndVertical();
             }
 
-            if (_autoScroll && Event.current.type == EventType.Repaint)
-                _scroll.y = float.MaxValue;
-            EditorGUILayout.EndScrollView();
+            return _autoScroll && Event.current.type == EventType.Repaint;
         }
 
         private bool ShouldShow(RemoteLogEntry entry)

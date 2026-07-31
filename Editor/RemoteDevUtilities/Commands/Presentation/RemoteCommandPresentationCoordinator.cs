@@ -24,7 +24,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
                 return;
             }
 
-            if (RemoteRuntimeDebuggerCommandPresentation.TryExecute(_client, commandName, arguments))
+            if (RemoteRuntimeSceneInspectorCommandPresentation.TryExecute(_client, commandName, arguments))
                 return;
 
             if (!TryResolveBinding(commandName, out RemoteCommandPresentationBinding binding) || binding.Routing == RemoteCommandRouting.ExecuteInBuildOnly)

@@ -20,7 +20,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
         private const string RestoreScenesKey =
             "RemoteDevUtilities.RestoreScenes";
         private static EditorRemoteCommandPresentationGateway _commands;
-        private static EditorRemoteRuntimeDebuggerProxy _runtimeDebugger;
+        private static EditorRemoteRuntimeSceneInspectorProxy _runtimeSceneInspector;
         private static RemoteMiniToolPrefabPresenter _miniTools;
 
         [Serializable]
@@ -116,9 +116,9 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
 
             RemoteDevUtilitiesClient client = RemoteDevUtilitiesEditorService.Client;
             _commands = new EditorRemoteCommandPresentationGateway(client);
-            _runtimeDebugger = new EditorRemoteRuntimeDebuggerProxy(client);
+            _runtimeSceneInspector = new EditorRemoteRuntimeSceneInspectorProxy(client);
             _miniTools = new RemoteMiniToolPrefabPresenter(client);
-            RemoteDebugHostSession.Install(_runtimeDebugger);
+            RemoteDebugHostSession.Install(_runtimeSceneInspector);
 
             DeveloperConsoleBehaviour console =
                 UnityEngine.Object.FindFirstObjectByType<DeveloperConsoleBehaviour>(
@@ -137,12 +137,12 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
                 console.SetConsoleVisible(true);
             }
 
-            var debuggerObject = new GameObject("[Remote Runtime Debugger Host]")
+            var inspectorObject = new GameObject("[Remote Runtime Scene Inspector Host]")
             {
                 hideFlags = HideFlags.DontSave
             };
-            UnityEngine.Object.DontDestroyOnLoad(debuggerObject);
-            debuggerObject.AddComponent<RemoteRuntimeDebuggerHost>();
+            UnityEngine.Object.DontDestroyOnLoad(inspectorObject);
+            inspectorObject.AddComponent<RemoteRuntimeSceneInspectorHost>();
         }
 
         private static void Uninstall()
@@ -152,7 +152,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
             _commands = null;
             _miniTools?.Dispose();
             _miniTools = null;
-            _runtimeDebugger = null;
+            _runtimeSceneInspector = null;
         }
 
         private static void SaveCurrentSceneSetup()

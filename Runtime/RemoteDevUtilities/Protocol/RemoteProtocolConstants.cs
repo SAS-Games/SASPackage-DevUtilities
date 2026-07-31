@@ -4,7 +4,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Protocol
 {
     public static class RemoteProtocolConstants
     {
-        public const int Version = 1;
+        public const int Version = 2;
         public const string PackageVersion = "1.5.0";
         public const int MaximumMessageBytes = 8 * 1024 * 1024;
         public const int DefaultTcpPort = 56000;
@@ -40,11 +40,11 @@ namespace SAS.Utilities.RemoteDevUtilities.Protocol
         public const string MiniToolSample = "minitools.sample";
         public const string MiniToolStreamBatch = "minitools.stream.batch";
 
-        public const string DebuggerHierarchyRequest = "debugger.hierarchy.request";
-        public const string DebuggerHierarchyResponse = "debugger.hierarchy.response";
-        public const string DebuggerInspectRequest = "debugger.inspect.request";
-        public const string DebuggerInspectResponse = "debugger.inspect.response";
-        public const string DebuggerCommandRequest = "debugger.command.request";
-        public const string DebuggerCommandResponse = "debugger.command.response";
+        public const string SceneInspectorHierarchyRequest = "scene-inspector.hierarchy.request";
+        public const string SceneInspectorHierarchyResponse = "scene-inspector.hierarchy.response";
+        public const string SceneInspectorInspectRequest = "scene-inspector.inspect.request";
+        public const string SceneInspectorInspectResponse = "scene-inspector.inspect.response";
+        public const string SceneInspectorCommandRequest = "scene-inspector.command.request";
+        public const string SceneInspectorCommandResponse = "scene-inspector.command.response";
     }
 }

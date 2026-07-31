@@ -1,8 +1,0 @@
-{
-  "name": "DevUtilities.RuntimeDebugger.EditorTests",
-  "rootNamespace": "SAS.Utilities.RuntimeDebugger.Tests",
-  "references": ["DevUtilities"],
-  "includePlatforms": ["Editor"],
-  "autoReferenced": false,
-  "optionalUnityReferences": ["TestAssemblies"]
-}

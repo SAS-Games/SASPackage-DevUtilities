@@ -9,8 +9,6 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
 {
     internal sealed class RemoteMiniToolsPanel
     {
-        private Vector2 _scroll;
-
         public void Draw(RemoteMiniToolClient client, bool connected)
         {
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
@@ -37,7 +35,6 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
             RemoteMiniToolVisibilitySettings settings = RemoteMiniToolVisibilitySettings.instance;
             settings.RegisterCatalog(client.Tools);
 
-            _scroll = EditorGUILayout.BeginScrollView(_scroll);
             int visibleTools = 0;
             foreach (RemoteMiniToolDescriptor tool in client.Tools)
             {
@@ -66,7 +63,6 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
                     "Typed-state-only tools remain available in the Debug Host.",
                     MessageType.Info);
             }
-            EditorGUILayout.EndScrollView();
         }
 
         private static void DrawTool(RemoteMiniToolClient client, RemoteMiniToolDescriptor descriptor)

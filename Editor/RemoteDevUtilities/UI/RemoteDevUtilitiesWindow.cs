@@ -1,7 +1,7 @@
 using System;
 using SAS.Utilities.RemoteDevUtilities.Editor.Client;
 using SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration;
-using SAS.Utilities.RemoteDevUtilities.Editor.RuntimeDebugger;
+using SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector;
 using SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels;
 using UnityEditor;
 using UnityEngine;
@@ -15,7 +15,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI
             Commands,
             Logs,
             MiniTools,
-            RuntimeDebugger
+            RuntimeSceneInspector
         }
 
         private RemoteDevUtilitiesClient _client;
@@ -24,7 +24,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI
         private RemoteCommandPanel _commandPanel;
         private RemoteLogPanel _logPanel;
         private RemoteMiniToolsPanel _miniToolsPanel;
-        private RemoteRuntimeDebuggerPanel _runtimeDebuggerPanel;
+        private RemoteRuntimeSceneInspectorPanel _runtimeSceneInspectorPanel;
         private Tab _tab;
         private string _initializationError;
         [SerializeField] private bool _showNativeWorkspace;
@@ -46,7 +46,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI
             _commandPanel = new RemoteCommandPanel();
             _logPanel = new RemoteLogPanel();
             _miniToolsPanel = new RemoteMiniToolsPanel();
-            _runtimeDebuggerPanel = new RemoteRuntimeDebuggerPanel();
+            _runtimeSceneInspectorPanel = new RemoteRuntimeSceneInspectorPanel();
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
             RemoteMiniToolVisibilitySettings.Changed += Repaint;
             TryInitializeClient();
@@ -97,7 +97,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI
             EditorGUILayout.LabelField("Native Workspace", EditorStyles.boldLabel);
             _tab = (Tab)GUILayout.Toolbar(
                 (int)_tab,
-                new[] { "Commands", "Logs", "Mini Tools", "Runtime Debugger" });
+                new[] { "Commands", "Logs", "Mini Tools", "Runtime Scene Inspector" });
             EditorGUILayout.Space(3f);
 
             switch (_tab)
@@ -109,16 +109,19 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI
                         _client.IsConnected);
                     break;
                 case Tab.Logs:
-                    _logPanel.Draw(
-                        _client.Logs,
-                        _client.Commands,
-                        _client.IsConnected);
+                    if (_logPanel.Draw(
+                            _client.Logs,
+                            _client.Commands,
+                            _client.IsConnected))
+                    {
+                        _windowScroll.y = float.MaxValue;
+                    }
                     break;
                 case Tab.MiniTools:
                     _miniToolsPanel.Draw(_client.MiniTools, _client.IsConnected);
                     break;
-                case Tab.RuntimeDebugger:
-                    _runtimeDebuggerPanel.Draw(_client.RuntimeDebugger, _client.IsConnected, position);
+                case Tab.RuntimeSceneInspector:
+                    _runtimeSceneInspectorPanel.Draw(_client.RuntimeSceneInspector, _client.IsConnected, position);
                     break;
             }
         }

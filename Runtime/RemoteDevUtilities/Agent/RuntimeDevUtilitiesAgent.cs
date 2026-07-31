@@ -5,14 +5,14 @@ using SAS.Utilities.RemoteDevUtilities.Logging;
 using SAS.Utilities.RemoteDevUtilities.MiniTools;
 using SAS.Utilities.RemoteDevUtilities.Presentation;
 using SAS.Utilities.RemoteDevUtilities.Protocol;
-using SAS.Utilities.RemoteDevUtilities.RuntimeDebugger;
+using SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector;
 using SAS.Utilities.RemoteDevUtilities.Transport;
-using SAS.Utilities.RuntimeDebugger.Core;
+using SAS.Utilities.RuntimeSceneInspector.Core;
 using UnityEngine;
 
 namespace SAS.Utilities.RemoteDevUtilities.Agent
 {
-    [RuntimeDebuggerProtected]
+    [RuntimeSceneInspectorProtected]
     public sealed class RuntimeDevUtilitiesAgent : MonoBehaviour
     {
         private readonly List<IRuntimeRemoteEndpoint> _endpoints = new();
@@ -88,7 +88,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Agent
             AddEndpoint(new RuntimeRemoteCommandEndpoint(), context);
             AddEndpoint(new RuntimeRemoteLogEndpoint(), context);
             AddEndpoint(new RuntimeRemoteMiniToolEndpoint(), context);
-            AddEndpoint(new RuntimeRemoteDebuggerEndpoint(), context);
+            AddEndpoint(new RemoteRuntimeSceneInspectorEndpoint(), context);
             _transport.Start();
         }
 

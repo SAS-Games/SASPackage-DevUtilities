@@ -14,7 +14,6 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
             "RemoteDevUtilities.Command";
         private string _command = string.Empty;
         private string _filter = string.Empty;
-        private Vector2 _scroll;
         private readonly HashSet<string> _expandedCommands =
             new(StringComparer.OrdinalIgnoreCase);
 
@@ -84,7 +83,6 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
                 $"Runtime Commands ({client.Commands.Length})",
                 EditorStyles.boldLabel);
 
-            _scroll = EditorGUILayout.BeginScrollView(_scroll);
             foreach (RemoteCommandDescriptor command in client.Commands)
             {
                 if (command == null || !Matches(command, _filter))
@@ -92,7 +90,6 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
 
                 DrawCommand(command);
             }
-            EditorGUILayout.EndScrollView();
         }
 
         private void DrawCommand(RemoteCommandDescriptor command)

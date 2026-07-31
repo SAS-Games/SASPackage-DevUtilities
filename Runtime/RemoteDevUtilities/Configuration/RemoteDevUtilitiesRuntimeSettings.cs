@@ -25,7 +25,8 @@ namespace SAS.Utilities.RemoteDevUtilities
         [SerializeField] private bool _allowCommandExecution = true;
         [SerializeField] private bool _streamLogs = true;
         [SerializeField] private bool _allowMiniTools = true;
-        [SerializeField] private bool _allowRuntimeDebugger = true;
+        [FormerlySerializedAs("_allowRuntimeDebugger")]
+        [SerializeField] private bool _allowRuntimeSceneInspector = true;
         [SerializeField] private bool _keepPlayerRunningInBackground = true;
         [Header("ENABLE_DEBUG Network Transport")]
         [Tooltip("Direct-IP TCP port used by Development and non-Development Players built with ENABLE_DEBUG.")]
@@ -45,7 +46,7 @@ namespace SAS.Utilities.RemoteDevUtilities
         internal bool AllowCommandExecution => _allowCommandExecution;
         internal bool StreamLogs => _streamLogs;
         internal bool AllowMiniTools => _allowMiniTools;
-        internal bool AllowRuntimeDebugger => _allowRuntimeDebugger;
+        internal bool AllowRuntimeSceneInspector => _allowRuntimeSceneInspector;
         internal bool KeepPlayerRunningInBackground =>
             _keepPlayerRunningInBackground;
         internal int TcpPort => Mathf.Clamp(_tcpPort, 1024, 65535);
@@ -69,7 +70,7 @@ namespace SAS.Utilities.RemoteDevUtilities
             _allowCommandExecution = settings.AllowCommandExecution;
             _streamLogs = settings.StreamLogs;
             _allowMiniTools = settings.AllowMiniTools;
-            _allowRuntimeDebugger = settings.AllowRuntimeDebugger;
+            _allowRuntimeSceneInspector = settings.AllowRuntimeSceneInspector;
             _keepPlayerRunningInBackground =
                 settings.KeepPlayerRunningInBackground;
             _tcpPort = settings.TcpPort;
@@ -99,7 +100,8 @@ namespace SAS.Utilities.RemoteDevUtilities
         [SerializeField] private bool m_AllowCommandExecution = true;
         [SerializeField] private bool m_StreamLogs = true;
         [SerializeField] private bool m_AllowMiniTools = true;
-        [SerializeField] private bool m_AllowRuntimeDebugger = true;
+        [FormerlySerializedAs("m_AllowRuntimeDebugger")]
+        [SerializeField] private bool m_AllowRuntimeSceneInspector = true;
         [SerializeField] private bool m_KeepPlayerRunningInBackground = true;
         [Header("ENABLE_DEBUG Network Transport")]
         [Tooltip("Direct-IP TCP port used by Development and non-Development Players built with ENABLE_DEBUG.")]
@@ -118,7 +120,7 @@ namespace SAS.Utilities.RemoteDevUtilities
         public bool AllowCommandExecution => m_AllowCommandExecution;
         public bool StreamLogs => m_StreamLogs;
         public bool AllowMiniTools => m_AllowMiniTools;
-        public bool AllowRuntimeDebugger => m_AllowRuntimeDebugger;
+        public bool AllowRuntimeSceneInspector => m_AllowRuntimeSceneInspector;
         public bool KeepPlayerRunningInBackground => m_KeepPlayerRunningInBackground;
         public int TcpPort => Mathf.Clamp(m_TcpPort, 1024, 65535);
         public bool AllowTcpConnectionsFromOtherMachines => m_AllowTcpConnectionsFromOtherMachines;
@@ -186,8 +188,8 @@ namespace SAS.Utilities.RemoteDevUtilities
                 configuration.AllowCommandExecution;
             m_StreamLogs = configuration.StreamLogs;
             m_AllowMiniTools = configuration.AllowMiniTools;
-            m_AllowRuntimeDebugger =
-                configuration.AllowRuntimeDebugger;
+            m_AllowRuntimeSceneInspector =
+                configuration.AllowRuntimeSceneInspector;
             m_KeepPlayerRunningInBackground =
                 configuration.KeepPlayerRunningInBackground;
             m_TcpPort = configuration.TcpPort;
