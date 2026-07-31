@@ -54,6 +54,7 @@ namespace SAS.Utilities.RuntimeSceneInspector
             DevUtilityPresentationRegistry.SuppressionChanged -= ApplyPresentationState;
             _controller?.SetInputEnabled(false);
         }
+
         private void Update() => _controller?.Tick();
 
         private void OnGUI()

@@ -10,9 +10,7 @@ namespace SAS.Utilities.DeveloperConsole
         private GameObject _fps;
         private DevUtilityPresentation _presentation;
 
-        public override string HelpText => "Stats commands:\n" +
-                                           "  Stats.FPS <On|Off> [anchor] [horizontal-padding] [vertical-padding]\n" +
-                                           "  Stats.SetTargetFrameRate <-1|fps>";
+        public override string HelpText => "Stats commands:\n" + "  Stats.FPS <On|Off> [anchor] [horizontal-padding] [vertical-padding]\n" + "  Stats.SetTargetFrameRate <-1|fps>";
 
         protected bool ShowFPS(string[] args)
         {

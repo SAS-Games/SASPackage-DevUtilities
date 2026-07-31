@@ -38,13 +38,10 @@ namespace SAS.Utilities.DeveloperConsole
             // This regex matches non-whitespace sequences OR text inside double quotes
             var matches = Regex.Matches(inputValue, @"[^\s""]+|""([^""]*)""");
 
-            string[] inputSplit = matches
-                .Cast<Match>()
-                .Select(m => m.Groups[1].Success ? m.Groups[1].Value : m.Value)
-                .ToArray();
+            string[] inputSplit = matches.Cast<Match>().Select(m => m.Groups[1].Success ? m.Groups[1].Value : m.Value).ToArray();
 
             if (inputSplit.Length == 0)
-                return false; 
+                return false;
             string commandInput = inputSplit[0];
             string[] args = inputSplit.Skip(1).ToArray();
             if (inputValue.Equals("clear", StringComparison.OrdinalIgnoreCase))
@@ -79,8 +76,7 @@ namespace SAS.Utilities.DeveloperConsole
                 {
                     if (!command.Process(developerConsole, commandInput, args))
                     {
-                        developerConsole.DisplayHelpText(
-                            $"Failed to execute the Command '{commandInput}'  \n{message}");
+                        developerConsole.DisplayHelpText($"Failed to execute the Command '{commandInput}'  \n{message}");
                         Debug.LogError($"Failed to execute the Command '{commandInput}' \n{message}");
                         return false;
                     }

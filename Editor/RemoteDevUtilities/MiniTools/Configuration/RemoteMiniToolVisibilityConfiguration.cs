@@ -26,8 +26,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
             if (Contains(_visibleToolIds, toolId))
                 return true;
             RemoteMiniToolDescriptor descriptor = FindKnownDescriptor(toolId);
-            return _showNewToolsByDefault &&
-                   (descriptor?.VisibleByDefault ?? true);
+            return _showNewToolsByDefault && (descriptor?.VisibleByDefault ?? true);
         }
 
         internal bool SetVisible(string toolId, bool visible)
@@ -39,16 +38,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
             if (alreadyExplicit)
                 return false;
 
-            _visibleToolIds.RemoveAll(
-                value => string.Equals(
-                    value,
-                    toolId,
-                    StringComparison.OrdinalIgnoreCase));
-            _hiddenToolIds.RemoveAll(
-                value => string.Equals(
-                    value,
-                    toolId,
-                    StringComparison.OrdinalIgnoreCase));
+            _visibleToolIds.RemoveAll(value => string.Equals(value, toolId, StringComparison.OrdinalIgnoreCase));
+            _hiddenToolIds.RemoveAll(value => string.Equals(value, toolId, StringComparison.OrdinalIgnoreCase));
 
             if (visible)
                 _visibleToolIds.Add(toolId);
@@ -68,19 +59,14 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
 
         internal bool ShowAll()
         {
-            var requiredVisibleIds = new HashSet<string>(
-                StringComparer.OrdinalIgnoreCase);
+            var requiredVisibleIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (RemoteMiniToolDescriptor descriptor in _knownTools)
             {
-                if (descriptor != null &&
-                    !string.IsNullOrWhiteSpace(descriptor.Id) &&
-                    !descriptor.VisibleByDefault)
+                if (descriptor != null && !string.IsNullOrWhiteSpace(descriptor.Id) && !descriptor.VisibleByDefault)
                     requiredVisibleIds.Add(descriptor.Id);
             }
 
-            bool changed = !_showNewToolsByDefault ||
-                           _hiddenToolIds.Count > 0 ||
-                           !requiredVisibleIds.SetEquals(_visibleToolIds);
+            bool changed = !_showNewToolsByDefault || _hiddenToolIds.Count > 0 || !requiredVisibleIds.SetEquals(_visibleToolIds);
             _showNewToolsByDefault = true;
             _hiddenToolIds.Clear();
             _visibleToolIds.Clear();
@@ -137,24 +123,9 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
             if (string.IsNullOrWhiteSpace(toolId))
                 return false;
 
-            bool changed =
-                _knownTools.RemoveAll(
-                    descriptor => string.Equals(
-                        descriptor?.Id,
-                        toolId,
-                        StringComparison.OrdinalIgnoreCase)) > 0;
-            changed |=
-                _visibleToolIds.RemoveAll(
-                    value => string.Equals(
-                        value,
-                        toolId,
-                        StringComparison.OrdinalIgnoreCase)) > 0;
-            changed |=
-                _hiddenToolIds.RemoveAll(
-                    value => string.Equals(
-                        value,
-                        toolId,
-                        StringComparison.OrdinalIgnoreCase)) > 0;
+            bool changed = _knownTools.RemoveAll(descriptor => string.Equals(descriptor?.Id, toolId, StringComparison.OrdinalIgnoreCase)) > 0;
+            changed |= _visibleToolIds.RemoveAll(value => string.Equals(value, toolId, StringComparison.OrdinalIgnoreCase)) > 0;
+            changed |= _hiddenToolIds.RemoveAll(value => string.Equals(value, toolId, StringComparison.OrdinalIgnoreCase)) > 0;
             return changed;
         }
 
@@ -177,8 +148,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
                 DisplayName = descriptor.DisplayName,
                 Description = descriptor.Description,
                 DefaultIntervalSeconds = descriptor.DefaultIntervalSeconds,
-                DefaultStreamIntervalSeconds =
-                    descriptor.DefaultStreamIntervalSeconds,
+                DefaultStreamIntervalSeconds = descriptor.DefaultStreamIntervalSeconds,
                 VisibleByDefault = descriptor.VisibleByDefault,
                 Capabilities = descriptor.Capabilities,
                 Command = descriptor.Command == null
@@ -186,38 +156,14 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
                     : new RemoteMiniToolCommandManifest
                     {
                         Name = descriptor.Command.Name,
-                        SuggestedRouting =
-                            descriptor.Command.SuggestedRouting
+                        SuggestedRouting = descriptor.Command.SuggestedRouting
                     }
             };
         }
 
         private static bool DescriptorEquals(RemoteMiniToolDescriptor left, RemoteMiniToolDescriptor right)
         {
-            return string.Equals(left?.Id, right?.Id, StringComparison.Ordinal) &&
-                   string.Equals(
-                       left?.DisplayName,
-                       right?.DisplayName,
-                       StringComparison.Ordinal) &&
-                   string.Equals(left?.Description, right?.Description, StringComparison.Ordinal) &&
-                   Mathf.Approximately(left?.DefaultIntervalSeconds ?? 0f, right?.DefaultIntervalSeconds ?? 0f) &&
-                   Mathf.Approximately(
-                       left?.DefaultStreamIntervalSeconds ?? 0f,
-                       right?.DefaultStreamIntervalSeconds ?? 0f) &&
-                   (left?.VisibleByDefault ?? true) ==
-                   (right?.VisibleByDefault ?? true) &&
-                   (left?.Capabilities ??
-                    RemoteMiniToolCapabilities.None) ==
-                   (right?.Capabilities ??
-                    RemoteMiniToolCapabilities.None) &&
-                   string.Equals(
-                       left?.Command?.Name,
-                       right?.Command?.Name,
-                       StringComparison.Ordinal) &&
-                   (left?.Command?.SuggestedRouting ??
-                    RemoteCommandRouting.ControlEditorToolOnly) ==
-                   (right?.Command?.SuggestedRouting ??
-                    RemoteCommandRouting.ControlEditorToolOnly);
+            return string.Equals(left?.Id, right?.Id, StringComparison.Ordinal) && string.Equals(left?.DisplayName, right?.DisplayName, StringComparison.Ordinal) && string.Equals(left?.Description, right?.Description, StringComparison.Ordinal) && Mathf.Approximately(left?.DefaultIntervalSeconds ?? 0f, right?.DefaultIntervalSeconds ?? 0f) && Mathf.Approximately(left?.DefaultStreamIntervalSeconds ?? 0f, right?.DefaultStreamIntervalSeconds ?? 0f) && (left?.VisibleByDefault ?? true) == (right?.VisibleByDefault ?? true) && (left?.Capabilities ?? RemoteMiniToolCapabilities.None) == (right?.Capabilities ?? RemoteMiniToolCapabilities.None) && string.Equals(left?.Command?.Name, right?.Command?.Name, StringComparison.Ordinal) && (left?.Command?.SuggestedRouting ?? RemoteCommandRouting.ControlEditorToolOnly) == (right?.Command?.SuggestedRouting ?? RemoteCommandRouting.ControlEditorToolOnly);
         }
 
         private static bool Contains(List<string> values, string toolId)
@@ -236,6 +182,5 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
             int index = FindKnownTool(toolId);
             return index < 0 ? null : _knownTools[index];
         }
-
     }
 }

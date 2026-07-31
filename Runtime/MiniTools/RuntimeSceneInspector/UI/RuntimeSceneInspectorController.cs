@@ -235,34 +235,25 @@ namespace SAS.Utilities.RuntimeSceneInspector
 
         internal bool HasHierarchyChildren(RuntimeHierarchyEntry entry) => _hierarchy.HasChildren(entry);
 
-        internal static bool HasInspectorMembers(RuntimeComponentDescriptor component) =>
-            RuntimeSceneInspectorDetailsController.HasMembers(component);
+        internal static bool HasInspectorMembers(RuntimeComponentDescriptor component) => RuntimeSceneInspectorDetailsController.HasMembers(component);
 
-        internal bool IsEditingMember(RuntimeComponentDescriptor component, RuntimeMemberDescriptor member) =>
-            _inspector.IsEditingMember(component, member);
+        internal bool IsEditingMember(RuntimeComponentDescriptor component, RuntimeMemberDescriptor member) => _inspector.IsEditingMember(component, member);
 
-        internal bool IsEditingShaderProperty(RuntimeObjectId rendererId, int materialIndex, int propertyId) =>
-            _inspector.IsEditingShaderProperty(rendererId, materialIndex, propertyId);
+        internal bool IsEditingShaderProperty(RuntimeObjectId rendererId, int materialIndex, int propertyId) => _inspector.IsEditingShaderProperty(rendererId, materialIndex, propertyId);
 
-        internal bool IsMaterialRendererExpanded(RuntimeObjectId rendererId) =>
-            _inspector.IsMaterialRendererExpanded(rendererId);
+        internal bool IsMaterialRendererExpanded(RuntimeObjectId rendererId) => _inspector.IsMaterialRendererExpanded(rendererId);
 
-        internal bool IsMaterialSlotExpanded(RuntimeObjectId rendererId, int materialIndex) =>
-            _inspector.IsMaterialSlotExpanded(rendererId, materialIndex);
+        internal bool IsMaterialSlotExpanded(RuntimeObjectId rendererId, int materialIndex) => _inspector.IsMaterialSlotExpanded(rendererId, materialIndex);
 
-        internal RuntimeMaterialEditScope GetMaterialScope(RuntimeObjectId rendererId, int materialIndex) =>
-            _inspector.GetMaterialScope(rendererId, materialIndex);
+        internal RuntimeMaterialEditScope GetMaterialScope(RuntimeObjectId rendererId, int materialIndex) => _inspector.GetMaterialScope(rendererId, materialIndex);
 
-        internal bool IsMaterialScopeAllowed(RuntimeMaterialEditScope scope) =>
-            _inspector.ScopeAllowed(scope);
+        internal bool IsMaterialScopeAllowed(RuntimeMaterialEditScope scope) => _inspector.ScopeAllowed(scope);
 
-        internal bool MatchesShaderProperty(RuntimeShaderPropertyDescriptor property) =>
-            _inspector.MatchesShaderProperty(property);
+        internal bool MatchesShaderProperty(RuntimeShaderPropertyDescriptor property) => _inspector.MatchesShaderProperty(property);
 
         internal void SetShaderPropertySearch(string value) => _inspector.SetShaderPropertySearch(value);
 
-        internal void BeginEditFromView(RuntimeComponentDescriptor component, RuntimeMemberDescriptor member,
-            int rowIndex)
+        internal void BeginEditFromView(RuntimeComponentDescriptor component, RuntimeMemberDescriptor member, int rowIndex)
         {
             SetFocusedPanel(RuntimeSceneInspectorPanel.Inspector);
             _error = string.Empty;
@@ -293,15 +284,13 @@ namespace SAS.Utilities.RuntimeSceneInspector
             _inspector.ToggleMaterialSlotFoldout(rendererId, materialIndex, rowIndex);
         }
 
-        internal void SetMaterialScope(RuntimeObjectId rendererId, int materialIndex,
-            RuntimeMaterialEditScope scope)
+        internal void SetMaterialScope(RuntimeObjectId rendererId, int materialIndex, RuntimeMaterialEditScope scope)
         {
             SetFocusedPanel(RuntimeSceneInspectorPanel.Inspector);
             _inspector.SetMaterialScope(rendererId, materialIndex, scope);
         }
 
-        internal void BeginShaderEditFromView(RuntimeObjectId rendererId, int materialIndex,
-            RuntimeShaderPropertyView property, int rowIndex)
+        internal void BeginShaderEditFromView(RuntimeObjectId rendererId, int materialIndex, RuntimeShaderPropertyView property, int rowIndex)
         {
             SetFocusedPanel(RuntimeSceneInspectorPanel.Inspector);
             _error = string.Empty;
@@ -402,8 +391,7 @@ namespace SAS.Utilities.RuntimeSceneInspector
             if (TryGetNavigationCommand(out RuntimeSceneInspectorNavigationCommand command))
                 _inspector.Navigate(command);
 
-            RuntimeCommandResult result = _inspector.ActivateCurrent(_input.Confirm, _input.Space,
-                out bool requiresRefresh);
+            RuntimeCommandResult result = _inspector.ActivateCurrent(_input.Confirm, _input.Space, out bool requiresRefresh);
             if (result != null)
                 ApplyCommand(result, requiresRefresh);
         }

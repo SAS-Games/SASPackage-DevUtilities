@@ -9,8 +9,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
 {
     internal static class MiniToolSnapshotContractDiscovery
     {
-        private static readonly Type SnapshotViewType =
-            typeof(IMiniToolSnapshotView<>);
+        private static readonly Type SnapshotViewType = typeof(IMiniToolSnapshotView<>);
 
         internal static Type[] Find(GameObject prefab)
         {
@@ -60,8 +59,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
     {
         internal static string CreateFieldProvider(string className)
         {
-            return
-$@"using SAS.Utilities.RemoteDevUtilities.MiniTools;
+            return $@"using SAS.Utilities.RemoteDevUtilities.MiniTools;
 using SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools;
 
 [UnityEngine.Scripting.Preserve]
@@ -78,16 +76,13 @@ public sealed class {className} : MiniToolFieldDataProvider
 ";
         }
 
-        internal static string CreateSnapshotProvider(
-            string className,
-            Type snapshotType)
+        internal static string CreateSnapshotProvider(string className, Type snapshotType)
         {
             if (snapshotType == null)
                 throw new ArgumentNullException(nameof(snapshotType));
 
             string snapshotTypeName = GetCSharpTypeName(snapshotType);
-            return
-$@"using SAS.Utilities.RemoteDevUtilities.MiniTools;
+            return $@"using SAS.Utilities.RemoteDevUtilities.MiniTools;
 
 [UnityEngine.Scripting.Preserve]
 public sealed class {className} :

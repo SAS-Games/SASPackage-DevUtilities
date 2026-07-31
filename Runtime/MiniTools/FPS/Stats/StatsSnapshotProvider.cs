@@ -10,6 +10,7 @@ namespace SAS.DevUtilities.Stats
     public sealed class StatsSnapshotProvider : MiniToolSnapshotProviderBehaviour<StatsSnapshot>
     {
         private const float MinimumUpdateInterval = 0.05f;
+
         [SerializeField, Min(MinimumUpdateInterval)] private float m_UpdateInterval = 0.5f;
 
         private double _elapsedSeconds;

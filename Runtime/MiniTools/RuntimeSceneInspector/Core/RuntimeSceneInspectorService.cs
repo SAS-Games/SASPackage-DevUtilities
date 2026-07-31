@@ -54,7 +54,8 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                 for (int i = 0; i < SceneManager.sceneCount; i++)
                 {
                     Scene scene = SceneManager.GetSceneAt(i);
-                    if (!scene.IsValid() || !scene.isLoaded) continue;
+                    if (!scene.IsValid() || !scene.isLoaded)
+                        continue;
                     normalHandles.Add(scene.handle);
                     RuntimeObjectId sceneId = GetSceneId(scene, false);
                     entries.Add(new RuntimeHierarchyEntry
@@ -62,16 +63,19 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                         Id = sceneId, Kind = RuntimeHierarchyKind.Scene, Name = scene.name, ActiveSelf = true,
                         ActiveInHierarchy = true
                     });
-                    foreach (GameObject root in scene.GetRootGameObjects()) AddObject(entries, root, sceneId, sceneId);
+                    foreach (GameObject root in scene.GetRootGameObjects())
+                        AddObject(entries, root, sceneId, sceneId);
                 }
 
                 RuntimeObjectId persistentId = default;
                 foreach (Transform transform in Resources.FindObjectsOfTypeAll<Transform>())
                 {
-                    if (transform == null || transform.parent != null) continue;
+                    if (transform == null || transform.parent != null)
+                        continue;
                     GameObject gameObject = transform.gameObject;
                     Scene scene = gameObject.scene;
-                    if (!scene.IsValid() || !scene.isLoaded || normalHandles.Contains(scene.handle)) continue;
+                    if (!scene.IsValid() || !scene.isLoaded || normalHandles.Contains(scene.handle))
+                        continue;
                     if (!persistentId.IsValid)
                     {
                         persistentId = GetSceneId(scene, true);
@@ -93,7 +97,8 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
         public RuntimeObjectDetails InspectObject(RuntimeObjectId objectId)
         {
             EnsureMainThread();
-            if (!_registry.TryResolve(objectId, out GameObject gameObject)) return null;
+            if (!_registry.TryResolve(objectId, out GameObject gameObject))
+                return null;
             using (InspectorMarker.Auto())
             {
                 var components = new List<RuntimeComponentDescriptor>();
@@ -181,14 +186,13 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                         return RuntimeCommandResult.Fail("The component type is blocked.");
                     if (!componentEnabled.Enabled && IsRuntimeSceneInspectorProtected(component))
                         return RuntimeCommandResult.Fail("The runtime scene inspector cannot disable its own host.");
-                    return TrySetEnabled(component, componentEnabled.Enabled)
-                        ? RuntimeCommandResult.Ok()
-                        : RuntimeCommandResult.Fail("This component has no supported enabled state.");
+                    return TrySetEnabled(component, componentEnabled.Enabled) ? RuntimeCommandResult.Ok() : RuntimeCommandResult.Fail("This component has no supported enabled state.");
                 }
 
                 if (command is SetMemberValueCommand setValue)
                 {
-                    if (!_settings.AllowValueChanges) return RuntimeCommandResult.Fail("Value changes are disabled.");
+                    if (!_settings.AllowValueChanges)
+                        return RuntimeCommandResult.Fail("Value changes are disabled.");
                     if (!_registry.TryResolve(setValue.ComponentId, out Component component))
                         return RuntimeCommandResult.Fail("The component no longer exists.");
                     if (IsBlocked(component.GetType()))
@@ -220,10 +224,10 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             _inspectorExtensions.Clear();
         }
 
-        private void AddObject(List<RuntimeHierarchyEntry> entries, GameObject gameObject, RuntimeObjectId sceneId,
-            RuntimeObjectId parentId)
+        private void AddObject(List<RuntimeHierarchyEntry> entries, GameObject gameObject, RuntimeObjectId sceneId, RuntimeObjectId parentId)
         {
-            if (gameObject == null || (!_settings.IncludeInactiveObjects && !gameObject.activeInHierarchy)) return;
+            if (gameObject == null || (!_settings.IncludeInactiveObjects && !gameObject.activeInHierarchy))
+                return;
             RuntimeObjectId id = _registry.GetOrCreate(gameObject);
             Component[] components = gameObject.GetComponents<Component>();
             var names = new string[components.Length];
@@ -231,7 +235,8 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             {
                 Component component = components[i];
                 names[i] = component == null ? "Missing Script" : component.GetType().Name;
-                if (component != null) _registry.GetOrCreate(component);
+                if (component != null)
+                    _registry.GetOrCreate(component);
             }
 
             entries.Add(new RuntimeHierarchyEntry
@@ -257,7 +262,8 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                 {
                     foreach (RuntimeMemberDescriptor member in drawerMembers)
                     {
-                        if (member != null && memberIds.Add(member.Name)) result.Add(member);
+                        if (member != null && memberIds.Add(member.Name))
+                            result.Add(member);
                     }
                 }
             }
@@ -274,11 +280,10 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
 
             foreach (FieldInfo field in GetInspectableFields(component.GetType()))
             {
-                if (!memberIds.Add(field.Name)) continue;
+                if (!memberIds.Add(field.Name))
+                    continue;
                 IRuntimeValueDrawer drawer = _drawers.Resolve(field.FieldType);
-                bool readOnly = drawer == null || field.IsInitOnly ||
-                                field.IsDefined(typeof(RuntimeReadOnlyAttribute), true) ||
-                                typeof(Object).IsAssignableFrom(field.FieldType);
+                bool readOnly = drawer == null || field.IsInitOnly || field.IsDefined(typeof(RuntimeReadOnlyAttribute), true) || typeof(Object).IsAssignableFrom(field.FieldType);
                 try
                 {
                     object value = field.GetValue(component);
@@ -301,14 +306,15 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
 
             if (!_settings.AllowValueChanges)
             {
-                foreach (RuntimeMemberDescriptor member in result) member.ReadOnly = true;
+                foreach (RuntimeMemberDescriptor member in result)
+                    member.ReadOnly = true;
             }
 
             return result;
         }
 
-        private void AddSynthetic(List<RuntimeMemberDescriptor> list, string name, Type type, object value) => list.Add(
-            new RuntimeMemberDescriptor
+        private void AddSynthetic(List<RuntimeMemberDescriptor> list, string name, Type type, object value) =>
+            list.Add(new RuntimeMemberDescriptor
             {
                 Name = name, DisplayName = Nicify(name), TypeName = type.FullName,
                 Value = _drawers.Resolve(type).Format(value, type)
@@ -317,21 +323,23 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
         private RuntimeCommandResult SetMember(Component component, string name, string text)
         {
             IRuntimeComponentDrawer componentDrawer = _componentDrawers.Resolve(component.GetType());
-            if (componentDrawer is IRuntimeEditableComponentDrawer editableDrawer &&
-                editableDrawer.TrySetValue(component, name, text, out RuntimeCommandResult drawerResult))
+            if (componentDrawer is IRuntimeEditableComponentDrawer editableDrawer && editableDrawer.TrySetValue(component, name, text, out RuntimeCommandResult drawerResult))
             {
                 return drawerResult ?? RuntimeCommandResult.Fail("The member could not be changed.");
             }
 
             if (component is Transform transform)
             {
-                if (!_drawers.Resolve(typeof(Vector3))
-                        .TryParse(text, typeof(Vector3), out object parsed, out string parseError))
+                if (!_drawers.Resolve(typeof(Vector3)).TryParse(text, typeof(Vector3), out object parsed, out string parseError))
                     return RuntimeCommandResult.Fail(parseError);
-                if (name == "localPosition") transform.localPosition = (Vector3)parsed;
-                else if (name == "localEulerAngles") transform.localEulerAngles = (Vector3)parsed;
-                else if (name == "localScale") transform.localScale = (Vector3)parsed;
-                else return RuntimeCommandResult.Fail("Unknown Transform member.");
+                if (name == "localPosition")
+                    transform.localPosition = (Vector3)parsed;
+                else if (name == "localEulerAngles")
+                    transform.localEulerAngles = (Vector3)parsed;
+                else if (name == "localScale")
+                    transform.localScale = (Vector3)parsed;
+                else
+                    return RuntimeCommandResult.Fail("Unknown Transform member.");
                 return RuntimeCommandResult.Ok();
             }
 
@@ -339,7 +347,8 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             if (field == null || field.IsInitOnly || field.IsDefined(typeof(RuntimeReadOnlyAttribute), true))
                 return RuntimeCommandResult.Fail("The member is not writable.");
             IRuntimeValueDrawer drawer = _drawers.Resolve(field.FieldType);
-            if (drawer == null) return RuntimeCommandResult.Fail("Unsupported value type.");
+            if (drawer == null)
+                return RuntimeCommandResult.Fail("Unsupported value type.");
             if (!drawer.TryParse(text, field.FieldType, out object value, out string error))
                 return RuntimeCommandResult.Fail(error ?? "Invalid value.");
             field.SetValue(component, value);
@@ -348,29 +357,25 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
 
         private FieldInfo[] GetInspectableFields(Type type)
         {
-            if (_fieldCache.TryGetValue(type, out FieldInfo[] fields)) return fields;
-            fields = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Where(field =>
-                !field.IsStatic && !field.IsDefined(typeof(RuntimeHiddenAttribute), true) && (field.IsPublic ||
-                    field.IsDefined(typeof(SerializeField), true) ||
-                    field.IsDefined(typeof(RuntimeInspectableAttribute), true))).ToArray();
+            if (_fieldCache.TryGetValue(type, out FieldInfo[] fields))
+                return fields;
+            fields = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Where(field => !field.IsStatic && !field.IsDefined(typeof(RuntimeHiddenAttribute), true) && (field.IsPublic || field.IsDefined(typeof(SerializeField), true) || field.IsDefined(typeof(RuntimeInspectableAttribute), true))).ToArray();
             _fieldCache[type] = fields;
             return fields;
         }
 
-        private bool IsBlocked(Type type) => _settings.BlockedComponentTypes.Contains(type.FullName) ||
-                                             _settings.BlockedNamespaces.Any(value =>
-                                                 !string.IsNullOrEmpty(value) &&
-                                                 (type.Namespace?.StartsWith(value, StringComparison.Ordinal) ??
-                                                  false));
+        private bool IsBlocked(Type type) => _settings.BlockedComponentTypes.Contains(type.FullName) || _settings.BlockedNamespaces.Any(value => !string.IsNullOrEmpty(value) && (type.Namespace?.StartsWith(value, StringComparison.Ordinal) ?? false));
 
         private static string Nicify(string value)
         {
-            if (string.IsNullOrEmpty(value)) return value;
+            if (string.IsNullOrEmpty(value))
+                return value;
             var chars = new List<char>(value.Length + 4);
             for (int i = 0; i < value.Length; i++)
             {
                 char c = value[i];
-                if (i > 0 && char.IsUpper(c) && !char.IsUpper(value[i - 1])) chars.Add(' ');
+                if (i > 0 && char.IsUpper(c) && !char.IsUpper(value[i - 1]))
+                    chars.Add(' ');
                 chars.Add(i == 0 ? char.ToUpperInvariant(c) : c);
             }
 
@@ -417,19 +422,22 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
 
         private static bool TrySetEnabled(Component component, bool value)
         {
-            if (component is Behaviour b) b.enabled = value;
-            else if (component is Renderer r) r.enabled = value;
-            else if (component is Collider c) c.enabled = value;
-            else if (component is Collider2D c2) c2.enabled = value;
-            else return false;
+            if (component is Behaviour b)
+                b.enabled = value;
+            else if (component is Renderer r)
+                r.enabled = value;
+            else if (component is Collider c)
+                c.enabled = value;
+            else if (component is Collider2D c2)
+                c2.enabled = value;
+            else
+                return false;
             return true;
         }
 
-        private static bool IsRuntimeSceneInspectorHost(GameObject gameObject) =>
-            gameObject != null && gameObject.GetComponents<Component>().Any(IsRuntimeSceneInspectorProtected);
+        private static bool IsRuntimeSceneInspectorHost(GameObject gameObject) => gameObject != null && gameObject.GetComponents<Component>().Any(IsRuntimeSceneInspectorProtected);
 
-        private static bool IsRuntimeSceneInspectorProtected(Component component) =>
-            component != null && component.GetType().IsDefined(typeof(RuntimeSceneInspectorProtectedAttribute), true);
+        private static bool IsRuntimeSceneInspectorProtected(Component component) => component != null && component.GetType().IsDefined(typeof(RuntimeSceneInspectorProtectedAttribute), true);
 
         private void EnsureMainThread()
         {

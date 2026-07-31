@@ -7,9 +7,22 @@ namespace SAS.Utilities.RuntimeSceneInspector.Input
 {
     public interface IRuntimeSceneInspectorInput
     {
-        bool Toggle { get; } bool Cancel { get; } bool Confirm { get; } bool Tab { get; } bool ShiftTab { get; }
-        bool Up { get; } bool Down { get; } bool Left { get; } bool Right { get; } bool Home { get; } bool End { get; }
-        bool PageUp { get; } bool PageDown { get; } bool Search { get; } bool Space { get; } bool Refresh { get; }
+        bool Toggle { get; }
+        bool Cancel { get; }
+        bool Confirm { get; }
+        bool Tab { get; }
+        bool ShiftTab { get; }
+        bool Up { get; }
+        bool Down { get; }
+        bool Left { get; }
+        bool Right { get; }
+        bool Home { get; }
+        bool End { get; }
+        bool PageUp { get; }
+        bool PageDown { get; }
+        bool Search { get; }
+        bool Space { get; }
+        bool Refresh { get; }
     }
 
     public sealed class InputSystemRuntimeSceneInspectorInput : IRuntimeSceneInspectorInput, IDisposable
@@ -60,8 +73,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Input
 
             AddButtonAction("Toggle", Signal.Toggle, "<Keyboard>/f1", "<Keyboard>/backquote");
             AddButtonAction("Cancel", Signal.Cancel, "<Keyboard>/escape", "<Gamepad>/buttonEast");
-            AddButtonAction("Confirm", Signal.Confirm, "<Keyboard>/enter", "<Keyboard>/numpadEnter",
-                "<Gamepad>/buttonSouth");
+            AddButtonAction("Confirm", Signal.Confirm, "<Keyboard>/enter", "<Keyboard>/numpadEnter", "<Gamepad>/buttonSouth");
             AddButtonAction("NextPanel", Signal.Tab, "<Gamepad>/rightShoulder");
             AddButtonAction("PreviousPanel", Signal.ShiftTab, "<Gamepad>/leftShoulder");
             AddButtonAction("Home", Signal.Home, "<Keyboard>/home");
@@ -81,20 +93,21 @@ namespace SAS.Utilities.RuntimeSceneInspector.Input
             AddHeldButtonAction("ToggleLeftStick", value =>
             {
                 _leftStickClickHeld = value;
-                if (value && _rightStickClickHeld) Queue(Signal.Toggle);
+                if (value && _rightStickClickHeld)
+                    Queue(Signal.Toggle);
             }, "<Gamepad>/leftStickPress");
             AddHeldButtonAction("ToggleRightStick", value =>
             {
                 _rightStickClickHeld = value;
-                if (value && _leftStickClickHeld) Queue(Signal.Toggle);
+                if (value && _leftStickClickHeld)
+                    Queue(Signal.Toggle);
             }, "<Gamepad>/rightStickPress");
-            AddHeldButtonAction("Shift", value => _shiftHeld = value, "<Keyboard>/leftShift",
-                "<Keyboard>/rightShift");
-            AddHeldButtonAction("Control", value => _controlHeld = value, "<Keyboard>/leftCtrl",
-                "<Keyboard>/rightCtrl");
+            AddHeldButtonAction("Shift", value => _shiftHeld = value, "<Keyboard>/leftShift", "<Keyboard>/rightShift");
+            AddHeldButtonAction("Control", value => _controlHeld = value, "<Keyboard>/leftCtrl", "<Keyboard>/rightCtrl");
             AddHeldButtonAction("KeyboardTab", value =>
             {
-                if (value) Queue(_shiftHeld ? Signal.ShiftTab : Signal.Tab);
+                if (value)
+                    Queue(_shiftHeld ? Signal.ShiftTab : Signal.Tab);
             }, "<Keyboard>/tab");
         }
 
@@ -132,14 +145,18 @@ namespace SAS.Utilities.RuntimeSceneInspector.Input
 
         public void SetEnabled(bool value)
         {
-            if (_disposed) return;
+            if (_disposed)
+                return;
             foreach (InputAction action in _actions)
             {
-                if (value && !action.enabled) action.Enable();
-                else if (!value && action.enabled) action.Disable();
+                if (value && !action.enabled)
+                    action.Enable();
+                else if (!value && action.enabled)
+                    action.Disable();
             }
 
-            if (value) return;
+            if (value)
+                return;
             _pendingSignals = Signal.None;
             _currentSignals = Signal.None;
             _heldDirections = Signal.None;
@@ -164,7 +181,8 @@ namespace SAS.Utilities.RuntimeSceneInspector.Input
 
         public void Dispose()
         {
-            if (_disposed) return;
+            if (_disposed)
+                return;
             _disposed = true;
             foreach (InputAction action in _actions)
             {
@@ -185,7 +203,8 @@ namespace SAS.Utilities.RuntimeSceneInspector.Input
         private void AddButtonAction(string name, Signal signal, params string[] bindings)
         {
             var action = new InputAction(name, InputActionType.Button);
-            foreach (string binding in bindings) action.AddBinding(binding);
+            foreach (string binding in bindings)
+                action.AddBinding(binding);
             action.performed += _ => Queue(signal);
             Enable(action);
         }
@@ -193,7 +212,8 @@ namespace SAS.Utilities.RuntimeSceneInspector.Input
         private void AddHeldButtonAction(string name, Action<bool> changed, params string[] bindings)
         {
             var action = new InputAction(name, InputActionType.Button);
-            foreach (string binding in bindings) action.AddBinding(binding);
+            foreach (string binding in bindings)
+                action.AddBinding(binding);
             action.performed += _ => changed(true);
             action.canceled += _ => changed(false);
             Enable(action);
@@ -202,7 +222,8 @@ namespace SAS.Utilities.RuntimeSceneInspector.Input
         private void AddDirectionAction(string name, Signal direction, params string[] bindings)
         {
             var action = new InputAction(name, InputActionType.Button);
-            foreach (string binding in bindings) action.AddBinding(binding);
+            foreach (string binding in bindings)
+                action.AddBinding(binding);
             action.performed += _ => PressDirection(direction);
             action.canceled += _ => ReleaseDirection(direction);
             Enable(action);
@@ -242,15 +263,15 @@ namespace SAS.Utilities.RuntimeSceneInspector.Input
             Vector2 previousDirection = ResolveStickDirection(_stick);
             _stick = value;
             Vector2 nextDirection = ResolveStickDirection(_stick);
-            if (!_waitForNeutralDirection && _heldDirections == Signal.None &&
-                nextDirection != Vector2.zero && nextDirection != previousDirection)
+            if (!_waitForNeutralDirection && _heldDirections == Signal.None && nextDirection != Vector2.zero && nextDirection != previousDirection)
                 Queue(ToSignal(nextDirection));
             ReleaseNeutralGateIfNeeded();
         }
 
         private void ReleaseNeutralGateIfNeeded()
         {
-            if (!_waitForNeutralDirection || ResolveHeldDirection() != Vector2.zero) return;
+            if (!_waitForNeutralDirection || ResolveHeldDirection() != Vector2.zero)
+                return;
             _waitForNeutralDirection = false;
             _lastDirection = Vector2.zero;
             _nextRepeat = 0f;
@@ -276,8 +297,10 @@ namespace SAS.Utilities.RuntimeSceneInspector.Input
                 return;
             }
 
-            if (directionAlreadyQueued) return;
-            if (direction == Vector2.zero || Time.unscaledTime < _nextRepeat) return;
+            if (directionAlreadyQueued)
+                return;
+            if (direction == Vector2.zero || Time.unscaledTime < _nextRepeat)
+                return;
             _currentSignals |= ToSignal(direction);
             _nextRepeat = Time.unscaledTime + _settings.NavigationRepeatRate;
         }
@@ -286,18 +309,15 @@ namespace SAS.Utilities.RuntimeSceneInspector.Input
         {
             Signal directions = _currentSignals & DirectionMask;
             int directionBits = (int)directions;
-            if (directionBits == 0 || (directionBits & (directionBits - 1)) == 0) return;
-            Signal selected = (directions & _lastHeldDirection) != 0
-                ? _lastHeldDirection
-                : FirstDirection(directions);
+            if (directionBits == 0 || (directionBits & (directionBits - 1)) == 0)
+                return;
+            Signal selected = (directions & _lastHeldDirection) != 0 ? _lastHeldDirection : FirstDirection(directions);
             _currentSignals = (_currentSignals & ~DirectionMask) | selected;
         }
 
         private Vector2 ResolveHeldDirection()
         {
-            Signal digital = (_heldDirections & _lastHeldDirection) != 0
-                ? _lastHeldDirection
-                : FirstHeldDirection();
+            Signal digital = (_heldDirections & _lastHeldDirection) != 0 ? _lastHeldDirection : FirstHeldDirection();
             if (digital != Signal.None)
                 return ToVector(digital);
 
@@ -308,10 +328,14 @@ namespace SAS.Utilities.RuntimeSceneInspector.Input
 
         private static Signal FirstDirection(Signal directions)
         {
-            if ((directions & Signal.Up) != 0) return Signal.Up;
-            if ((directions & Signal.Down) != 0) return Signal.Down;
-            if ((directions & Signal.Left) != 0) return Signal.Left;
-            if ((directions & Signal.Right) != 0) return Signal.Right;
+            if ((directions & Signal.Up) != 0)
+                return Signal.Up;
+            if ((directions & Signal.Down) != 0)
+                return Signal.Down;
+            if ((directions & Signal.Left) != 0)
+                return Signal.Left;
+            if ((directions & Signal.Right) != 0)
+                return Signal.Right;
             return Signal.None;
         }
 
@@ -319,25 +343,30 @@ namespace SAS.Utilities.RuntimeSceneInspector.Input
         {
             if (value.magnitude < _settings.ControllerDeadZone)
                 return Vector2.zero;
-            return Mathf.Abs(value.x) > Mathf.Abs(value.y)
-                ? new Vector2(Mathf.Sign(value.x), 0f)
-                : new Vector2(0f, Mathf.Sign(value.y));
+            return Mathf.Abs(value.x) > Mathf.Abs(value.y) ? new Vector2(Mathf.Sign(value.x), 0f) : new Vector2(0f, Mathf.Sign(value.y));
         }
 
         private static Signal ToSignal(Vector2 direction)
         {
-            if (direction == Vector2.up) return Signal.Up;
-            if (direction == Vector2.down) return Signal.Down;
-            if (direction == Vector2.left) return Signal.Left;
+            if (direction == Vector2.up)
+                return Signal.Up;
+            if (direction == Vector2.down)
+                return Signal.Down;
+            if (direction == Vector2.left)
+                return Signal.Left;
             return Signal.Right;
         }
 
         private static Vector2 ToVector(Signal direction)
         {
-            if (direction == Signal.Up) return Vector2.up;
-            if (direction == Signal.Down) return Vector2.down;
-            if (direction == Signal.Left) return Vector2.left;
-            if (direction == Signal.Right) return Vector2.right;
+            if (direction == Signal.Up)
+                return Vector2.up;
+            if (direction == Signal.Down)
+                return Vector2.down;
+            if (direction == Signal.Left)
+                return Vector2.left;
+            if (direction == Signal.Right)
+                return Vector2.right;
             return Vector2.zero;
         }
     }

@@ -54,8 +54,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             }
         }
 
-        public bool TryExecute(RuntimeSceneInspectorCommand command, RuntimeObjectRegistry registry,
-            out RuntimeCommandResult result)
+        public bool TryExecute(RuntimeSceneInspectorCommand command, RuntimeObjectRegistry registry, out RuntimeCommandResult result)
         {
             if (command is SetRuntimeShaderPropertyCommand set)
             {
@@ -129,8 +128,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
 
             RuntimeShaderDescriptor shaderDescriptor = _metadata.GetOrCreate(shader);
             slot.TotalPropertyCount = shaderDescriptor.Properties.Count;
-            var properties = new List<RuntimeShaderPropertyView>(
-                Mathf.Min(shaderDescriptor.Properties.Count, _settings.MaxVisibleShaderProperties));
+            var properties = new List<RuntimeShaderPropertyView>(Mathf.Min(shaderDescriptor.Properties.Count, _settings.MaxVisibleShaderProperties));
 
             _propertyBlock.Clear();
             renderer.GetPropertyBlock(_propertyBlock, materialIndex);
@@ -193,8 +191,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             return slot;
         }
 
-        private RuntimeCommandResult SetProperty(SetRuntimeShaderPropertyCommand command,
-            RuntimeObjectRegistry registry)
+        private RuntimeCommandResult SetProperty(SetRuntimeShaderPropertyCommand command, RuntimeObjectRegistry registry)
         {
             if (!_settings.AllowShaderInspection)
                 return RuntimeCommandResult.Fail("Shader inspection is disabled.");
@@ -202,8 +199,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                 return RuntimeCommandResult.Fail("Shader value changes are disabled.");
             if (!TryResolveRenderer(registry, command.RendererId, out Renderer renderer, out string error))
                 return RuntimeCommandResult.Fail(error);
-            if (!TryGetScopeMaterial(renderer, command.MaterialIndex, command.Scope, out Material material,
-                    out error))
+            if (!TryGetScopeMaterial(renderer, command.MaterialIndex, command.Scope, out Material material, out error))
                 return RuntimeCommandResult.Fail(error);
             if (!CheckScopePermission(command.Scope, out error))
                 return RuntimeCommandResult.Fail(error);
@@ -231,13 +227,11 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             }
         }
 
-        private RuntimeCommandResult RestoreProperty(RestoreRuntimeShaderPropertyCommand command,
-            RuntimeObjectRegistry registry)
+        private RuntimeCommandResult RestoreProperty(RestoreRuntimeShaderPropertyCommand command, RuntimeObjectRegistry registry)
         {
             if (!TryResolveRenderer(registry, command.RendererId, out Renderer renderer, out string error))
                 return RuntimeCommandResult.Fail(error);
-            if (!TryGetScopeMaterial(renderer, command.MaterialIndex, command.Scope, out Material material,
-                    out error))
+            if (!TryGetScopeMaterial(renderer, command.MaterialIndex, command.Scope, out Material material, out error))
                 return RuntimeCommandResult.Fail(error);
 
             RuntimeShaderPropertyDescriptor property = FindProperty(material, command.PropertyId);
@@ -247,28 +241,25 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             switch (command.Scope)
             {
                 case RuntimeMaterialEditScope.RendererPropertyBlock:
-                {
-                    var key = new PropertyKey(renderer.GetInstanceID(), command.MaterialIndex, property.PropertyId);
-                    if (!_propertyBlockOverrides.TryGetValue(key, out PropertyBlockOverrideRecord record))
-                        return RuntimeCommandResult.Fail("The inspector has no renderer override for this property.");
-                    ApplyPropertyBlockValue(renderer, command.MaterialIndex, property, record.OriginalValue);
-                    _propertyBlockOverrides.Remove(key);
-                    return RuntimeCommandResult.Ok("Renderer override restored.");
-                }
+                    {
+                        var key = new PropertyKey(renderer.GetInstanceID(), command.MaterialIndex, property.PropertyId);
+                        if (!_propertyBlockOverrides.TryGetValue(key, out PropertyBlockOverrideRecord record))
+                            return RuntimeCommandResult.Fail("The inspector has no renderer override for this property.");
+                        ApplyPropertyBlockValue(renderer, command.MaterialIndex, property, record.OriginalValue);
+                        _propertyBlockOverrides.Remove(key);
+                        return RuntimeCommandResult.Ok("Renderer override restored.");
+                    }
                 case RuntimeMaterialEditScope.MaterialInstance:
-                {
-                    var key = new SlotKey(renderer.GetInstanceID(), command.MaterialIndex);
-                    if (!_materialInstances.TryGetValue(key, out MaterialInstanceRecord instance) ||
-                        instance.InstanceMaterial == null || instance.OriginalMaterial == null)
-                        return RuntimeCommandResult.Fail("The inspector has no material instance for this slot.");
-                    RuntimeShaderPropertyDescriptor originalProperty =
-                        FindProperty(instance.OriginalMaterial, property.PropertyId);
-                    if (originalProperty == null)
-                        return RuntimeCommandResult.Fail("The original material no longer has this property.");
-                    WriteMaterial(instance.InstanceMaterial, property,
-                        ReadMaterial(instance.OriginalMaterial, originalProperty));
-                    return RuntimeCommandResult.Ok("Material-instance value restored.");
-                }
+                    {
+                        var key = new SlotKey(renderer.GetInstanceID(), command.MaterialIndex);
+                        if (!_materialInstances.TryGetValue(key, out MaterialInstanceRecord instance) || instance.InstanceMaterial == null || instance.OriginalMaterial == null)
+                            return RuntimeCommandResult.Fail("The inspector has no material instance for this slot.");
+                        RuntimeShaderPropertyDescriptor originalProperty = FindProperty(instance.OriginalMaterial, property.PropertyId);
+                        if (originalProperty == null)
+                            return RuntimeCommandResult.Fail("The original material no longer has this property.");
+                        WriteMaterial(instance.InstanceMaterial, property, ReadMaterial(instance.OriginalMaterial, originalProperty));
+                        return RuntimeCommandResult.Ok("Material-instance value restored.");
+                    }
                 case RuntimeMaterialEditScope.SharedMaterial:
                     return RestoreSharedProperty(material, property);
                 case RuntimeMaterialEditScope.GlobalShaderProperty:
@@ -278,8 +269,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             }
         }
 
-        private RuntimeCommandResult RestoreMaterial(RestoreRuntimeMaterialCommand command,
-            RuntimeObjectRegistry registry)
+        private RuntimeCommandResult RestoreMaterial(RestoreRuntimeMaterialCommand command, RuntimeObjectRegistry registry)
         {
             if (!TryResolveRenderer(registry, command.RendererId, out Renderer renderer, out string error))
                 return RuntimeCommandResult.Fail(error);
@@ -287,52 +277,39 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             switch (command.Scope)
             {
                 case RuntimeMaterialEditScope.RendererPropertyBlock:
-                {
-                    int restored = RestorePropertyBlockSlot(renderer, command.MaterialIndex);
-                    return restored > 0
-                        ? RuntimeCommandResult.Ok($"Restored {restored} renderer override(s).")
-                        : RuntimeCommandResult.Fail("The inspector has no renderer overrides for this slot.");
-                }
+                    {
+                        int restored = RestorePropertyBlockSlot(renderer, command.MaterialIndex);
+                        return restored > 0 ? RuntimeCommandResult.Ok($"Restored {restored} renderer override(s).") : RuntimeCommandResult.Fail("The inspector has no renderer overrides for this slot.");
+                    }
                 case RuntimeMaterialEditScope.MaterialInstance:
-                    return RestoreMaterialInstance(renderer, command.MaterialIndex)
-                        ? RuntimeCommandResult.Ok("Original material restored.")
-                        : RuntimeCommandResult.Fail("The inspector has no material instance for this slot.");
+                    return RestoreMaterialInstance(renderer, command.MaterialIndex) ? RuntimeCommandResult.Ok("Original material restored.") : RuntimeCommandResult.Fail("The inspector has no material instance for this slot.");
                 case RuntimeMaterialEditScope.SharedMaterial:
-                {
-                    if (!TryGetScopeMaterial(renderer, command.MaterialIndex, command.Scope, out Material material,
-                            out error))
-                        return RuntimeCommandResult.Fail(error);
-                    int restored = RestoreSharedMaterial(material);
-                    return restored > 0
-                        ? RuntimeCommandResult.Ok($"Restored {restored} shared-material value(s).")
-                        : RuntimeCommandResult.Fail("The inspector has no shared-material changes for this slot.");
-                }
+                    {
+                        if (!TryGetScopeMaterial(renderer, command.MaterialIndex, command.Scope, out Material material, out error))
+                            return RuntimeCommandResult.Fail(error);
+                        int restored = RestoreSharedMaterial(material);
+                        return restored > 0 ? RuntimeCommandResult.Ok($"Restored {restored} shared-material value(s).") : RuntimeCommandResult.Fail("The inspector has no shared-material changes for this slot.");
+                    }
                 case RuntimeMaterialEditScope.GlobalShaderProperty:
-                {
-                    if (!TryGetScopeMaterial(renderer, command.MaterialIndex, command.Scope, out Material material,
-                            out error))
-                        return RuntimeCommandResult.Fail(error);
-                    int restored = RestoreGlobalsForShader(material.shader);
-                    return restored > 0
-                        ? RuntimeCommandResult.Ok($"Restored {restored} global shader value(s).")
-                        : RuntimeCommandResult.Fail("The inspector has no global changes for this shader.");
-                }
+                    {
+                        if (!TryGetScopeMaterial(renderer, command.MaterialIndex, command.Scope, out Material material, out error))
+                            return RuntimeCommandResult.Fail(error);
+                        int restored = RestoreGlobalsForShader(material.shader);
+                        return restored > 0 ? RuntimeCommandResult.Ok($"Restored {restored} global shader value(s).") : RuntimeCommandResult.Fail("The inspector has no global changes for this shader.");
+                    }
                 default:
                     return RuntimeCommandResult.Fail("Unsupported material edit scope.");
             }
         }
 
-        private RuntimeCommandResult SetPropertyBlock(Renderer renderer, int materialIndex, Material material,
-            RuntimeShaderPropertyDescriptor property, RuntimeShaderPropertyValue value)
+        private RuntimeCommandResult SetPropertyBlock(Renderer renderer, int materialIndex, Material material, RuntimeShaderPropertyDescriptor property, RuntimeShaderPropertyValue value)
         {
             var key = new PropertyKey(renderer.GetInstanceID(), materialIndex, property.PropertyId);
             if (!_propertyBlockOverrides.TryGetValue(key, out PropertyBlockOverrideRecord record))
             {
                 _propertyBlock.Clear();
                 renderer.GetPropertyBlock(_propertyBlock, materialIndex);
-                RuntimeShaderPropertyValue original = _propertyBlock.HasProperty(property.PropertyId)
-                    ? ReadPropertyBlock(_propertyBlock, property)
-                    : ReadMaterial(material, property);
+                RuntimeShaderPropertyValue original = _propertyBlock.HasProperty(property.PropertyId) ? ReadPropertyBlock(_propertyBlock, property) : ReadMaterial(material, property);
                 record = new PropertyBlockOverrideRecord
                 {
                     Renderer = renderer,
@@ -348,8 +325,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             return RuntimeCommandResult.Ok("Applied to this renderer only.");
         }
 
-        private RuntimeCommandResult SetMaterialInstance(Renderer renderer, int materialIndex,
-            RuntimeShaderPropertyDescriptor property, RuntimeShaderPropertyValue value)
+        private RuntimeCommandResult SetMaterialInstance(Renderer renderer, int materialIndex, RuntimeShaderPropertyDescriptor property, RuntimeShaderPropertyValue value)
         {
             if (!TryGetOrCreateMaterialInstance(renderer, materialIndex, out Material instance, out string error))
                 return RuntimeCommandResult.Fail(error);
@@ -361,8 +337,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             return RuntimeCommandResult.Ok("Applied to an inspector-owned material instance.");
         }
 
-        private RuntimeCommandResult SetSharedMaterial(Material material, RuntimeShaderPropertyDescriptor property,
-            RuntimeShaderPropertyValue value)
+        private RuntimeCommandResult SetSharedMaterial(Material material, RuntimeShaderPropertyDescriptor property, RuntimeShaderPropertyValue value)
         {
             var key = new MaterialPropertyKey(material.GetInstanceID(), property.PropertyId);
             if (!_sharedMaterialOverrides.TryGetValue(key, out MaterialOverrideRecord record))
@@ -381,8 +356,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             return RuntimeCommandResult.Ok("Shared material changed; other renderers may be affected.");
         }
 
-        private RuntimeCommandResult SetGlobalProperty(RuntimeShaderPropertyDescriptor property,
-            RuntimeShaderPropertyValue value)
+        private RuntimeCommandResult SetGlobalProperty(RuntimeShaderPropertyDescriptor property, RuntimeShaderPropertyValue value)
         {
             if (!_globalOverrides.TryGetValue(property.PropertyId, out GlobalOverrideRecord record))
             {
@@ -403,13 +377,10 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             return RuntimeCommandResult.Ok("Global shader property changed; multiple shaders may be affected.");
         }
 
-        private bool TryGetOrCreateMaterialInstance(Renderer renderer, int materialIndex, out Material instance,
-            out string error)
+        private bool TryGetOrCreateMaterialInstance(Renderer renderer, int materialIndex, out Material instance, out string error)
         {
             var key = new SlotKey(renderer.GetInstanceID(), materialIndex);
-            if (_materialInstances.TryGetValue(key, out MaterialInstanceRecord existing) &&
-                existing.InstanceMaterial != null && IsMaterialAssigned(renderer, materialIndex,
-                    existing.InstanceMaterial))
+            if (_materialInstances.TryGetValue(key, out MaterialInstanceRecord existing) && existing.InstanceMaterial != null && IsMaterialAssigned(renderer, materialIndex, existing.InstanceMaterial))
             {
                 instance = existing.InstanceMaterial;
                 error = null;
@@ -456,8 +427,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             return true;
         }
 
-        private bool TryGetScopeMaterial(Renderer renderer, int materialIndex, RuntimeMaterialEditScope scope,
-            out Material material, out string error)
+        private bool TryGetScopeMaterial(Renderer renderer, int materialIndex, RuntimeMaterialEditScope scope, out Material material, out string error)
         {
             Material[] materials = renderer.sharedMaterials;
             if (materialIndex < 0 || materialIndex >= materials.Length)
@@ -469,10 +439,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
 
             material = materials[materialIndex];
             var key = new SlotKey(renderer.GetInstanceID(), materialIndex);
-            if ((scope == RuntimeMaterialEditScope.SharedMaterial ||
-                 scope == RuntimeMaterialEditScope.GlobalShaderProperty) &&
-                _materialInstances.TryGetValue(key, out MaterialInstanceRecord instance) &&
-                instance.InstanceMaterial == material && instance.OriginalMaterial != null)
+            if ((scope == RuntimeMaterialEditScope.SharedMaterial || scope == RuntimeMaterialEditScope.GlobalShaderProperty) && _materialInstances.TryGetValue(key, out MaterialInstanceRecord instance) && instance.InstanceMaterial == material && instance.OriginalMaterial != null)
             {
                 material = instance.OriginalMaterial;
             }
@@ -525,10 +492,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             return allowed;
         }
 
-        private bool CanEdit(RuntimeShaderPropertyDescriptor property) =>
-            _settings.AllowShaderValueChanges &&
-            property.Type != RuntimeShaderPropertyType.Unsupported &&
-            (property.Type != RuntimeShaderPropertyType.Texture || _settings.AllowTextureChanges);
+        private bool CanEdit(RuntimeShaderPropertyDescriptor property) => _settings.AllowShaderValueChanges && property.Type != RuntimeShaderPropertyType.Unsupported && (property.Type != RuntimeShaderPropertyType.Texture || _settings.AllowTextureChanges);
 
         private RuntimeShaderPropertyDescriptor FindProperty(Material material, int propertyId)
         {
@@ -538,8 +502,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             return descriptor.Properties.FirstOrDefault(property => property.PropertyId == propertyId);
         }
 
-        private static bool TryResolveRenderer(RuntimeObjectRegistry registry, RuntimeObjectId id,
-            out Renderer renderer, out string error)
+        private static bool TryResolveRenderer(RuntimeObjectRegistry registry, RuntimeObjectId id, out Renderer renderer, out string error)
         {
             if (!registry.TryResolve(id, out renderer) || renderer == null)
             {
@@ -554,12 +517,10 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
         private bool IsInspectorInstance(Renderer renderer, int materialIndex, Material material)
         {
             var key = new SlotKey(renderer.GetInstanceID(), materialIndex);
-            return _materialInstances.TryGetValue(key, out MaterialInstanceRecord record) &&
-                   record.InstanceMaterial == material;
+            return _materialInstances.TryGetValue(key, out MaterialInstanceRecord record) && record.InstanceMaterial == material;
         }
 
-        private void ApplyPropertyBlockValue(Renderer renderer, int materialIndex,
-            RuntimeShaderPropertyDescriptor property, RuntimeShaderPropertyValue value)
+        private void ApplyPropertyBlockValue(Renderer renderer, int materialIndex, RuntimeShaderPropertyDescriptor property, RuntimeShaderPropertyValue value)
         {
             _propertyBlock.Clear();
             renderer.GetPropertyBlock(_propertyBlock, materialIndex);
@@ -570,8 +531,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
         private int RestorePropertyBlockSlot(Renderer renderer, int materialIndex)
         {
             int rendererId = renderer.GetInstanceID();
-            var keys = _propertyBlockOverrides.Keys.Where(key =>
-                key.RendererInstanceId == rendererId && key.MaterialIndex == materialIndex).ToArray();
+            var keys = _propertyBlockOverrides.Keys.Where(key => key.RendererInstanceId == rendererId && key.MaterialIndex == materialIndex).ToArray();
             foreach (PropertyKey key in keys)
             {
                 PropertyBlockOverrideRecord record = _propertyBlockOverrides[key];
@@ -582,8 +542,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             return keys.Length;
         }
 
-        private RuntimeCommandResult RestoreSharedProperty(Material material,
-            RuntimeShaderPropertyDescriptor property)
+        private RuntimeCommandResult RestoreSharedProperty(Material material, RuntimeShaderPropertyDescriptor property)
         {
             var key = new MaterialPropertyKey(material.GetInstanceID(), property.PropertyId);
             if (!_sharedMaterialOverrides.TryGetValue(key, out MaterialOverrideRecord record))
@@ -613,8 +572,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                 return false;
 
             _materialInstances.Remove(key);
-            if (renderer != null && record.InstanceMaterial != null &&
-                IsMaterialAssigned(renderer, materialIndex, record.InstanceMaterial))
+            if (renderer != null && record.InstanceMaterial != null && IsMaterialAssigned(renderer, materialIndex, record.InstanceMaterial))
             {
                 Material[] materials = renderer.sharedMaterials;
                 materials[materialIndex] = record.OriginalMaterial;
@@ -630,13 +588,11 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             if (material == null)
                 return 0;
             int materialId = material.GetInstanceID();
-            MaterialPropertyKey[] keys = _sharedMaterialOverrides.Keys
-                .Where(key => key.MaterialInstanceId == materialId).ToArray();
+            MaterialPropertyKey[] keys = _sharedMaterialOverrides.Keys.Where(key => key.MaterialInstanceId == materialId).ToArray();
             foreach (MaterialPropertyKey key in keys)
             {
                 MaterialOverrideRecord record = _sharedMaterialOverrides[key];
-                if (record.Material != null &&
-                    ValuesEqual(ReadMaterial(record.Material, record.Property), record.CurrentValue))
+                if (record.Material != null && ValuesEqual(ReadMaterial(record.Material, record.Property), record.CurrentValue))
                 {
                     WriteMaterial(record.Material, record.Property, record.OriginalValue);
                 }
@@ -674,8 +630,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                     continue;
                 try
                 {
-                    ApplyPropertyBlockValue(record.Renderer, record.MaterialIndex, record.Property,
-                        record.OriginalValue);
+                    ApplyPropertyBlockValue(record.Renderer, record.MaterialIndex, record.Property, record.OriginalValue);
                 }
                 catch
                 {
@@ -742,22 +697,19 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
 
         private void PruneInvalidState()
         {
-            foreach (PropertyKey key in _propertyBlockOverrides
-                         .Where(pair => pair.Value.Renderer == null).Select(pair => pair.Key).ToArray())
+            foreach (PropertyKey key in _propertyBlockOverrides.Where(pair => pair.Value.Renderer == null).Select(pair => pair.Key).ToArray())
                 _propertyBlockOverrides.Remove(key);
 
             foreach (SlotKey key in _materialInstances.Keys.ToArray())
             {
                 MaterialInstanceRecord record = _materialInstances[key];
-                if (record.Renderer != null && record.InstanceMaterial != null &&
-                    IsMaterialAssigned(record.Renderer, record.MaterialIndex, record.InstanceMaterial))
+                if (record.Renderer != null && record.InstanceMaterial != null && IsMaterialAssigned(record.Renderer, record.MaterialIndex, record.InstanceMaterial))
                     continue;
                 _materialInstances.Remove(key);
                 DestroyOwnedMaterial(record.InstanceMaterial);
             }
 
-            foreach (MaterialPropertyKey key in _sharedMaterialOverrides
-                         .Where(pair => pair.Value.Material == null).Select(pair => pair.Key).ToArray())
+            foreach (MaterialPropertyKey key in _sharedMaterialOverrides.Where(pair => pair.Value.Material == null).Select(pair => pair.Key).ToArray())
                 _sharedMaterialOverrides.Remove(key);
         }
 
@@ -779,8 +731,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                 Object.DestroyImmediate(material);
         }
 
-        private static RuntimeShaderPropertyValue ReadMaterial(Material material,
-            RuntimeShaderPropertyDescriptor property)
+        private static RuntimeShaderPropertyValue ReadMaterial(Material material, RuntimeShaderPropertyDescriptor property)
         {
             switch (property.Type)
             {
@@ -800,8 +751,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             }
         }
 
-        private static void WriteMaterial(Material material, RuntimeShaderPropertyDescriptor property,
-            RuntimeShaderPropertyValue value)
+        private static void WriteMaterial(Material material, RuntimeShaderPropertyDescriptor property, RuntimeShaderPropertyValue value)
         {
             switch (property.Type)
             {
@@ -826,8 +776,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             }
         }
 
-        private static RuntimeShaderPropertyValue ReadPropertyBlock(MaterialPropertyBlock block,
-            RuntimeShaderPropertyDescriptor property)
+        private static RuntimeShaderPropertyValue ReadPropertyBlock(MaterialPropertyBlock block, RuntimeShaderPropertyDescriptor property)
         {
             switch (property.Type)
             {
@@ -847,8 +796,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             }
         }
 
-        private static void WritePropertyBlock(MaterialPropertyBlock block,
-            RuntimeShaderPropertyDescriptor property, RuntimeShaderPropertyValue value)
+        private static void WritePropertyBlock(MaterialPropertyBlock block, RuntimeShaderPropertyDescriptor property, RuntimeShaderPropertyValue value)
         {
             switch (property.Type)
             {
@@ -879,8 +827,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             {
                 case RuntimeShaderPropertyType.Float:
                 case RuntimeShaderPropertyType.Range:
-                    return RuntimeShaderPropertyValue.Float(property.Type,
-                        Shader.GetGlobalFloat(property.PropertyId));
+                    return RuntimeShaderPropertyValue.Float(property.Type, Shader.GetGlobalFloat(property.PropertyId));
                 case RuntimeShaderPropertyType.Integer:
                     return RuntimeShaderPropertyValue.Integer(Shader.GetGlobalInteger(property.PropertyId));
                 case RuntimeShaderPropertyType.Color:
@@ -894,8 +841,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             }
         }
 
-        private static void WriteGlobal(RuntimeShaderPropertyDescriptor property,
-            RuntimeShaderPropertyValue value)
+        private static void WriteGlobal(RuntimeShaderPropertyDescriptor property, RuntimeShaderPropertyValue value)
         {
             switch (property.Type)
             {
@@ -935,29 +881,21 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                     return Join(value.VectorValue.x, value.VectorValue.y, value.VectorValue.z, value.VectorValue.w);
                 case RuntimeShaderPropertyType.Texture:
                     Texture texture = value.TextureValue;
-                    return texture == null
-                        ? "null"
-                        : $"{texture.name} ({texture.width}x{texture.height}, {texture.GetType().Name})";
+                    return texture == null ? "null" : $"{texture.name} ({texture.width}x{texture.height}, {texture.GetType().Name})";
                 default:
                     return "<unsupported>";
             }
         }
 
-        private static string Join(float x, float y, float z, float w) =>
-            string.Join(", ", x.ToString("R", CultureInfo.InvariantCulture),
-                y.ToString("R", CultureInfo.InvariantCulture),
-                z.ToString("R", CultureInfo.InvariantCulture),
-                w.ToString("R", CultureInfo.InvariantCulture));
+        private static string Join(float x, float y, float z, float w) => string.Join(", ", x.ToString("R", CultureInfo.InvariantCulture), y.ToString("R", CultureInfo.InvariantCulture), z.ToString("R", CultureInfo.InvariantCulture), w.ToString("R", CultureInfo.InvariantCulture));
 
-        private static bool TryParse(string text, RuntimeShaderPropertyType type,
-            out RuntimeShaderPropertyValue value, out string error)
+        private static bool TryParse(string text, RuntimeShaderPropertyType type, out RuntimeShaderPropertyValue value, out string error)
         {
             switch (type)
             {
                 case RuntimeShaderPropertyType.Float:
                 case RuntimeShaderPropertyType.Range:
-                    if (float.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out float scalar) &&
-                        IsFinite(scalar))
+                    if (float.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out float scalar) && IsFinite(scalar))
                     {
                         value = RuntimeShaderPropertyValue.Float(type, scalar);
                         error = null;
@@ -982,9 +920,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                 case RuntimeShaderPropertyType.Vector:
                     if (TryParseVector(text, out Vector4 vector))
                     {
-                        value = type == RuntimeShaderPropertyType.Color
-                            ? RuntimeShaderPropertyValue.Color(new Color(vector.x, vector.y, vector.z, vector.w))
-                            : RuntimeShaderPropertyValue.Vector(vector);
+                        value = type == RuntimeShaderPropertyType.Color ? RuntimeShaderPropertyValue.Color(new Color(vector.x, vector.y, vector.z, vector.w)) : RuntimeShaderPropertyValue.Vector(vector);
                         error = null;
                         return true;
                     }
@@ -993,9 +929,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                     error = "Enter four finite values: X, Y, Z, W.";
                     return false;
                 case RuntimeShaderPropertyType.Texture:
-                    if (string.IsNullOrWhiteSpace(text) ||
-                        string.Equals(text.Trim(), "null", StringComparison.OrdinalIgnoreCase) ||
-                        string.Equals(text.Trim(), "none", StringComparison.OrdinalIgnoreCase))
+                    if (string.IsNullOrWhiteSpace(text) || string.Equals(text.Trim(), "null", StringComparison.OrdinalIgnoreCase) || string.Equals(text.Trim(), "none", StringComparison.OrdinalIgnoreCase))
                     {
                         value = RuntimeShaderPropertyValue.Texture(null);
                         error = null;
@@ -1025,8 +959,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             var values = new float[4];
             for (int i = 0; i < values.Length; i++)
             {
-                if (!float.TryParse(parts[i], NumberStyles.Float, CultureInfo.InvariantCulture, out values[i]) ||
-                    !IsFinite(values[i]))
+                if (!float.TryParse(parts[i], NumberStyles.Float, CultureInfo.InvariantCulture, out values[i]) || !IsFinite(values[i]))
                     return false;
             }
 
@@ -1068,8 +1001,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
 
             public int RendererInstanceId { get; }
             public int MaterialIndex { get; }
-            public bool Equals(SlotKey other) => RendererInstanceId == other.RendererInstanceId &&
-                                                 MaterialIndex == other.MaterialIndex;
+            public bool Equals(SlotKey other) => RendererInstanceId == other.RendererInstanceId && MaterialIndex == other.MaterialIndex;
             public override bool Equals(object obj) => obj is SlotKey other && Equals(other);
             public override int GetHashCode() => unchecked(RendererInstanceId * 397 ^ MaterialIndex);
         }
@@ -1086,12 +1018,9 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             public int RendererInstanceId { get; }
             public int MaterialIndex { get; }
             public int PropertyId { get; }
-            public bool Equals(PropertyKey other) => RendererInstanceId == other.RendererInstanceId &&
-                                                     MaterialIndex == other.MaterialIndex &&
-                                                     PropertyId == other.PropertyId;
+            public bool Equals(PropertyKey other) => RendererInstanceId == other.RendererInstanceId && MaterialIndex == other.MaterialIndex && PropertyId == other.PropertyId;
             public override bool Equals(object obj) => obj is PropertyKey other && Equals(other);
-            public override int GetHashCode() =>
-                unchecked((RendererInstanceId * 397 ^ MaterialIndex) * 397 ^ PropertyId);
+            public override int GetHashCode() => unchecked((RendererInstanceId * 397 ^ MaterialIndex) * 397 ^ PropertyId);
         }
 
         private readonly struct MaterialPropertyKey : IEquatable<MaterialPropertyKey>
@@ -1104,8 +1033,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
 
             public int MaterialInstanceId { get; }
             public int PropertyId { get; }
-            public bool Equals(MaterialPropertyKey other) => MaterialInstanceId == other.MaterialInstanceId &&
-                                                             PropertyId == other.PropertyId;
+            public bool Equals(MaterialPropertyKey other) => MaterialInstanceId == other.MaterialInstanceId && PropertyId == other.PropertyId;
             public override bool Equals(object obj) => obj is MaterialPropertyKey other && Equals(other);
             public override int GetHashCode() => unchecked(MaterialInstanceId * 397 ^ PropertyId);
         }

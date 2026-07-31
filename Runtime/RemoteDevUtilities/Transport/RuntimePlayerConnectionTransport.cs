@@ -56,9 +56,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Transport
             _callbackHost.MessageReceived = OnMessage;
             _callbackHost.EditorConnected = OnConnected;
             _callbackHost.EditorDisconnected = OnDisconnected;
-            _connection.Register(
-                RemoteProtocolConstants.EditorToPlayerMessageId,
-                _callbackHost.OnMessage);
+            _connection.Register(RemoteProtocolConstants.EditorToPlayerMessageId, _callbackHost.OnMessage);
             _connection.RegisterConnection(_callbackHost.OnConnected);
             _connection.RegisterDisconnection(_callbackHost.OnDisconnected);
         }
@@ -84,11 +82,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Transport
             if (_connection == null || !_connection.isConnected)
                 return;
 
-            byte[] data = RemoteProtocolSerializer.Serialize(
-                messageType,
-                requestId,
-                _runtimeSessionId,
-                payload);
+            byte[] data = RemoteProtocolSerializer.Serialize(messageType, requestId, _runtimeSessionId, payload);
             _connection.Send(RemoteProtocolConstants.PlayerToEditorMessageId, data);
         }
 

@@ -9,12 +9,7 @@ using UnityEngine.Profiling;
 namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
 {
     [UnityEngine.Scripting.Preserve]
-    internal sealed class RuntimePerformanceMiniToolProvider :
-        MiniToolDataProvider,
-        IMiniToolFieldProvider,
-        IMiniToolSnapshotProvider<StatsSnapshot>,
-        IMiniToolSnapshotProvider<FPSSnapshot>,
-        IRemoteMiniToolSnapshotCapture
+    internal sealed class RuntimePerformanceMiniToolProvider : MiniToolDataProvider, IMiniToolFieldProvider, IMiniToolSnapshotProvider<StatsSnapshot>, IMiniToolSnapshotProvider<FPSSnapshot>, IRemoteMiniToolSnapshotCapture
     {
         private const double BytesPerMebibyte = 1024d * 1024d;
 
@@ -41,9 +36,7 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
         public override void Tick()
         {
             float deltaTime = Time.unscaledDeltaTime;
-            if (deltaTime <= 0f ||
-                float.IsNaN(deltaTime) ||
-                float.IsInfinity(deltaTime))
+            if (deltaTime <= 0f || float.IsNaN(deltaTime) || float.IsInfinity(deltaTime))
             {
                 return;
             }
@@ -53,9 +46,7 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
             _frames++;
         }
 
-        bool IRemoteMiniToolSnapshotCapture.TryCapture(
-            out string snapshotTypeName,
-            out string snapshotJson)
+        bool IRemoteMiniToolSnapshotCapture.TryCapture(out string snapshotTypeName, out string snapshotJson)
         {
             if (PerformanceOverlaySelection.UseDetailedStats)
             {
@@ -66,10 +57,7 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
                     return false;
                 }
 
-                return RemoteMiniToolSnapshotSerializer.TrySerialize(
-                    in statsSnapshot,
-                    out snapshotTypeName,
-                    out snapshotJson);
+                return RemoteMiniToolSnapshotSerializer.TrySerialize(in statsSnapshot, out snapshotTypeName, out snapshotJson);
             }
 
             if (!TryGetFpsSnapshot(out FPSSnapshot fpsSnapshot))
@@ -79,84 +67,32 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
                 return false;
             }
 
-            return RemoteMiniToolSnapshotSerializer.TrySerialize(
-                in fpsSnapshot,
-                out snapshotTypeName,
-                out snapshotJson);
+            return RemoteMiniToolSnapshotSerializer.TrySerialize(in fpsSnapshot, out snapshotTypeName, out snapshotJson);
         }
 
-        bool IMiniToolSnapshotProvider<StatsSnapshot>.TryGetSnapshot(
-            out StatsSnapshot snapshot) =>
-            TryGetStatsSnapshot(out snapshot);
+        bool IMiniToolSnapshotProvider<StatsSnapshot>.TryGetSnapshot(out StatsSnapshot snapshot) => TryGetStatsSnapshot(out snapshot);
 
-        bool IMiniToolSnapshotProvider<FPSSnapshot>.TryGetSnapshot(
-            out FPSSnapshot snapshot) =>
-            TryGetFpsSnapshot(out snapshot);
+        bool IMiniToolSnapshotProvider<FPSSnapshot>.TryGetSnapshot(out FPSSnapshot snapshot) => TryGetFpsSnapshot(out snapshot);
 
         public RemoteMiniToolField[] CaptureFields()
         {
-            bool hasSnapshot =
-                TryGetStatsSnapshot(out StatsSnapshot snapshot);
+            bool hasSnapshot = TryGetStatsSnapshot(out StatsSnapshot snapshot);
             var fields = new List<RemoteMiniToolField>(8)
             {
-                CreateField(
-                    "fps",
-                    "FPS",
-                    (hasSnapshot
-                        ? snapshot.AverageFps
-                        : 0d).ToString("F1"),
-                    "fps"),
-                CreateField(
-                    "frameTime",
-                    "Average Frame Time",
-                    (hasSnapshot
-                        ? snapshot.AverageFrameTimeMs
-                        : 0d).ToString("F2"),
-                    "ms"),
-                CreateField(
-                    "targetFrameRate",
-                    "Target Frame Rate",
-                    (hasSnapshot
-                        ? snapshot.TargetFrameRate
-                        : Application.targetFrameRate).ToString(),
-                    "fps"),
-                CreateField(
-                    "vSync",
-                    "VSync Count",
-                    (hasSnapshot
-                        ? snapshot.VSyncCount
-                        : QualitySettings.vSyncCount).ToString(),
-                    string.Empty),
-                CreateField(
-                    "allocatedMemory",
-                    "Allocated Memory",
-                    ToMebibytes(
-                        hasSnapshot
-                            ? snapshot.AllocatedMemoryBytes
-                            : 0L).ToString("F2"),
-                    "MiB"),
-                CreateField(
-                    "reservedMemory",
-                    "Reserved Memory",
-                    ToMebibytes(
-                        hasSnapshot
-                            ? snapshot.ReservedMemoryBytes
-                            : 0L).ToString("F2"),
-                    "MiB"),
-                CreateField(
-                    "monoHeap",
-                    "Mono Heap",
-                    ToMebibytes(
-                        Profiler.GetMonoHeapSizeLong()).ToString("F2"),
-                    "MiB")
+                CreateField("fps", "FPS", (hasSnapshot ? snapshot.AverageFps : 0d).ToString("F1"), "fps"),
+                CreateField("frameTime", "Average Frame Time", (hasSnapshot ? snapshot.AverageFrameTimeMs : 0d).ToString("F2"), "ms"),
+                CreateField("targetFrameRate", "Target Frame Rate", (hasSnapshot ? snapshot.TargetFrameRate : Application.targetFrameRate).ToString(), "fps"),
+                CreateField("vSync", "VSync Count", (hasSnapshot ? snapshot.VSyncCount : QualitySettings.vSyncCount).ToString(), string.Empty),
+                CreateField("allocatedMemory", "Allocated Memory", ToMebibytes(hasSnapshot ? snapshot.AllocatedMemoryBytes : 0L).ToString("F2"), "MiB"),
+                CreateField("reservedMemory", "Reserved Memory", ToMebibytes(hasSnapshot ? snapshot.ReservedMemoryBytes : 0L).ToString("F2"), "MiB"),
+                CreateField("monoHeap", "Mono Heap", ToMebibytes(Profiler.GetMonoHeapSizeLong()).ToString("F2"), "MiB")
             };
 
             ResetSample();
             return fields.ToArray();
         }
 
-        private bool TryGetStatsSnapshot(
-            out StatsSnapshot snapshot)
+        private bool TryGetStatsSnapshot(out StatsSnapshot snapshot)
         {
             if (_hasPendingStatsSnapshot)
             {
@@ -164,11 +100,7 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
                 return true;
             }
 
-            if (!StatsSnapshotCollector.TryCapture(
-                    _elapsed,
-                    _frames,
-                    _frameTimings,
-                    out snapshot))
+            if (!StatsSnapshotCollector.TryCapture(_elapsed, _frames, _frameTimings, out snapshot))
             {
                 return false;
             }
@@ -178,8 +110,7 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
             return true;
         }
 
-        private bool TryGetFpsSnapshot(
-            out FPSSnapshot snapshot)
+        private bool TryGetFpsSnapshot(out FPSSnapshot snapshot)
         {
             if (_hasPendingFpsSnapshot)
             {
@@ -187,12 +118,7 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
                 return true;
             }
 
-            if (!FPSSnapshotCollector.TryCapture(
-                    _elapsed,
-                    _frames,
-                    FPSSnapshotCollector
-                        .DefaultFallbackTargetFrameRate,
-                    out snapshot))
+            if (!FPSSnapshotCollector.TryCapture(_elapsed, _frames, FPSSnapshotCollector.DefaultFallbackTargetFrameRate, out snapshot))
             {
                 return false;
             }
@@ -216,6 +142,5 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
             _pendingFpsSnapshot = default;
             _hasPendingFpsSnapshot = false;
         }
-
     }
 }

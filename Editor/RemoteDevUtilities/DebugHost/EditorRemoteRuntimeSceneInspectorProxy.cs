@@ -15,22 +15,18 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
             _client = client;
         }
 
-        public RuntimeHierarchySnapshot GetHierarchySnapshot() =>
-            RemoteRuntimeSceneInspectorModelMapper.ToRuntime(_client.RuntimeSceneInspector.Hierarchy);
+        public RuntimeHierarchySnapshot GetHierarchySnapshot() => RemoteRuntimeSceneInspectorModelMapper.ToRuntime(_client.RuntimeSceneInspector.Hierarchy);
 
         public RuntimeObjectDetails InspectObject(RuntimeObjectId objectId)
         {
             RemoteSceneInspectorInspectResponse inspection = _client.RuntimeSceneInspector.Inspection;
-            if (_client.RuntimeSceneInspector.InspectionObjectId == objectId.Value &&
-                inspection != null)
+            if (_client.RuntimeSceneInspector.InspectionObjectId == objectId.Value && inspection != null)
             {
                 _pendingInspectionId = 0;
                 if (inspection.Found && inspection.Details?.Id == objectId.Value)
                     return RemoteRuntimeSceneInspectorModelMapper.ToRuntime(inspection.Details);
 
-                return CreatePendingDetails(
-                    objectId,
-                    inspection.Error ?? "The remote object is unavailable.");
+                return CreatePendingDetails(objectId, inspection.Error ?? "The remote object is unavailable.");
             }
 
             if (_pendingInspectionId != objectId.Value)
@@ -42,9 +38,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
             return CreatePendingDetails(objectId, "Loading remote object...");
         }
 
-        private static RuntimeObjectDetails CreatePendingDetails(
-            RuntimeObjectId objectId,
-            string name)
+        private static RuntimeObjectDetails CreatePendingDetails(RuntimeObjectId objectId, string name)
         {
             return new RuntimeObjectDetails
             {
@@ -66,9 +60,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
 
         public void RefreshHierarchy() => _client.RuntimeSceneInspector.RequestHierarchy(true);
 
-        private static bool TryMap(
-            RuntimeSceneInspectorCommand command,
-            out RemoteSceneInspectorCommandRequest request)
+        private static bool TryMap(RuntimeSceneInspectorCommand command, out RemoteSceneInspectorCommandRequest request)
         {
             request = new RemoteSceneInspectorCommandRequest();
             switch (command)

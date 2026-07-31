@@ -8,13 +8,16 @@ namespace SAS.Utilities.DeveloperConsole
         [SerializeField] private string m_HelpText;
         public override string HelpText => m_HelpText;
 
-        
+
         private bool SetResolution(string[] args)
         {
-            if (args.Length < 2) return false;
+            if (args.Length < 2)
+                return false;
 
-            if (!int.TryParse(args[0], out int width)) return false;
-            if (!int.TryParse(args[1], out int height)) return false;
+            if (!int.TryParse(args[0], out int width))
+                return false;
+            if (!int.TryParse(args[1], out int height))
+                return false;
 
             BoolUtil.TryParse(args[2], out bool fullscreen);
             Screen.SetResolution(width, height, fullscreen);
@@ -25,7 +28,8 @@ namespace SAS.Utilities.DeveloperConsole
 
         private bool SetFullScreen(string[] args)
         {
-            if (args.Length < 1) return false;
+            if (args.Length < 1)
+                return false;
 
             if (BoolUtil.TryParse(args[0], out bool fullscreen))
             {
@@ -38,7 +42,8 @@ namespace SAS.Utilities.DeveloperConsole
 
         private bool SetWindowMode(string[] args)
         {
-            if (args.Length < 1) return false;
+            if (args.Length < 1)
+                return false;
 
             switch (args[0].ToLower())
             {

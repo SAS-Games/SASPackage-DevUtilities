@@ -14,9 +14,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
         {
         }
 
-        internal RemoteMiniToolPresentationOverride(
-            string toolId,
-            string prefabGuid)
+        internal RemoteMiniToolPresentationOverride(string toolId, string prefabGuid)
         {
             _toolId = toolId;
             _prefabGuid = prefabGuid;
@@ -34,11 +32,9 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
     [Serializable]
     internal sealed class RemoteMiniToolPresentationConfiguration
     {
-        [SerializeField]
-        private List<RemoteMiniToolPresentationOverride> _overrides = new();
+        [SerializeField] private List<RemoteMiniToolPresentationOverride> _overrides = new();
 
-        internal IReadOnlyList<RemoteMiniToolPresentationOverride> Overrides =>
-            Entries;
+        internal IReadOnlyList<RemoteMiniToolPresentationOverride> Overrides => Entries;
 
         internal bool TryGetPrefabGuid(string toolId, out string prefabGuid)
         {
@@ -55,25 +51,20 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
 
         internal bool SetPrefabGuid(string toolId, string prefabGuid)
         {
-            if (string.IsNullOrWhiteSpace(toolId) ||
-                string.IsNullOrWhiteSpace(prefabGuid))
+            if (string.IsNullOrWhiteSpace(toolId) || string.IsNullOrWhiteSpace(prefabGuid))
                 return false;
 
             int index = Find(toolId);
             if (index >= 0)
             {
-                if (string.Equals(
-                        Entries[index].PrefabGuid,
-                        prefabGuid,
-                        StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(Entries[index].PrefabGuid, prefabGuid, StringComparison.OrdinalIgnoreCase))
                     return false;
 
                 Entries[index].SetPrefabGuid(prefabGuid);
                 return true;
             }
 
-            Entries.Add(
-                new RemoteMiniToolPresentationOverride(toolId, prefabGuid));
+            Entries.Add(new RemoteMiniToolPresentationOverride(toolId, prefabGuid));
             return true;
         }
 
@@ -94,17 +85,13 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
 
             for (int i = 0; i < Entries.Count; i++)
             {
-                if (string.Equals(
-                        Entries[i]?.ToolId,
-                        toolId,
-                        StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(Entries[i]?.ToolId, toolId, StringComparison.OrdinalIgnoreCase))
                     return i;
             }
 
             return -1;
         }
 
-        private List<RemoteMiniToolPresentationOverride> Entries =>
-            _overrides ??= new List<RemoteMiniToolPresentationOverride>();
+        private List<RemoteMiniToolPresentationOverride> Entries => _overrides ??= new List<RemoteMiniToolPresentationOverride>();
     }
 }

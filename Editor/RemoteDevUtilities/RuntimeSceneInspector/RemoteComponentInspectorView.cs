@@ -11,27 +11,16 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
         private readonly HashSet<long> _expandedComponents = new();
         private readonly Dictionary<string, string> _editValues = new();
 
-        public void Draw(
-            RemoteRuntimeSceneInspectorClient client,
-            RemoteComponentDescriptor[] components)
+        public void Draw(RemoteRuntimeSceneInspectorClient client, RemoteComponentDescriptor[] components)
         {
             EditorGUILayout.Space(4f);
             EditorGUILayout.LabelField("Components", EditorStyles.boldLabel);
-            foreach (RemoteComponentDescriptor component in components ??
-                     Array.Empty<RemoteComponentDescriptor>())
+            foreach (RemoteComponentDescriptor component in components ?? Array.Empty<RemoteComponentDescriptor>())
             {
                 EditorGUILayout.BeginVertical(EditorStyles.helpBox);
                 bool expanded = _expandedComponents.Contains(component.Id);
-                bool next = EditorGUILayout.Foldout(
-                    expanded,
-                    component.Missing
-                        ? "Missing Script"
-                        : RemoteInspectorFormatting.ShortTypeName(component.TypeName),
-                    true);
-                RemoteInspectorFormatting.SetExpanded(
-                    _expandedComponents,
-                    component.Id,
-                    next);
+                bool next = EditorGUILayout.Foldout(expanded, component.Missing ? "Missing Script" : RemoteInspectorFormatting.ShortTypeName(component.TypeName), true);
+                RemoteInspectorFormatting.SetExpanded(_expandedComponents, component.Id, next);
 
                 if (next)
                     DrawExpandedComponent(client, component);
@@ -40,9 +29,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
             }
         }
 
-        private void DrawExpandedComponent(
-            RemoteRuntimeSceneInspectorClient client,
-            RemoteComponentDescriptor component)
+        private void DrawExpandedComponent(RemoteRuntimeSceneInspectorClient client, RemoteComponentDescriptor component)
         {
             if (component.HasEnabledState)
             {
@@ -61,25 +48,18 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
             if (!string.IsNullOrWhiteSpace(component.StatusMessage))
                 EditorGUILayout.HelpBox(component.StatusMessage, MessageType.Info);
 
-            foreach (RemoteMemberDescriptor member in component.Members ??
-                     Array.Empty<RemoteMemberDescriptor>())
+            foreach (RemoteMemberDescriptor member in component.Members ?? Array.Empty<RemoteMemberDescriptor>())
                 DrawMember(client, component.Id, member);
         }
 
-        private void DrawMember(
-            RemoteRuntimeSceneInspectorClient client,
-            long componentId,
-            RemoteMemberDescriptor member)
+        private void DrawMember(RemoteRuntimeSceneInspectorClient client, long componentId, RemoteMemberDescriptor member)
         {
             string key = $"component:{componentId}:{member.Name}";
             EditorGUILayout.BeginHorizontal();
             GUILayout.Label(member.DisplayName ?? member.Name, GUILayout.Width(155f));
             if (member.ReadOnly)
             {
-                EditorGUILayout.SelectableLabel(
-                    member.Value ?? string.Empty,
-                    EditorStyles.textField,
-                    GUILayout.Height(EditorGUIUtility.singleLineHeight));
+                EditorGUILayout.SelectableLabel(member.Value ?? string.Empty, EditorStyles.textField, GUILayout.Height(EditorGUIUtility.singleLineHeight));
             }
             else
             {

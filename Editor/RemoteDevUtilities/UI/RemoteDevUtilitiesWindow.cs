@@ -74,20 +74,14 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI
         {
             if (_client == null)
             {
-                EditorGUILayout.HelpBox(
-                    string.IsNullOrWhiteSpace(_initializationError)
-                        ? "Remote Dev Utilities has not initialized."
-                        : _initializationError,
-                    MessageType.Error);
+                EditorGUILayout.HelpBox(string.IsNullOrWhiteSpace(_initializationError) ? "Remote Dev Utilities has not initialized." : _initializationError, MessageType.Error);
                 if (GUILayout.Button("Retry Initialization", GUILayout.Width(140f)))
                     TryInitializeClient();
                 return;
             }
 
             _connectionPanel.Draw(_client);
-            _showNativeWorkspace = _debugWorkspacePanel.Draw(
-                _client,
-                _showNativeWorkspace);
+            _showNativeWorkspace = _debugWorkspacePanel.Draw(_client, _showNativeWorkspace);
             EditorGUILayout.Space(4f);
 
             if (!_showNativeWorkspace)
@@ -95,27 +89,20 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI
 
             EditorGUILayout.Space(5f);
             EditorGUILayout.LabelField("Native Workspace", EditorStyles.boldLabel);
-            _tab = (Tab)GUILayout.Toolbar(
-                (int)_tab,
-                new[] { "Commands", "Logs", "Mini Tools", "Runtime Scene Inspector" });
+            _tab = (Tab)GUILayout.Toolbar((int)_tab, new[] { "Commands", "Logs", "Mini Tools", "Runtime Scene Inspector" });
             EditorGUILayout.Space(3f);
 
             switch (_tab)
             {
                 case Tab.Commands:
-                    _commandPanel.Draw(
-                        _client.Commands,
-                        _client.CommandPresentation,
-                        _client.IsConnected);
+                    _commandPanel.Draw(_client.Commands, _client.CommandPresentation, _client.IsConnected);
                     break;
                 case Tab.Logs:
-                    if (_logPanel.Draw(
-                            _client.Logs,
-                            _client.Commands,
-                            _client.IsConnected))
+                    if (_logPanel.Draw(_client.Logs, _client.Commands, _client.IsConnected))
                     {
                         _windowScroll.y = float.MaxValue;
                     }
+
                     break;
                 case Tab.MiniTools:
                     _miniToolsPanel.Draw(_client.MiniTools, _client.IsConnected);
@@ -142,9 +129,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI
             catch (Exception exception)
             {
                 _client = null;
-                _initializationError =
-                    "Remote Dev Utilities failed to initialize:\n" +
-                    exception.GetType().Name + ": " + exception.Message;
+                _initializationError = "Remote Dev Utilities failed to initialize:\n" + exception.GetType().Name + ": " + exception.Message;
                 Debug.LogException(exception);
             }
         }

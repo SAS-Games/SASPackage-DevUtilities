@@ -36,8 +36,7 @@ namespace SAS.BuildValidation
                 return;
             }
 
-            bool continueBuild = EditorUtility.DisplayDialog("Build Validation Failed", dialogMessage, "Continue Build",
-                "Cancel Build");
+            bool continueBuild = EditorUtility.DisplayDialog("Build Validation Failed", dialogMessage, "Continue Build", "Cancel Build");
 
             if (!continueBuild)
                 throw new BuildFailedException("Build cancelled due to validation failure.");

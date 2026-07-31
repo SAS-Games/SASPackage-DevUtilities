@@ -21,25 +21,7 @@ public sealed class ParticleStats : MonoBehaviour, IMiniToolSnapshotView<Particl
             return;
 
         _builder.Clear();
-        _builder.AppendLine(
-                "<color=#00FFFF><b>PARTICLES</b></color>")
-            .AppendLine("<color=#00FF00>Systems:</color>")
-            .Append("  Total: ")
-            .Append(snapshot.TotalSystems)
-            .AppendLine()
-            .Append("  Active: ")
-            .Append(snapshot.ActiveSystems)
-            .AppendLine()
-            .Append("  Alive: ")
-            .Append(snapshot.AliveSystems)
-            .AppendLine()
-            .AppendLine("<color=#FF4444>Disabled:</color>")
-            .Append("  Count: ")
-            .Append(snapshot.DisabledSystems)
-            .AppendLine()
-            .Append("<color=#00FFFF>Live Particles:</color> ")
-            .Append(snapshot.LiveParticles)
-            .AppendLine();
+        _builder.AppendLine("<color=#00FFFF><b>PARTICLES</b></color>").AppendLine("<color=#00FF00>Systems:</color>").Append("  Total: ").Append(snapshot.TotalSystems).AppendLine().Append("  Active: ").Append(snapshot.ActiveSystems).AppendLine().Append("  Alive: ").Append(snapshot.AliveSystems).AppendLine().AppendLine("<color=#FF4444>Disabled:</color>").Append("  Count: ").Append(snapshot.DisabledSystems).AppendLine().Append("<color=#00FFFF>Live Particles:</color> ").Append(snapshot.LiveParticles).AppendLine();
 
         if (snapshot.HasCpuTiming)
         {

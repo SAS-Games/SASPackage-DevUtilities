@@ -14,11 +14,8 @@ namespace SAS.BuildValidation
             if (_cachedValidationTypes != null)
                 return _cachedValidationTypes;
 
-            _cachedValidationTypes = TypeCache.GetTypesDerivedFrom<IBuildValidation>()
-                    .Where(type => !type.IsAbstract && !type.IsInterface)
-                    .OrderBy(GetValidationOrder)
-                    .ToList();
-            
+            _cachedValidationTypes = TypeCache.GetTypesDerivedFrom<IBuildValidation>().Where(type => !type.IsAbstract && !type.IsInterface).OrderBy(GetValidationOrder).ToList();
+
             return _cachedValidationTypes;
         }
 

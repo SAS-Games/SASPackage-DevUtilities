@@ -39,8 +39,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
             if (details == null)
                 return null;
 
-            RemoteComponentDescriptor[] sourceComponents =
-                details.Components ?? Array.Empty<RemoteComponentDescriptor>();
+            RemoteComponentDescriptor[] sourceComponents = details.Components ?? Array.Empty<RemoteComponentDescriptor>();
             var components = new RuntimeComponentDescriptor[sourceComponents.Length];
             for (int i = 0; i < sourceComponents.Length; i++)
                 components[i] = ToRuntime(sourceComponents[i]);
@@ -59,8 +58,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
 
         private static RuntimeComponentDescriptor ToRuntime(RemoteComponentDescriptor component)
         {
-            RemoteMemberDescriptor[] sourceMembers =
-                component.Members ?? Array.Empty<RemoteMemberDescriptor>();
+            RemoteMemberDescriptor[] sourceMembers = component.Members ?? Array.Empty<RemoteMemberDescriptor>();
             var members = new RuntimeMemberDescriptor[sourceMembers.Length];
             for (int i = 0; i < sourceMembers.Length; i++)
             {
@@ -93,14 +91,12 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
             if (section == null)
                 return null;
 
-            RemoteRendererMaterialDescriptor[] sourceRenderers =
-                section.Renderers ?? Array.Empty<RemoteRendererMaterialDescriptor>();
+            RemoteRendererMaterialDescriptor[] sourceRenderers = section.Renderers ?? Array.Empty<RemoteRendererMaterialDescriptor>();
             var renderers = new RuntimeRendererMaterialDescriptor[sourceRenderers.Length];
             for (int i = 0; i < sourceRenderers.Length; i++)
             {
                 RemoteRendererMaterialDescriptor renderer = sourceRenderers[i];
-                RemoteMaterialSlotDescriptor[] sourceSlots =
-                    renderer.MaterialSlots ?? Array.Empty<RemoteMaterialSlotDescriptor>();
+                RemoteMaterialSlotDescriptor[] sourceSlots = renderer.MaterialSlots ?? Array.Empty<RemoteMaterialSlotDescriptor>();
                 var slots = new RuntimeMaterialSlotDescriptor[sourceSlots.Length];
                 for (int slotIndex = 0; slotIndex < sourceSlots.Length; slotIndex++)
                     slots[slotIndex] = ToRuntime(sourceSlots[slotIndex]);
@@ -123,8 +119,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
 
         private static RuntimeMaterialSlotDescriptor ToRuntime(RemoteMaterialSlotDescriptor slot)
         {
-            RemoteShaderPropertyView[] sourceProperties =
-                slot.Properties ?? Array.Empty<RemoteShaderPropertyView>();
+            RemoteShaderPropertyView[] sourceProperties = slot.Properties ?? Array.Empty<RemoteShaderPropertyView>();
             var properties = new RuntimeShaderPropertyView[sourceProperties.Length];
             for (int i = 0; i < sourceProperties.Length; i++)
             {

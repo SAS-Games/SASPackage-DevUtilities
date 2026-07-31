@@ -114,6 +114,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost.MiniTools
                         Debug.LogException(exception);
                     }
                 }
+
                 return;
             }
 
@@ -178,9 +179,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost.MiniTools
             foreach (MonoBehaviour behaviour in instance.GetComponentsInChildren<MonoBehaviour>(true))
             {
                 if (RemoteMiniToolSnapshotViewFactory.IsSnapshotProvider(behaviour) || behaviour is IMiniToolLocalController)
-                {
                     behaviour.enabled = false;
-                }
             }
         }
 

@@ -16,22 +16,14 @@ public class Draggable : MonoBehaviour, IBeginDragHandler, IDragHandler
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(
-            _parent,
-            eventData.position,
-            eventData.pressEventCamera,
-            out var localPointerPos);
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(_parent, eventData.position, eventData.pressEventCamera, out var localPointerPos);
 
         _pointerOffset = localPointerPos - _rect.anchoredPosition;
     }
 
     public void OnDrag(PointerEventData eventData)
     {
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(
-            _parent,
-            eventData.position,
-            eventData.pressEventCamera,
-            out var localPointerPos);
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(_parent, eventData.position, eventData.pressEventCamera, out var localPointerPos);
 
         _rect.anchoredPosition = localPointerPos - _pointerOffset;
     }

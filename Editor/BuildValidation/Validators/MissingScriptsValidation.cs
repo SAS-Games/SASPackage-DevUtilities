@@ -5,10 +5,11 @@ using UnityEngine.SceneManagement;
 
 namespace SAS.BuildValidation
 {
-    [BuildValidation(optional:false, order: 1)]
+    [BuildValidation(optional: false, order: 1)]
     public class MissingScriptsValidation : SceneBuildValidationBase
     {
         public override string Name => "Missing Scripts Validation";
+
         protected override void ValidateScene(Scene scene, BuildValidationResult result)
         {
             GameObject[] rootObjects = scene.GetRootGameObjects();

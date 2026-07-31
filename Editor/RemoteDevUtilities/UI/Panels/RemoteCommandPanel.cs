@@ -10,23 +10,15 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
 {
     internal sealed class RemoteCommandPanel
     {
-        private const string CommandControlName =
-            "RemoteDevUtilities.Command";
+        private const string CommandControlName = "RemoteDevUtilities.Command";
         private string _command = string.Empty;
         private string _filter = string.Empty;
-        private readonly HashSet<string> _expandedCommands =
-            new(StringComparer.OrdinalIgnoreCase);
+        private readonly HashSet<string> _expandedCommands = new(StringComparer.OrdinalIgnoreCase);
 
-        public void Draw(
-            RemoteCommandClient client,
-            RemoteCommandPresentationCoordinator coordinator,
-            bool connected)
+        public void Draw(RemoteCommandClient client, RemoteCommandPresentationCoordinator coordinator, bool connected)
         {
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
-            _filter = GUILayout.TextField(
-                _filter,
-                GUI.skin.FindStyle("ToolbarSearchTextField"),
-                GUILayout.MinWidth(140f));
+            _filter = GUILayout.TextField(_filter, GUI.skin.FindStyle("ToolbarSearchTextField"), GUILayout.MinWidth(140f));
             GUILayout.FlexibleSpace();
             if (GUILayout.Button("Expand All", EditorStyles.toolbarButton))
                 SetAllExpanded(client.Commands, true);
@@ -37,6 +29,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
                 if (GUILayout.Button("Refresh Catalog", EditorStyles.toolbarButton))
                     client.RequestCatalog();
             }
+
             EditorGUILayout.EndHorizontal();
 
             if (!connected)
@@ -59,13 +52,11 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
                 if (GUILayout.Button("Execute", GUILayout.Width(80f)))
                     Execute(coordinator);
             }
+
             EditorGUILayout.EndHorizontal();
 
             Event current = Event.current;
-            if (current.type == EventType.KeyDown &&
-                (current.keyCode == KeyCode.Return || current.keyCode == KeyCode.KeypadEnter) &&
-                GUI.GetNameOfFocusedControl() == CommandControlName &&
-                !string.IsNullOrWhiteSpace(_command))
+            if (current.type == EventType.KeyDown && (current.keyCode == KeyCode.Return || current.keyCode == KeyCode.KeypadEnter) && GUI.GetNameOfFocusedControl() == CommandControlName && !string.IsNullOrWhiteSpace(_command))
             {
                 Execute(coordinator);
                 current.Use();
@@ -73,15 +64,11 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
 
             if (client.LastResult != null)
             {
-                EditorGUILayout.HelpBox(
-                    client.LastResult.Message ?? string.Empty,
-                    client.LastResult.Success ? MessageType.Info : MessageType.Error);
+                EditorGUILayout.HelpBox(client.LastResult.Message ?? string.Empty, client.LastResult.Success ? MessageType.Info : MessageType.Error);
             }
 
             EditorGUILayout.Space(6f);
-            EditorGUILayout.LabelField(
-                $"Runtime Commands ({client.Commands.Length})",
-                EditorStyles.boldLabel);
+            EditorGUILayout.LabelField($"Runtime Commands ({client.Commands.Length})", EditorStyles.boldLabel);
 
             foreach (RemoteCommandDescriptor command in client.Commands)
             {
@@ -100,19 +87,12 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
 
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             EditorGUILayout.BeginHorizontal();
-            bool nextExpanded = EditorGUILayout.Foldout(
-                expanded,
-                string.IsNullOrWhiteSpace(commandName) ? "Unnamed Command" : commandName,
-                true);
+            bool nextExpanded = EditorGUILayout.Foldout(expanded, string.IsNullOrWhiteSpace(commandName) ? "Unnamed Command" : commandName, true);
             SetExpanded(commandName, nextExpanded);
 
             GUILayout.FlexibleSpace();
-            GUILayout.Label(
-                $"{presets.Length} {(presets.Length == 1 ? "preset" : "presets")}",
-                EditorStyles.miniLabel);
-            GUILayout.Label(
-                command.CloseOnCompletion ? "closes console" : "keeps console open",
-                EditorStyles.miniLabel);
+            GUILayout.Label($"{presets.Length} {(presets.Length == 1 ? "preset" : "presets")}", EditorStyles.miniLabel);
+            GUILayout.Label(command.CloseOnCompletion ? "closes console" : "keeps console open", EditorStyles.miniLabel);
             if (GUILayout.Button("Use", EditorStyles.miniButton, GUILayout.Width(44f)))
                 _command = commandName;
             EditorGUILayout.EndHorizontal();
@@ -122,9 +102,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
                 EditorGUI.indentLevel++;
                 if (!string.IsNullOrWhiteSpace(command.HelpText))
                 {
-                    EditorGUILayout.LabelField(
-                        command.HelpText,
-                        EditorStyles.wordWrappedMiniLabel);
+                    EditorGUILayout.LabelField(command.HelpText, EditorStyles.wordWrappedMiniLabel);
                 }
 
                 DrawPresets(presets);
@@ -147,10 +125,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
                 if (string.IsNullOrWhiteSpace(preset))
                     continue;
 
-                if (GUILayout.Button(
-                        preset,
-                        EditorStyles.miniButton,
-                        GUILayout.ExpandWidth(true)))
+                if (GUILayout.Button(preset, EditorStyles.miniButton, GUILayout.ExpandWidth(true)))
                     _command = preset;
             }
         }
@@ -166,8 +141,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
             if (string.IsNullOrWhiteSpace(filter))
                 return true;
 
-            if ((command.Name?.IndexOf(filter, StringComparison.OrdinalIgnoreCase) ?? -1) >= 0 ||
-                (command.HelpText?.IndexOf(filter, StringComparison.OrdinalIgnoreCase) ?? -1) >= 0)
+            if ((command.Name?.IndexOf(filter, StringComparison.OrdinalIgnoreCase) ?? -1) >= 0 || (command.HelpText?.IndexOf(filter, StringComparison.OrdinalIgnoreCase) ?? -1) >= 0)
                 return true;
 
             string[] presets = command.Presets ?? Array.Empty<string>();
@@ -180,9 +154,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
             return false;
         }
 
-        private void SetAllExpanded(
-            IEnumerable<RemoteCommandDescriptor> commands,
-            bool expanded)
+        private void SetAllExpanded(IEnumerable<RemoteCommandDescriptor> commands, bool expanded)
         {
             _expandedCommands.Clear();
             if (!expanded || commands == null)

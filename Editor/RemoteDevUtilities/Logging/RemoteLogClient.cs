@@ -10,11 +10,13 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Logging
     internal sealed class RemoteLogClient : IRemoteEditorFeatureClient
     {
         private const int MaximumEntries = 2000;
+
         private static readonly string[] SupportedMessages =
         {
             RemoteMessageTypes.LogBatch,
             RemoteMessageTypes.LogSettingsResponse
         };
+
         private readonly IRemoteEditorSession _session;
         private readonly List<RemoteLogEntry> _entries = new();
 
@@ -32,19 +34,14 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Logging
 
         public void RequestSettings()
         {
-            _session.Send(
-                RemoteMessageTypes.LogSettingsRequest,
-                new RemoteLogSettingsRequest());
+            _session.Send(RemoteMessageTypes.LogSettingsRequest, new RemoteLogSettingsRequest());
         }
 
         public void Handle(RemoteEnvelope envelope)
         {
             if (envelope.MessageType == RemoteMessageTypes.LogSettingsResponse)
             {
-                if (!RemoteProtocolSerializer.TryDeserializePayload(
-                        envelope,
-                        out RemoteLogSettingsResponse settings,
-                        out _))
+                if (!RemoteProtocolSerializer.TryDeserializePayload(envelope, out RemoteLogSettingsResponse settings, out _))
                     return;
 
                 HasTargetSettings = true;
@@ -55,10 +52,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Logging
                 return;
             }
 
-            if (!RemoteProtocolSerializer.TryDeserializePayload(
-                    envelope,
-                    out RemoteLogBatch batch,
-                    out _))
+            if (!RemoteProtocolSerializer.TryDeserializePayload(envelope, out RemoteLogBatch batch, out _))
                 return;
 
             RemoteLogEntry[] entries = batch.Entries ?? Array.Empty<RemoteLogEntry>();

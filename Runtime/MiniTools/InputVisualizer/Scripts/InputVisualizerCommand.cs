@@ -26,11 +26,7 @@ namespace SAS.Utilities.DeveloperConsole.InputVisualizers
                 return false;
             }
 
-            bool isSuccessfullyToggled = ToggleVisualizer(shouldToggleParam: args[0],
-                prefab: m_gamepadVisualizerPrefab,
-                instance: ref _gamepadVisualizerInstance,
-                presentation: ref _gamepadPresentation,
-                isActivated: out bool isActivated);
+            bool isSuccessfullyToggled = ToggleVisualizer(shouldToggleParam: args[0], prefab: m_gamepadVisualizerPrefab, instance: ref _gamepadVisualizerInstance, presentation: ref _gamepadPresentation, isActivated: out bool isActivated);
 
             if (!isSuccessfullyToggled)
             {
@@ -53,11 +49,7 @@ namespace SAS.Utilities.DeveloperConsole.InputVisualizers
                 return false;
             }
 
-            bool isSuccessfullyToggled = ToggleVisualizer(shouldToggleParam: args[0],
-                prefab: m_MouseVisualizerPrefab,
-                instance: ref _mouseVisualizerInstance,
-                presentation: ref _mousePresentation,
-                isActivated: out bool isActivated);
+            bool isSuccessfullyToggled = ToggleVisualizer(shouldToggleParam: args[0], prefab: m_MouseVisualizerPrefab, instance: ref _mouseVisualizerInstance, presentation: ref _mousePresentation, isActivated: out bool isActivated);
 
             if (!isSuccessfullyToggled)
             {

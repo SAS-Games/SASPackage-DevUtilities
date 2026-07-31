@@ -12,8 +12,10 @@ namespace SAS.DevUtilities
         private const float MinimumUpdateInterval = 0.05f;
 
         [SerializeField, Min(MinimumUpdateInterval)] private float m_UpdateInterval = 0.5f;
+
         [Tooltip("Fallback target frame rate used when Application.targetFrameRate " + "is not greater than zero.")]
-        [SerializeField, Min(1)] private int m_TargetFrameRate = FPSSnapshotCollector.DefaultFallbackTargetFrameRate;
+        [SerializeField, Min(1)]
+        private int m_TargetFrameRate = FPSSnapshotCollector.DefaultFallbackTargetFrameRate;
 
         private double _elapsedSeconds;
         private int _frames;

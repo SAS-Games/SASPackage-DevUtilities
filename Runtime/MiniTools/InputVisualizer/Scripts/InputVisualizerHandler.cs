@@ -3,16 +3,25 @@ using UnityEngine.Serialization;
 
 namespace SAS.Utilities.DeveloperConsole.InputVisualizers
 {
-    public enum ScreenPosition { None, TopLeft, TopRight, BottomRight, BottomLeft }
+    public enum ScreenPosition
+    {
+        None,
+        TopLeft,
+        TopRight,
+        BottomRight,
+        BottomLeft
+    }
 
     public class InputVisualizerHandler : MonoBehaviour
     {
         [SerializeField] private InputVisualizer m_rootVisualizer;
 
         [SerializeField, FormerlySerializedAs("_height")] private float m_height;
+
         [SerializeField, FormerlySerializedAs("_width")] private float m_width;
 
         [SerializeField, FormerlySerializedAs("_widthPadding")] private float m_widthPadding;
+
         [SerializeField, FormerlySerializedAs("_heightPadding")] private float m_heightPadding;
 
         private Vector2 _topLeft, _topRight, _bottomLeft, _bottomRight;
@@ -35,7 +44,6 @@ namespace SAS.Utilities.DeveloperConsole.InputVisualizers
         }
 
 #if UNITY_EDITOR
-
         private void Reset()
         {
             m_rootVisualizer ??= GetComponent<InputVisualizer>();

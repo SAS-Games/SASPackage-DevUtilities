@@ -9,7 +9,6 @@ namespace SAS.DevUtilities
     /// </summary>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(GraphicsInfoSnapshotProvider), typeof(global::GraphicsInfo))]
-    
     [AddComponentMenu("Dev Utilities/GraphicInfo/Controller")]
     public sealed class GraphicsInfoLocalController : MonoBehaviour, IMiniToolLocalController
     {

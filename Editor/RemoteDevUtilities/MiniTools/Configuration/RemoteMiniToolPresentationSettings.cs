@@ -10,13 +10,11 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
     /// Focused facade for the presentation section of the unified mini-tool
     /// project settings.
     /// </summary>
-    internal sealed class RemoteMiniToolPresentationSettings :
-        ScriptableSingleton<RemoteMiniToolPresentationSettings>
+    internal sealed class RemoteMiniToolPresentationSettings : ScriptableSingleton<RemoteMiniToolPresentationSettings>
     {
         internal static event Action Changed;
 
-        internal RemoteMiniToolPresentationConfiguration Configuration =>
-            RemoteDevUtilitiesProjectSettings.instance.Presentations;
+        internal RemoteMiniToolPresentationConfiguration Configuration => RemoteDevUtilitiesProjectSettings.instance.Presentations;
 
         internal bool TryGetOverride(string toolId, out GameObject prefab)
         {
@@ -27,16 +25,11 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
             }
 
             string path = AssetDatabase.GUIDToAssetPath(guid);
-            prefab = string.IsNullOrWhiteSpace(path)
-                ? null
-                : AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            prefab = string.IsNullOrWhiteSpace(path) ? null : AssetDatabase.LoadAssetAtPath<GameObject>(path);
             return true;
         }
 
-        internal bool SetOverride(
-            string toolId,
-            GameObject prefab,
-            out string error)
+        internal bool SetOverride(string toolId, GameObject prefab, out string error)
         {
             error = string.Empty;
             if (prefab == null)
@@ -46,20 +39,13 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
             }
 
             string path = AssetDatabase.GetAssetPath(prefab);
-            if (string.IsNullOrWhiteSpace(path) ||
-                !path.EndsWith(".prefab", StringComparison.OrdinalIgnoreCase))
+            if (string.IsNullOrWhiteSpace(path) || !path.EndsWith(".prefab", StringComparison.OrdinalIgnoreCase))
             {
                 error = "Host presentation must be a prefab asset.";
                 return false;
             }
 
-            if (MiniToolRegistry.TryGet(
-                    toolId,
-                    out MiniToolRegistration registration) &&
-                !MiniToolRegistrationValidator.TryValidatePrefab(
-                    registration.Definition,
-                    prefab,
-                    out error))
+            if (MiniToolRegistry.TryGet(toolId, out MiniToolRegistration registration) && !MiniToolRegistrationValidator.TryValidatePrefab(registration.Definition, prefab, out error))
             {
                 return false;
             }

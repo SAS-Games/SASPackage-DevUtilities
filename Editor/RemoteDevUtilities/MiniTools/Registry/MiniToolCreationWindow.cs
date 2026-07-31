@@ -16,11 +16,9 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
     {
         private enum MiniToolSetupTarget
         {
-            [InspectorName("Debug Host (Shared Prefab UI)")]
-            DebugHost,
+            [InspectorName("Debug Host (Shared Prefab UI)")] DebugHost,
 
-            [InspectorName("Native Workspace Fields")]
-            NativeWorkspaceFields
+            [InspectorName("Native Workspace Fields")] NativeWorkspaceFields
         }
 
         private string _toolName = "New Mini Tool";
@@ -66,9 +64,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
         private void OnGUI()
         {
             EditorGUILayout.LabelField("Mini Tool Setup", EditorStyles.boldLabel);
-            EditorGUILayout.LabelField(
-                "Creates one definition shared by the Player, Debug Host, optional Native Workspace presentation, and command routing.",
-                EditorStyles.wordWrappedLabel);
+            EditorGUILayout.LabelField("Creates one definition shared by the Player, Debug Host, optional Native Workspace presentation, and command routing.", EditorStyles.wordWrappedLabel);
             EditorGUILayout.Space(8f);
 
             _toolName = EditorGUILayout.TextField("Tool Name", _toolName);
@@ -377,8 +373,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
         private void RefreshSnapshotTypes()
         {
             Type selected = GetSelectedSnapshotType();
-            _snapshotTypes = MiniToolSnapshotContractDiscovery.Find(
-                _debugHostPrefab);
+            _snapshotTypes = MiniToolSnapshotContractDiscovery.Find(_debugHostPrefab);
             _snapshotContractPrefab = _debugHostPrefab;
             _snapshotTypeIndex = selected == null ? 0 : Array.IndexOf(_snapshotTypes, selected);
             if (_snapshotTypeIndex < 0)

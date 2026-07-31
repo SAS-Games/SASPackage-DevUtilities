@@ -62,19 +62,10 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
             return players;
         }
 
-        public void Send<T>(
-            int playerId,
-            string messageType,
-            long requestId,
-            string editorSessionId,
-            T payload)
+        public void Send<T>(int playerId, string messageType, long requestId, string editorSessionId, T payload)
         {
             Start();
-            byte[] data = RemoteProtocolSerializer.Serialize(
-                messageType,
-                requestId,
-                editorSessionId,
-                payload);
+            byte[] data = RemoteProtocolSerializer.Serialize(messageType, requestId, editorSessionId, payload);
             _connection.Send(RemoteProtocolConstants.EditorToPlayerMessageId, data, playerId);
         }
 
@@ -83,9 +74,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
             if (_connection == null)
                 return;
 
-            _connection.Unregister(
-                RemoteProtocolConstants.PlayerToEditorMessageId,
-                _callbackHost.OnMessage);
+            _connection.Unregister(RemoteProtocolConstants.PlayerToEditorMessageId, _callbackHost.OnMessage);
             _connection.UnregisterConnection(_callbackHost.OnConnected);
             _connection.UnregisterDisconnection(_callbackHost.OnDisconnected);
             _connection = null;
@@ -97,10 +86,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
 
         private void OnMessage(MessageEventArgs args)
         {
-            if (!RemoteProtocolSerializer.TryDeserializeEnvelope(
-                    args.data,
-                    out RemoteEnvelope envelope,
-                    out _))
+            if (!RemoteProtocolSerializer.TryDeserializeEnvelope(args.data, out RemoteEnvelope envelope, out _))
                 return;
 
             MessageReceived?.Invoke(args.playerId, envelope);

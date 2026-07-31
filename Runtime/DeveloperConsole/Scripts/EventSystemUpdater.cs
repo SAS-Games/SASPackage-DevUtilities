@@ -15,8 +15,7 @@ public class EventSystemUpdater : MonoBehaviour
 
         var currentEventSystem = EventSystem.current;
 
-        bool hasInputSystemModule = currentEventSystem != null &&
-            currentEventSystem.TryGetComponent<InputSystemUIInputModule>(out _);
+        bool hasInputSystemModule = currentEventSystem != null && currentEventSystem.TryGetComponent<InputSystemUIInputModule>(out _);
 
         if (currentEventSystem != null)
         {

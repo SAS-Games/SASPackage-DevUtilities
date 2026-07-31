@@ -6,30 +6,20 @@ using UnityEngine;
 
 namespace SAS.Utilities.RemoteDevUtilities.Editor.Configuration
 {
-    [FilePath(
-        "ProjectSettings/RemoteDevUtilitiesSettings.asset",
-        FilePathAttribute.Location.ProjectFolder)]
-    internal sealed class RemoteDevUtilitiesProjectSettings :
-        ScriptableSingleton<RemoteDevUtilitiesProjectSettings>
+    [FilePath("ProjectSettings/RemoteDevUtilitiesSettings.asset", FilePathAttribute.Location.ProjectFolder)]
+    internal sealed class RemoteDevUtilitiesProjectSettings : ScriptableSingleton<RemoteDevUtilitiesProjectSettings>
     {
-        internal const string SettingsPath =
-            "Project/Dev Utilities/Remote Dev Utilities";
+        internal const string SettingsPath = "Project/Dev Utilities/Remote Dev Utilities";
 
-        [SerializeField]
-        private bool _runtimeConfigurationInitialized;
+        [SerializeField] private bool _runtimeConfigurationInitialized;
 
-        [SerializeField]
-        private RemoteDevUtilitiesRuntimeConfiguration
-            _runtime = new();
+        [SerializeField] private RemoteDevUtilitiesRuntimeConfiguration _runtime = new();
 
-        [SerializeField]
-        private RemoteMiniToolVisibilityConfiguration _visibility = new();
+        [SerializeField] private RemoteMiniToolVisibilityConfiguration _visibility = new();
 
-        [SerializeField]
-        private RemoteMiniToolPresentationConfiguration _presentations = new();
+        [SerializeField] private RemoteMiniToolPresentationConfiguration _presentations = new();
 
-        [SerializeField]
-        private RemoteMiniToolCommandConfiguration _commands = new();
+        [SerializeField] private RemoteMiniToolCommandConfiguration _commands = new();
 
         internal RemoteDevUtilitiesRuntimeConfiguration Runtime
         {
@@ -40,15 +30,11 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Configuration
             }
         }
 
-        internal RemoteMiniToolVisibilityConfiguration Visibility =>
-            _visibility ??= new RemoteMiniToolVisibilityConfiguration();
+        internal RemoteMiniToolVisibilityConfiguration Visibility => _visibility ??= new RemoteMiniToolVisibilityConfiguration();
 
-        internal RemoteMiniToolPresentationConfiguration Presentations =>
-            _presentations ??=
-                new RemoteMiniToolPresentationConfiguration();
+        internal RemoteMiniToolPresentationConfiguration Presentations => _presentations ??= new RemoteMiniToolPresentationConfiguration();
 
-        internal RemoteMiniToolCommandConfiguration Commands =>
-            _commands ??= new RemoteMiniToolCommandConfiguration();
+        internal RemoteMiniToolCommandConfiguration Commands => _commands ??= new RemoteMiniToolCommandConfiguration();
 
         internal void Persist()
         {
@@ -67,9 +53,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Configuration
                 return;
 
             _runtime ??= new RemoteDevUtilitiesRuntimeConfiguration();
-            RemoteDevUtilitiesRuntimeSettings packageDefaults =
-                Resources.Load<RemoteDevUtilitiesRuntimeSettings>(
-                    "RemoteDevUtilitiesSettings");
+            RemoteDevUtilitiesRuntimeSettings packageDefaults = Resources.Load<RemoteDevUtilitiesRuntimeSettings>("RemoteDevUtilitiesSettings");
             if (packageDefaults != null)
                 _runtime.CopyFrom(packageDefaults);
 
@@ -80,9 +64,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Configuration
         [SettingsProvider]
         private static SettingsProvider CreateSettingsProvider()
         {
-            var provider = new SettingsProvider(
-                SettingsPath,
-                SettingsScope.Project)
+            var provider = new SettingsProvider(SettingsPath, SettingsScope.Project)
             {
                 label = "Remote Dev Utilities",
                 guiHandler = _ => DrawSettings(),
@@ -105,21 +87,13 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Configuration
             RemoteDevUtilitiesProjectSettings settings = instance;
             _ = settings.Runtime;
 
-            EditorGUILayout.HelpBox(
-                "These project settings are baked into ENABLE_DEBUG Players. " +
-                "Editor-only mini-tool configuration is stored in the same " +
-                "ProjectSettings file.",
-                MessageType.Info);
+            EditorGUILayout.HelpBox("These project settings are baked into ENABLE_DEBUG Players. " + "Editor-only mini-tool configuration is stored in the same " + "ProjectSettings file.", MessageType.Info);
 
             var serializedSettings = new SerializedObject(settings);
             serializedSettings.Update();
-            SerializedProperty runtime =
-                serializedSettings.FindProperty("_runtime");
+            SerializedProperty runtime = serializedSettings.FindProperty("_runtime");
             EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(
-                runtime,
-                new GUIContent("Runtime Build Settings"),
-                true);
+            EditorGUILayout.PropertyField(runtime, new GUIContent("Runtime Build Settings"), true);
             if (!EditorGUI.EndChangeCheck())
                 return;
 

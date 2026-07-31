@@ -10,17 +10,13 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
     {
         [SerializeField] private string _toolId = string.Empty;
         [SerializeField] private string _commandName = string.Empty;
-        [SerializeField] private RemoteCommandRouting _routing =
-            RemoteCommandRouting.ControlEditorToolOnly;
+        [SerializeField] private RemoteCommandRouting _routing = RemoteCommandRouting.ControlEditorToolOnly;
 
         private RemoteMiniToolCommandOverride()
         {
         }
 
-        internal RemoteMiniToolCommandOverride(
-            string toolId,
-            string commandName,
-            RemoteCommandRouting routing)
+        internal RemoteMiniToolCommandOverride(string toolId, string commandName, RemoteCommandRouting routing)
         {
             _toolId = toolId;
             _commandName = commandName;
@@ -31,9 +27,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
         internal string CommandName => _commandName;
         internal RemoteCommandRouting Routing => _routing;
 
-        internal void Set(
-            string commandName,
-            RemoteCommandRouting routing)
+        internal void Set(string commandName, RemoteCommandRouting routing)
         {
             _commandName = commandName;
             _routing = routing;
@@ -43,15 +37,11 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
     [Serializable]
     internal sealed class RemoteMiniToolCommandConfiguration
     {
-        [SerializeField]
-        private List<RemoteMiniToolCommandOverride> _overrides = new();
+        [SerializeField] private List<RemoteMiniToolCommandOverride> _overrides = new();
 
-        internal IReadOnlyList<RemoteMiniToolCommandOverride> Overrides =>
-            Entries;
+        internal IReadOnlyList<RemoteMiniToolCommandOverride> Overrides => Entries;
 
-        internal bool TryGet(
-            string toolId,
-            out RemoteMiniToolCommandOverride commandOverride)
+        internal bool TryGet(string toolId, out RemoteMiniToolCommandOverride commandOverride)
         {
             int index = Find(toolId);
             if (index < 0)
@@ -64,10 +54,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
             return commandOverride != null;
         }
 
-        internal bool Set(
-            string toolId,
-            string commandName,
-            RemoteCommandRouting routing)
+        internal bool Set(string toolId, string commandName, RemoteCommandRouting routing)
         {
             if (string.IsNullOrWhiteSpace(toolId))
                 return false;
@@ -78,22 +65,14 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
             if (index >= 0)
             {
                 RemoteMiniToolCommandOverride existing = Entries[index];
-                if (string.Equals(
-                        existing.CommandName,
-                        normalizedCommandName,
-                        StringComparison.Ordinal) &&
-                    existing.Routing == routing)
+                if (string.Equals(existing.CommandName, normalizedCommandName, StringComparison.Ordinal) && existing.Routing == routing)
                     return false;
 
                 existing.Set(normalizedCommandName, routing);
                 return true;
             }
 
-            Entries.Add(
-                new RemoteMiniToolCommandOverride(
-                    normalizedToolId,
-                    normalizedCommandName,
-                    routing));
+            Entries.Add(new RemoteMiniToolCommandOverride(normalizedToolId, normalizedCommandName, routing));
             return true;
         }
 
@@ -114,17 +93,13 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
 
             for (int i = 0; i < Entries.Count; i++)
             {
-                if (string.Equals(
-                        Entries[i]?.ToolId,
-                        toolId,
-                        StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(Entries[i]?.ToolId, toolId, StringComparison.OrdinalIgnoreCase))
                     return i;
             }
 
             return -1;
         }
 
-        private List<RemoteMiniToolCommandOverride> Entries =>
-            _overrides ??= new List<RemoteMiniToolCommandOverride>();
+        private List<RemoteMiniToolCommandOverride> Entries => _overrides ??= new List<RemoteMiniToolCommandOverride>();
     }
 }

@@ -65,50 +65,35 @@ namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector
 
         private void SendHierarchy(RemoteEnvelope envelope)
         {
-            if (!RemoteProtocolSerializer.TryDeserializePayload(
-                    envelope,
-                    out RemoteSceneInspectorHierarchyRequest request,
-                    out _))
+            if (!RemoteProtocolSerializer.TryDeserializePayload(envelope, out RemoteSceneInspectorHierarchyRequest request, out _))
                 request = new RemoteSceneInspectorHierarchyRequest();
 
             if (request.ForceRefresh)
                 _service.RefreshHierarchy();
 
-            _context.Sender.Send(
-                RemoteMessageTypes.SceneInspectorHierarchyResponse,
-                envelope.RequestId,
-                RuntimeSceneInspectorProtocolMapper.ToRemote(_service.GetHierarchySnapshot()));
+            _context.Sender.Send(RemoteMessageTypes.SceneInspectorHierarchyResponse, envelope.RequestId, RuntimeSceneInspectorProtocolMapper.ToRemote(_service.GetHierarchySnapshot()));
         }
 
         private void Inspect(RemoteEnvelope envelope)
         {
-            if (!RemoteProtocolSerializer.TryDeserializePayload(
-                    envelope,
-                    out RemoteSceneInspectorInspectRequest request,
-                    out string error))
+            if (!RemoteProtocolSerializer.TryDeserializePayload(envelope, out RemoteSceneInspectorInspectRequest request, out string error))
             {
                 SendInspectError(envelope.RequestId, error);
                 return;
             }
 
             RuntimeObjectDetails details = _service.InspectObject(new RuntimeObjectId(request.ObjectId));
-            _context.Sender.Send(
-                RemoteMessageTypes.SceneInspectorInspectResponse,
-                envelope.RequestId,
-                new RemoteSceneInspectorInspectResponse
-                {
-                    Found = details != null,
-                    Error = details == null ? "The runtime object no longer exists." : string.Empty,
-                    Details = RuntimeSceneInspectorProtocolMapper.ToRemote(details)
-                });
+            _context.Sender.Send(RemoteMessageTypes.SceneInspectorInspectResponse, envelope.RequestId, new RemoteSceneInspectorInspectResponse
+            {
+                Found = details != null,
+                Error = details == null ? "The runtime object no longer exists." : string.Empty,
+                Details = RuntimeSceneInspectorProtocolMapper.ToRemote(details)
+            });
         }
 
         private void Execute(RemoteEnvelope envelope)
         {
-            if (!RemoteProtocolSerializer.TryDeserializePayload(
-                    envelope,
-                    out RemoteSceneInspectorCommandRequest request,
-                    out string error))
+            if (!RemoteProtocolSerializer.TryDeserializePayload(envelope, out RemoteSceneInspectorCommandRequest request, out string error))
             {
                 SendCommandResult(envelope.RequestId, RuntimeCommandResult.Fail(error));
                 return;
@@ -167,9 +152,7 @@ namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector
                     };
                     break;
                 default:
-                    SendCommandResult(
-                        envelope.RequestId,
-                        RuntimeCommandResult.Fail("The remote scene inspector command is not supported."));
+                    SendCommandResult(envelope.RequestId, RuntimeCommandResult.Fail("The remote scene inspector command is not supported."));
                     return;
             }
 
@@ -186,36 +169,25 @@ namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector
 
             if (envelope.MessageType == RemoteMessageTypes.SceneInspectorCommandRequest)
             {
-                SendCommandResult(
-                    envelope.RequestId,
-                    RuntimeCommandResult.Fail("The remote Runtime Scene Inspector is disabled."));
+                SendCommandResult(envelope.RequestId, RuntimeCommandResult.Fail("The remote Runtime Scene Inspector is disabled."));
                 return;
             }
 
-            _context.Sender.Send(
-                RemoteMessageTypes.SceneInspectorHierarchyResponse,
-                envelope.RequestId,
-                new RemoteSceneInspectorHierarchyResponse());
+            _context.Sender.Send(RemoteMessageTypes.SceneInspectorHierarchyResponse, envelope.RequestId, new RemoteSceneInspectorHierarchyResponse());
         }
 
         private void SendInspectError(long requestId, string error)
         {
-            _context.Sender.Send(
-                RemoteMessageTypes.SceneInspectorInspectResponse,
-                requestId,
-                new RemoteSceneInspectorInspectResponse { Error = error });
+            _context.Sender.Send(RemoteMessageTypes.SceneInspectorInspectResponse, requestId, new RemoteSceneInspectorInspectResponse { Error = error });
         }
 
         private void SendCommandResult(long requestId, RuntimeCommandResult result)
         {
-            _context.Sender.Send(
-                RemoteMessageTypes.SceneInspectorCommandResponse,
-                requestId,
-                new RemoteSceneInspectorCommandResponse
-                {
-                    Success = result?.Success == true,
-                    Message = result?.Message ?? "The runtime command did not return a result."
-                });
+            _context.Sender.Send(RemoteMessageTypes.SceneInspectorCommandResponse, requestId, new RemoteSceneInspectorCommandResponse
+            {
+                Success = result?.Success == true,
+                Message = result?.Message ?? "The runtime command did not return a result."
+            });
         }
     }
 }

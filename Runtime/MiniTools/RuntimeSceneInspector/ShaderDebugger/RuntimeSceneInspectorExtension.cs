@@ -10,7 +10,6 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
     {
         void Inspect(GameObject target, RuntimeObjectRegistry registry, RuntimeObjectDetails details);
 
-        bool TryExecute(RuntimeSceneInspectorCommand command, RuntimeObjectRegistry registry,
-            out RuntimeCommandResult result);
+        bool TryExecute(RuntimeSceneInspectorCommand command, RuntimeObjectRegistry registry, out RuntimeCommandResult result);
     }
 }

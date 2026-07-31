@@ -9,11 +9,7 @@ namespace SAS.DevUtilities
     {
         internal const int DefaultFallbackTargetFrameRate = 60;
 
-        internal static bool TryCapture(
-            double elapsedSeconds,
-            int frames,
-            int fallbackTargetFrameRate,
-            out FPSSnapshot snapshot)
+        internal static bool TryCapture(double elapsedSeconds, int frames, int fallbackTargetFrameRate, out FPSSnapshot snapshot)
         {
             if (frames <= 0 || elapsedSeconds <= 0d)
             {
@@ -21,16 +17,10 @@ namespace SAS.DevUtilities
                 return false;
             }
 
-            double averageFps =
-                frames / elapsedSeconds;
-            double averageFrameTimeMs =
-                elapsedSeconds * 1000d / frames;
-            int targetFrameRate =
-                Application.targetFrameRate > 0
-                    ? Application.targetFrameRate
-                    : Mathf.Max(1, fallbackTargetFrameRate);
-            double targetFrameTimeMs =
-                1000d / targetFrameRate;
+            double averageFps = frames / elapsedSeconds;
+            double averageFrameTimeMs = elapsedSeconds * 1000d / frames;
+            int targetFrameRate = Application.targetFrameRate > 0 ? Application.targetFrameRate : Mathf.Max(1, fallbackTargetFrameRate);
+            double targetFrameTimeMs = 1000d / targetFrameRate;
 
             snapshot = new FPSSnapshot
             {
@@ -38,8 +28,7 @@ namespace SAS.DevUtilities
                 AverageFrameTimeMs = averageFrameTimeMs,
                 TargetFrameRate = targetFrameRate,
                 TargetFrameTimeMs = targetFrameTimeMs,
-                IsFrameTimeOverBudget =
-                    averageFrameTimeMs > targetFrameTimeMs
+                IsFrameTimeOverBudget = averageFrameTimeMs > targetFrameTimeMs
             };
             return true;
         }

@@ -40,9 +40,12 @@ namespace SAS.Utilities.DeveloperConsole
         {
             result = default;
 
-            if (!float.TryParse(x, out float fx)) return false;
-            if (!float.TryParse(y, out float fy)) return false;
-            if (!float.TryParse(z, out float fz)) return false;
+            if (!float.TryParse(x, out float fx))
+                return false;
+            if (!float.TryParse(y, out float fy))
+                return false;
+            if (!float.TryParse(z, out float fz))
+                return false;
 
             result = new Vector3(fx, fy, fz);
             return true;
@@ -52,8 +55,10 @@ namespace SAS.Utilities.DeveloperConsole
         {
             result = default;
 
-            if (!float.TryParse(x, out float fx)) return false;
-            if (!float.TryParse(y, out float fy)) return false;
+            if (!float.TryParse(x, out float fx))
+                return false;
+            if (!float.TryParse(y, out float fy))
+                return false;
 
             result = new Vector2(fx, fy);
             return true;

@@ -8,10 +8,7 @@ namespace SAS.DevUtilities
     /// shared FrameStepper view. The Debug Host disables this component.
     /// </summary>
     [DisallowMultipleComponent]
-    [RequireComponent(
-        typeof(FrameStepperSnapshotProvider),
-        typeof(FrameStepper),
-        typeof(MiniToolActionRelay))]
+    [RequireComponent(typeof(FrameStepperSnapshotProvider), typeof(FrameStepper), typeof(MiniToolActionRelay))]
     public sealed class FrameStepperLocalController : MonoBehaviour, IMiniToolLocalController
     {
         [SerializeField] private FrameStepperSnapshotProvider m_SnapshotProvider;
@@ -31,9 +28,7 @@ namespace SAS.DevUtilities
             ResolveDependencies();
             _timeController.Begin();
 
-            if (m_SnapshotProvider == null ||
-                m_View == null ||
-                m_ActionRelay == null)
+            if (m_SnapshotProvider == null || m_View == null || m_ActionRelay == null)
                 return;
 
             m_SnapshotProvider.SnapshotChanged += ApplySnapshot;

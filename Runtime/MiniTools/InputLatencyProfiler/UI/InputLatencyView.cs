@@ -171,28 +171,19 @@ public sealed class InputLatencyView : MonoBehaviour, IMiniToolSnapshotView<Inpu
 
     private void OnGUI()
     {
-        GUI.Box(
-            new Rect(24f, 24f, 460f, 80f),
-            string.IsNullOrWhiteSpace(_snapshot.Status)
-                ? "Input Latency requires ENABLE_DEBUG."
-                : _snapshot.Status);
+        GUI.Box(new Rect(24f, 24f, 460f, 80f), string.IsNullOrWhiteSpace(_snapshot.Status) ? "Input Latency requires ENABLE_DEBUG." : _snapshot.Status);
     }
 
-    public void ApplySnapshot(
-        in InputLatencySnapshot snapshot)
+    public void ApplySnapshot(in InputLatencySnapshot snapshot)
     {
         _snapshot = snapshot;
     }
 
-    public void ApplyEvents(
-        InputLatencySampleEvent[] events,
-        int droppedEventCount)
+    public void ApplyEvents(InputLatencySampleEvent[] events, int droppedEventCount)
     {
     }
 
-    internal void ConfigureLocalPresentation(
-        bool controllerCloseEnabled,
-        bool showCloseHint)
+    internal void ConfigureLocalPresentation(bool controllerCloseEnabled, bool showCloseHint)
     {
     }
 #endif

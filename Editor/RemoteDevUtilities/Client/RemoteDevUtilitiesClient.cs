@@ -162,7 +162,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
                 _playerTransport.Send(SelectedPlayerId, messageType, requestId, _editorSessionId, payload);
             else if (ConnectionKind == RemoteEditorConnectionKind.DirectTcp)
                 _tcpTransport.Send(messageType, requestId, _editorSessionId, payload);
-            
+
             return requestId;
         }
 
@@ -214,12 +214,12 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
             _handshakeAttemptCount++;
             _nextHandshakeAttempt = EditorApplication.timeSinceStartup + HandshakeRetryIntervalSeconds;
             Send(RemoteMessageTypes.HandshakeRequest, new RemoteHandshakeRequest
-                {
-                    ProtocolVersion = RemoteProtocolConstants.Version,
-                    PackageVersion = RemoteProtocolConstants.PackageVersion,
-                    EditorSessionId = _editorSessionId,
-                    AccessToken = _accessToken
-                });
+            {
+                ProtocolVersion = RemoteProtocolConstants.Version,
+                PackageVersion = RemoteProtocolConstants.PackageVersion,
+                EditorSessionId = _editorSessionId,
+                AccessToken = _accessToken
+            });
         }
 
         private void AddFeature(IRemoteEditorFeatureClient feature)

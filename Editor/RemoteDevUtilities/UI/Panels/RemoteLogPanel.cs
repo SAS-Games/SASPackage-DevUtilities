@@ -11,8 +11,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
 {
     internal sealed class RemoteLogPanel
     {
-        private readonly RemoteLoggingTargetSettingsView _targetSettings =
-            new RemoteLoggingTargetSettingsView();
+        private readonly RemoteLoggingTargetSettingsView _targetSettings = new RemoteLoggingTargetSettingsView();
 
         private string _filter = string.Empty;
         private bool _showLogs = true;
@@ -21,24 +20,15 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
         private bool _showStackTrace;
         private bool _autoScroll = true;
 
-        public bool Draw(
-            RemoteLogClient client,
-            RemoteCommandClient commandClient,
-            bool connected)
+        public bool Draw(RemoteLogClient client, RemoteCommandClient commandClient, bool connected)
         {
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
-            _filter = GUILayout.TextField(
-                _filter,
-                GUI.skin.FindStyle("ToolbarSearchTextField"),
-                GUILayout.MinWidth(130f));
+            _filter = GUILayout.TextField(_filter, GUI.skin.FindStyle("ToolbarSearchTextField"), GUILayout.MinWidth(130f));
             GUILayout.Label("View:", EditorStyles.miniLabel);
             _showLogs = GUILayout.Toggle(_showLogs, "Log", EditorStyles.toolbarButton);
             _showWarnings = GUILayout.Toggle(_showWarnings, "Warning", EditorStyles.toolbarButton);
             _showErrors = GUILayout.Toggle(_showErrors, "Error", EditorStyles.toolbarButton);
-            _showStackTrace = GUILayout.Toggle(
-                _showStackTrace,
-                "Show Stacks",
-                EditorStyles.toolbarButton);
+            _showStackTrace = GUILayout.Toggle(_showStackTrace, "Show Stacks", EditorStyles.toolbarButton);
             _autoScroll = GUILayout.Toggle(_autoScroll, "Auto-scroll", EditorStyles.toolbarButton);
             GUILayout.FlexibleSpace();
             if (GUILayout.Button("Clear View", EditorStyles.toolbarButton))
@@ -63,9 +53,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
 
                 MessageType type = ToMessageType(entry.LogType);
                 EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-                EditorGUILayout.LabelField(
-                    $"#{entry.Sequence}  frame {entry.Frame}  {((LogType)entry.LogType)}",
-                    EditorStyles.miniBoldLabel);
+                EditorGUILayout.LabelField($"#{entry.Sequence}  frame {entry.Frame}  {((LogType)entry.LogType)}", EditorStyles.miniBoldLabel);
                 EditorGUILayout.LabelField(entry.Message ?? string.Empty, EditorStyles.wordWrappedLabel);
                 if (_showStackTrace && !string.IsNullOrWhiteSpace(entry.StackTrace))
                     EditorGUILayout.HelpBox(entry.StackTrace, type);
@@ -88,8 +76,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
             if (!allowed || string.IsNullOrWhiteSpace(_filter))
                 return allowed;
 
-            return (entry.Message?.IndexOf(_filter, StringComparison.OrdinalIgnoreCase) ?? -1) >= 0 ||
-                   (entry.StackTrace?.IndexOf(_filter, StringComparison.OrdinalIgnoreCase) ?? -1) >= 0;
+            return (entry.Message?.IndexOf(_filter, StringComparison.OrdinalIgnoreCase) ?? -1) >= 0 || (entry.StackTrace?.IndexOf(_filter, StringComparison.OrdinalIgnoreCase) ?? -1) >= 0;
         }
 
         private static MessageType ToMessageType(int logType)

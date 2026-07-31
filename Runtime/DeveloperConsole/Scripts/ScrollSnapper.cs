@@ -31,8 +31,7 @@ namespace SAS.Utilities.DeveloperConsole
         {
             Canvas.ForceUpdateCanvases();
             Vector2 currentPos = content.anchoredPosition;
-            float newY = ((Vector2)_scrollRect.transform.InverseTransformPoint(content.position)
-                          - (Vector2)_scrollRect.transform.InverseTransformPoint(target.position)).y;
+            float newY = ((Vector2)_scrollRect.transform.InverseTransformPoint(content.position) - (Vector2)_scrollRect.transform.InverseTransformPoint(target.position)).y;
             content.anchoredPosition = new Vector2(currentPos.x, newY + m_Offset);
         }
     }

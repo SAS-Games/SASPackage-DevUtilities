@@ -29,19 +29,13 @@ namespace SAS.DevUtilities
     /// </summary>
     public static class AnimatorStatsSnapshotCollector
     {
-        public static AnimatorStatsSnapshot Capture(
-            in ProfilerRecorder animationUpdateRecorder)
+        public static AnimatorStatsSnapshot Capture(in ProfilerRecorder animationUpdateRecorder)
         {
-            Animator[] animators =
-                UnityEngine.Object.FindObjectsByType<Animator>(
-                    FindObjectsInactive.Include,
-                    FindObjectsSortMode.None);
+            Animator[] animators = UnityEngine.Object.FindObjectsByType<Animator>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             var snapshot = new AnimatorStatsSnapshot
             {
                 Total = animators.Length,
-                HasCpuTiming =
-                    animationUpdateRecorder.Valid &&
-                    animationUpdateRecorder.IsRunning
+                HasCpuTiming = animationUpdateRecorder.Valid && animationUpdateRecorder.IsRunning
             };
 
             foreach (Animator animator in animators)
@@ -52,9 +46,7 @@ namespace SAS.DevUtilities
                 if (animator.isInitialized)
                     snapshot.Initialized++;
 
-                bool active =
-                    animator.enabled &&
-                    animator.gameObject.activeInHierarchy;
+                bool active = animator.enabled && animator.gameObject.activeInHierarchy;
                 switch (animator.cullingMode)
                 {
                     case AnimatorCullingMode.AlwaysAnimate:
@@ -80,8 +72,7 @@ namespace SAS.DevUtilities
 
             if (snapshot.HasCpuTiming)
             {
-                snapshot.CpuTimeMs =
-                    animationUpdateRecorder.LastValue * 1e-6d;
+                snapshot.CpuTimeMs = animationUpdateRecorder.LastValue * 1e-6d;
             }
 
             return snapshot;

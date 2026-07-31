@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+
 class NavigationRepeat
 {
     readonly Action<float> _fire;

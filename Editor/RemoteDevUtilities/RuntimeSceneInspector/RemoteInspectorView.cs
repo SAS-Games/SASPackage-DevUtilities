@@ -14,17 +14,13 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
             RemoteSceneInspectorInspectResponse inspection = client.Inspection;
             if (inspection == null)
             {
-                EditorGUILayout.LabelField(
-                    "Select a runtime GameObject.",
-                    EditorStyles.centeredGreyMiniLabel);
+                EditorGUILayout.LabelField("Select a runtime GameObject.", EditorStyles.centeredGreyMiniLabel);
                 return;
             }
 
             if (!inspection.Found || inspection.Details == null)
             {
-                EditorGUILayout.HelpBox(
-                    inspection.Error ?? "The runtime object is unavailable.",
-                    MessageType.Warning);
+                EditorGUILayout.HelpBox(inspection.Error ?? "The runtime object is unavailable.", MessageType.Warning);
                 return;
             }
 
@@ -32,19 +28,13 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
             _components.Draw(client, inspection.Details.Components);
             _materials.Draw(client, inspection.Details.MaterialsAndShaders);
 
-            if (client.LastCommandResult != null &&
-                !string.IsNullOrWhiteSpace(client.LastCommandResult.Message))
+            if (client.LastCommandResult != null && !string.IsNullOrWhiteSpace(client.LastCommandResult.Message))
             {
-                EditorGUILayout.HelpBox(
-                    client.LastCommandResult.Message,
-                    client.LastCommandResult.Success ? MessageType.Info : MessageType.Error);
+                EditorGUILayout.HelpBox(client.LastCommandResult.Message, client.LastCommandResult.Success ? MessageType.Info : MessageType.Error);
             }
-
         }
 
-        private static void DrawObjectHeader(
-            RemoteRuntimeSceneInspectorClient client,
-            RemoteObjectDetails details)
+        private static void DrawObjectHeader(RemoteRuntimeSceneInspectorClient client, RemoteObjectDetails details)
         {
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             EditorGUILayout.LabelField(details.Name, EditorStyles.boldLabel);

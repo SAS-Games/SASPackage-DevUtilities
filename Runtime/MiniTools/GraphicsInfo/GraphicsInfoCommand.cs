@@ -11,10 +11,7 @@ namespace SAS.Utilities.DeveloperConsole
         private GameObject _graphics;
         private DevUtilityPresentation _presentation;
 
-        public override string HelpText =>
-            "Usage: GraphicsInfo <On|Off> <verbose: Extended>\n" +
-            "Show current graphics, quality, and rendering settings.\n" +
-            "Add 'verbose' for extended details.";
+        public override string HelpText => "Usage: GraphicsInfo <On|Off> <verbose: Extended>\n" + "Show current graphics, quality, and rendering settings.\n" + "Add 'verbose' for extended details.";
 
         public override bool Process(DeveloperConsoleBehaviour developerConsole, string command, string[] args = null)
         {

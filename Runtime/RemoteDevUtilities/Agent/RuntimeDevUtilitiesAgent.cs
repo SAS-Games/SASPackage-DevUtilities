@@ -16,8 +16,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Agent
     public sealed class RuntimeDevUtilitiesAgent : MonoBehaviour
     {
         private readonly List<IRuntimeRemoteEndpoint> _endpoints = new();
-        private readonly Dictionary<string, IRuntimeRemoteEndpoint> _routes =
-            new(StringComparer.Ordinal);
+        private readonly Dictionary<string, IRuntimeRemoteEndpoint> _routes = new(StringComparer.Ordinal);
 
         private RemoteDevUtilitiesRuntimeSettings _settings;
         private IRuntimeRemoteTransport _transport;
@@ -117,9 +116,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Agent
             _backgroundExecution = null;
         }
 
-        private void AddEndpoint(
-            IRuntimeRemoteEndpoint endpoint,
-            RuntimeRemoteEndpointContext context)
+        private void AddEndpoint(IRuntimeRemoteEndpoint endpoint, RuntimeRemoteEndpointContext context)
         {
             endpoint.Initialize(context);
             _endpoints.Add(endpoint);
@@ -138,12 +135,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Agent
             bool isHandshake = envelope.MessageType == RemoteMessageTypes.HandshakeRequest;
             if (!isHandshake && envelope.ProtocolVersion != RemoteProtocolConstants.Version)
                 return;
-            if (!isHandshake &&
-                (!_connectionEndpoint.IsSessionAccepted ||
-                 !string.Equals(
-                     envelope.SessionId,
-                     _connectionEndpoint.AcceptedEditorSessionId,
-                     StringComparison.Ordinal)))
+            if (!isHandshake && (!_connectionEndpoint.IsSessionAccepted || !string.Equals(envelope.SessionId, _connectionEndpoint.AcceptedEditorSessionId, StringComparison.Ordinal)))
                 return;
 
             if (_routes.TryGetValue(envelope.MessageType, out IRuntimeRemoteEndpoint endpoint))
@@ -168,17 +160,11 @@ namespace SAS.Utilities.RemoteDevUtilities.Agent
                 ApplyPresentationPolicy(_settings, false);
         }
 
-        internal static void ApplyPresentationPolicy(
-            RemoteDevUtilitiesRuntimeSettings settings,
-            bool remoteSessionActive)
+        internal static void ApplyPresentationPolicy(RemoteDevUtilitiesRuntimeSettings settings, bool remoteSessionActive)
         {
-            BuildDebugUiVisibility visibility =
-                settings != null
-                    ? settings.BuildUiVisibility
-                    : BuildDebugUiVisibility.ShowWhenEnabled;
+            BuildDebugUiVisibility visibility = settings != null ? settings.BuildUiVisibility : BuildDebugUiVisibility.ShowWhenEnabled;
             RemoteDevUtilitiesPresentation.Configure(visibility);
-            RemoteDevUtilitiesPresentation.SetRemoteSessionActive(
-                remoteSessionActive);
+            RemoteDevUtilitiesPresentation.SetRemoteSessionActive(remoteSessionActive);
         }
     }
 }

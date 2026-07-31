@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace SAS.Utilities.DeveloperConsole
 {
-    [CreateAssetMenu(menuName =  DeveloperConsole.CommandBasePath + "Logging Console Command")]
+    [CreateAssetMenu(menuName = DeveloperConsole.CommandBasePath + "Logging Console Command")]
     public class LoggingConsoleCommand : CompositeConsoleCommand
     {
         [SerializeField] private string m_HelpText;

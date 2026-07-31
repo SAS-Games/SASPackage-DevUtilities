@@ -104,8 +104,7 @@ namespace SAS.BuildValidation
             if (!property.editable)
                 return false;
 
-            var field = property.serializedObject.targetObject
-                .GetType().GetField(property.name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            var field = property.serializedObject.targetObject.GetType().GetField(property.name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
             if (field == null)
                 return false;

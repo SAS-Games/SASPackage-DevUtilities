@@ -16,8 +16,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Transport.Tcp
                 throw new ArgumentException("A non-empty payload is required.", nameof(payload));
             if (payload.Length > RemoteProtocolConstants.MaximumMessageBytes)
             {
-                throw new InvalidDataException(
-                    $"The remote message exceeded {RemoteProtocolConstants.MaximumMessageBytes} bytes.");
+                throw new InvalidDataException($"The remote message exceeded {RemoteProtocolConstants.MaximumMessageBytes} bytes.");
             }
 
             int length = payload.Length;
@@ -43,15 +42,10 @@ namespace SAS.Utilities.RemoteDevUtilities.Transport.Tcp
             if (!TryReadExactly(stream, header, HeaderSize, allowCleanEndOfStream: true))
                 return null;
 
-            int length =
-                (header[0] << 24) |
-                (header[1] << 16) |
-                (header[2] << 8) |
-                header[3];
+            int length = (header[0] << 24) | (header[1] << 16) | (header[2] << 8) | header[3];
             if (length <= 0 || length > RemoteProtocolConstants.MaximumMessageBytes)
             {
-                throw new InvalidDataException(
-                    $"The remote frame length '{length}' is invalid.");
+                throw new InvalidDataException($"The remote frame length '{length}' is invalid.");
             }
 
             var payload = new byte[length];
@@ -59,11 +53,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Transport.Tcp
             return payload;
         }
 
-        private static bool TryReadExactly(
-            Stream stream,
-            byte[] buffer,
-            int count,
-            bool allowCleanEndOfStream)
+        private static bool TryReadExactly(Stream stream, byte[] buffer, int count, bool allowCleanEndOfStream)
         {
             int offset = 0;
             while (offset < count)

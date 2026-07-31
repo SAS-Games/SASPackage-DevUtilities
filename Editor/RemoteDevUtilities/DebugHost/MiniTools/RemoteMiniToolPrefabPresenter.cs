@@ -13,32 +13,25 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost.MiniTools
         private readonly RemoteDevUtilitiesClient _client;
         private RemoteMiniToolPrefabDefinition[] _definitions;
         private readonly Dictionary<string, RemoteMiniToolPrefabView> _views = new(StringComparer.OrdinalIgnoreCase);
-        private readonly Dictionary<string, RemoteMiniToolSample>
-            _presentedSamples =
-                new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, RemoteMiniToolSample> _presentedSamples = new(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> _failedViews = new(StringComparer.OrdinalIgnoreCase);
-        private readonly List<RemoteMiniToolStreamBatch>
-            _pendingStreamBatches = new();
+        private readonly List<RemoteMiniToolStreamBatch> _pendingStreamBatches = new();
 
         public RemoteMiniToolPrefabPresenter(RemoteDevUtilitiesClient client)
         {
             _client = client;
             _definitions = RemoteMiniToolPrefabDefinitions.Discover();
             _client.StateChanged += Refresh;
-            RemoteMiniToolPresentationSettings.Changed +=
-                ReloadPresentationDefinitions;
-            MiniToolRegistry.Changed +=
-                ReloadPresentationDefinitions;
+            RemoteMiniToolPresentationSettings.Changed += ReloadPresentationDefinitions;
+            MiniToolRegistry.Changed += ReloadPresentationDefinitions;
             Refresh();
         }
 
         public void Dispose()
         {
             _client.StateChanged -= Refresh;
-            RemoteMiniToolPresentationSettings.Changed -=
-                ReloadPresentationDefinitions;
-            MiniToolRegistry.Changed -=
-                ReloadPresentationDefinitions;
+            RemoteMiniToolPresentationSettings.Changed -= ReloadPresentationDefinitions;
+            MiniToolRegistry.Changed -= ReloadPresentationDefinitions;
             foreach (RemoteMiniToolPrefabView view in _views.Values)
                 view.Dispose();
             _views.Clear();
@@ -60,13 +53,11 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost.MiniTools
         private void Refresh()
         {
             bool repaintRequested = false;
-            RemoteMiniToolPrefabDefinition[] activeDefinitions =
-                IncludeTargetTools(_definitions);
+            RemoteMiniToolPrefabDefinition[] activeDefinitions = IncludeTargetTools(_definitions);
             RemoveInactiveViews(activeDefinitions);
             for (int i = 0; i < activeDefinitions.Length; i++)
             {
-                RemoteMiniToolPrefabDefinition definition =
-                    activeDefinitions[i];
+                RemoteMiniToolPrefabDefinition definition = activeDefinitions[i];
                 bool subscribed = _client.MiniTools.IsSubscribed(definition.ToolId);
                 if (!subscribed)
                 {
@@ -75,6 +66,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost.MiniTools
                         oldView.Dispose();
                         _views.Remove(definition.ToolId);
                     }
+
                     _presentedSamples.Remove(definition.ToolId);
                     _failedViews.Remove(definition.ToolId);
                     continue;
@@ -85,13 +77,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost.MiniTools
 
                 if (!_views.TryGetValue(definition.ToolId, out RemoteMiniToolPrefabView view))
                 {
-                    view = new RemoteMiniToolPrefabView(
-                        definition,
-                        i,
-                        actionId =>
-                            _client.MiniTools.ExecuteAction(
-                                definition.ToolId,
-                                actionId));
+                    view = new RemoteMiniToolPrefabView(definition, i, actionId => _client.MiniTools.ExecuteAction(definition.ToolId, actionId));
                     if (!view.IsValid)
                     {
                         Debug.LogWarning($"Remote mini-tool '{definition.ToolId}' could not create its " + $"Debug Host view. {view.FailureReason}");
@@ -99,34 +85,21 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost.MiniTools
                         _failedViews.Add(definition.ToolId);
                         continue;
                     }
+
                     _views.Add(definition.ToolId, view);
                 }
 
-                if (_client.MiniTools.Samples.TryGetValue(
-                        definition.ToolId,
-                        out RemoteMiniToolSample sample) &&
-                    (!_presentedSamples.TryGetValue(
-                         definition.ToolId,
-                         out RemoteMiniToolSample presentedSample) ||
-                     !ReferenceEquals(
-                         presentedSample,
-                         sample)))
+                if (_client.MiniTools.Samples.TryGetValue(definition.ToolId, out RemoteMiniToolSample sample) && (!_presentedSamples.TryGetValue(definition.ToolId, out RemoteMiniToolSample presentedSample) || !ReferenceEquals(presentedSample, sample)))
                 {
-                    _client.MiniTools.TryGetTool(
-                        definition.ToolId,
-                        out RemoteMiniToolDescriptor descriptor);
+                    _client.MiniTools.TryGetTool(definition.ToolId, out RemoteMiniToolDescriptor descriptor);
                     view.Update(descriptor, sample);
-                    _presentedSamples[definition.ToolId] =
-                        sample;
+                    _presentedSamples[definition.ToolId] = sample;
                     repaintRequested = true;
                 }
 
                 _pendingStreamBatches.Clear();
-                _client.MiniTools.DrainStreamBatches(
-                    definition.ToolId,
-                    _pendingStreamBatches);
-                foreach (RemoteMiniToolStreamBatch batch in
-                         _pendingStreamBatches)
+                _client.MiniTools.DrainStreamBatches(definition.ToolId, _pendingStreamBatches);
+                foreach (RemoteMiniToolStreamBatch batch in _pendingStreamBatches)
                 {
                     view.ApplyStream(batch);
                     repaintRequested = true;
@@ -137,20 +110,16 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost.MiniTools
                 RemoteDebugHostRepaintScheduler.Request();
         }
 
-        private void RemoveInactiveViews(
-            IReadOnlyList<RemoteMiniToolPrefabDefinition> definitions)
+        private void RemoveInactiveViews(IReadOnlyList<RemoteMiniToolPrefabDefinition> definitions)
         {
-            var activeToolIds = new HashSet<string>(
-                StringComparer.OrdinalIgnoreCase);
+            var activeToolIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (RemoteMiniToolPrefabDefinition definition in definitions)
                 activeToolIds.Add(definition.ToolId);
 
             var staleToolIds = new List<string>();
-            foreach (KeyValuePair<string, RemoteMiniToolPrefabView> entry in
-                     _views)
+            foreach (KeyValuePair<string, RemoteMiniToolPrefabView> entry in _views)
             {
-                if (!activeToolIds.Contains(entry.Key) ||
-                    !_client.MiniTools.IsSubscribed(entry.Key))
+                if (!activeToolIds.Contains(entry.Key) || !_client.MiniTools.IsSubscribed(entry.Key))
                     staleToolIds.Add(entry.Key);
             }
 
@@ -162,44 +131,26 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost.MiniTools
                 _failedViews.Remove(toolId);
             }
 
-            _failedViews.RemoveWhere(
-                toolId => !activeToolIds.Contains(toolId));
+            _failedViews.RemoveWhere(toolId => !activeToolIds.Contains(toolId));
         }
 
-        private RemoteMiniToolPrefabDefinition[] IncludeTargetTools(
-            IReadOnlyList<RemoteMiniToolPrefabDefinition> definitions)
+        private RemoteMiniToolPrefabDefinition[] IncludeTargetTools(IReadOnlyList<RemoteMiniToolPrefabDefinition> definitions)
         {
-            var combined =
-                new Dictionary<string, RemoteMiniToolPrefabDefinition>(
-                    StringComparer.OrdinalIgnoreCase);
+            var combined = new Dictionary<string, RemoteMiniToolPrefabDefinition>(StringComparer.OrdinalIgnoreCase);
             foreach (RemoteMiniToolPrefabDefinition definition in definitions)
                 combined[definition.ToolId] = definition;
 
-            foreach (RemoteMiniToolDescriptor descriptor in
-                     _client.MiniTools.Tools ??
-                     Array.Empty<RemoteMiniToolDescriptor>())
+            foreach (RemoteMiniToolDescriptor descriptor in _client.MiniTools.Tools ?? Array.Empty<RemoteMiniToolDescriptor>())
             {
-                if (descriptor == null ||
-                    string.IsNullOrWhiteSpace(descriptor.Id) ||
-                    combined.ContainsKey(descriptor.Id))
+                if (descriptor == null || string.IsNullOrWhiteSpace(descriptor.Id) || combined.ContainsKey(descriptor.Id))
                     continue;
 
-                combined.Add(
-                    descriptor.Id,
-                    new RemoteMiniToolPrefabDefinition(
-                        descriptor.Id,
-                        string.Empty));
+                combined.Add(descriptor.Id, new RemoteMiniToolPrefabDefinition(descriptor.Id, string.Empty));
             }
 
-            var result =
-                new RemoteMiniToolPrefabDefinition[combined.Count];
+            var result = new RemoteMiniToolPrefabDefinition[combined.Count];
             combined.Values.CopyTo(result, 0);
-            Array.Sort(
-                result,
-                (left, right) => string.Compare(
-                    left.ToolId,
-                    right.ToolId,
-                    StringComparison.OrdinalIgnoreCase));
+            Array.Sort(result, (left, right) => string.Compare(left.ToolId, right.ToolId, StringComparison.OrdinalIgnoreCase));
             return result;
         }
     }

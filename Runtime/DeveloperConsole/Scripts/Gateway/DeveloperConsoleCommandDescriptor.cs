@@ -5,11 +5,7 @@ namespace SAS.Utilities.DeveloperConsole
     [Serializable]
     public sealed class DeveloperConsoleCommandDescriptor
     {
-        public DeveloperConsoleCommandDescriptor(
-            string name,
-            string helpText,
-            string[] presets,
-            bool closeOnCompletion)
+        public DeveloperConsoleCommandDescriptor(string name, string helpText, string[] presets, bool closeOnCompletion)
         {
             Name = name ?? string.Empty;
             HelpText = helpText ?? string.Empty;

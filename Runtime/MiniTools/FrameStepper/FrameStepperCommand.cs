@@ -10,8 +10,7 @@ namespace SAS.Utilities.DeveloperConsole
         private FrameStepper _frameStepper;
         private DevUtilityPresentation _presentation;
 
-        public override string HelpText => "Usage: FrameStepper <On|Off>\n" +
-                                           "Show or hide the Frame Stepper UI at runtime.";
+        public override string HelpText => "Usage: FrameStepper <On|Off>\n" + "Show or hide the Frame Stepper UI at runtime.";
 
         public override bool Process(DeveloperConsoleBehaviour developerConsole, string command, string[] args = null)
         {

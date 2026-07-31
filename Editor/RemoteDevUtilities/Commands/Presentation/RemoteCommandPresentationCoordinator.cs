@@ -94,11 +94,11 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
         private void Complete(bool success, string message)
         {
             _client.Commands.CompleteLocally(new RemoteCommandExecuteResponse
-                {
-                    Success = success,
-                    CloseRequested = false,
-                    Message = message
-                });
+            {
+                Success = success,
+                CloseRequested = false,
+                Message = message
+            });
         }
 
         internal static bool TryParseCommandLine(string commandLine, string prefix, out string commandName, out string[] arguments)

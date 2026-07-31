@@ -28,11 +28,11 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
         private static void Complete(RemoteDevUtilitiesClient client, bool success, string message)
         {
             client.Commands.CompleteLocally(new RemoteCommandExecuteResponse
-                {
-                    Success = success,
-                    CloseRequested = false,
-                    Message = message
-                });
+            {
+                Success = success,
+                CloseRequested = false,
+                Message = message
+            });
         }
     }
 }

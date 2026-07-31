@@ -16,20 +16,14 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools
 
     internal static class RemoteMiniToolSnapshotSerializer
     {
-        internal static bool TrySerialize<TSnapshot>(
-            in TSnapshot snapshot,
-            out string snapshotTypeName,
-            out string snapshotJson)
-            where TSnapshot : IMiniToolSnapshot
+        internal static bool TrySerialize<TSnapshot>(in TSnapshot snapshot, out string snapshotTypeName, out string snapshotJson) where TSnapshot : IMiniToolSnapshot
         {
             snapshotTypeName = string.Empty;
             snapshotJson = string.Empty;
 
             try
             {
-                snapshotTypeName =
-                    typeof(TSnapshot).AssemblyQualifiedName ??
-                    typeof(TSnapshot).FullName;
+                snapshotTypeName = typeof(TSnapshot).AssemblyQualifiedName ?? typeof(TSnapshot).FullName;
                 snapshotJson = JsonUtility.ToJson(snapshot);
                 return !string.IsNullOrWhiteSpace(snapshotJson);
             }
@@ -45,12 +39,9 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools
 
     internal static class RemoteMiniToolSnapshotCaptureFactory
     {
-        private static readonly Type SnapshotProviderType =
-            typeof(IMiniToolSnapshotProvider<>);
+        private static readonly Type SnapshotProviderType = typeof(IMiniToolSnapshotProvider<>);
 
-        internal static IRemoteMiniToolSnapshotCapture Create(
-            IMiniToolDataProvider provider,
-            out string error)
+        internal static IRemoteMiniToolSnapshotCapture Create(IMiniToolDataProvider provider, out string error)
         {
             error = string.Empty;
             if (provider == null)
@@ -61,33 +52,19 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools
             if (provider is IRemoteMiniToolSnapshotCapture directCapture)
                 return directCapture;
 
-            foreach (Type implementedInterface in
-                     provider.GetType().GetInterfaces())
+            foreach (Type implementedInterface in provider.GetType().GetInterfaces())
             {
-                if (!implementedInterface.IsGenericType ||
-                    implementedInterface.GetGenericTypeDefinition() !=
-                    SnapshotProviderType)
+                if (!implementedInterface.IsGenericType || implementedInterface.GetGenericTypeDefinition() != SnapshotProviderType)
                 {
                     continue;
                 }
 
-                Type snapshotType =
-                    implementedInterface.GetGenericArguments()[0];
-                Type captureType =
-                    typeof(RemoteMiniToolSnapshotCapture<>)
-                        .MakeGenericType(snapshotType);
+                Type snapshotType = implementedInterface.GetGenericArguments()[0];
+                Type captureType = typeof(RemoteMiniToolSnapshotCapture<>).MakeGenericType(snapshotType);
 
                 try
                 {
-                    return Activator.CreateInstance(
-                            captureType,
-                            BindingFlags.Instance |
-                            BindingFlags.Public |
-                            BindingFlags.NonPublic,
-                            null,
-                            new object[] { provider },
-                            null) as
-                        IRemoteMiniToolSnapshotCapture;
+                    return Activator.CreateInstance(captureType, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new object[] { provider }, null) as IRemoteMiniToolSnapshotCapture;
                 }
                 catch (Exception exception)
                 {
@@ -100,22 +77,16 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools
         }
     }
 
-    internal sealed class RemoteMiniToolSnapshotCapture<TSnapshot> :
-        IRemoteMiniToolSnapshotCapture
-        where TSnapshot : IMiniToolSnapshot
+    internal sealed class RemoteMiniToolSnapshotCapture<TSnapshot> : IRemoteMiniToolSnapshotCapture where TSnapshot : IMiniToolSnapshot
     {
         private readonly IMiniToolSnapshotProvider<TSnapshot> _provider;
 
-        internal RemoteMiniToolSnapshotCapture(
-            IMiniToolSnapshotProvider<TSnapshot> provider)
+        internal RemoteMiniToolSnapshotCapture(IMiniToolSnapshotProvider<TSnapshot> provider)
         {
-            _provider = provider ??
-                        throw new ArgumentNullException(nameof(provider));
+            _provider = provider ?? throw new ArgumentNullException(nameof(provider));
         }
 
-        public bool TryCapture(
-            out string snapshotTypeName,
-            out string snapshotJson)
+        public bool TryCapture(out string snapshotTypeName, out string snapshotJson)
         {
             snapshotTypeName = string.Empty;
             snapshotJson = string.Empty;
@@ -123,10 +94,7 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools
             if (!_provider.TryGetSnapshot(out TSnapshot snapshot))
                 return false;
 
-            return RemoteMiniToolSnapshotSerializer.TrySerialize(
-                in snapshot,
-                out snapshotTypeName,
-                out snapshotJson);
+            return RemoteMiniToolSnapshotSerializer.TrySerialize(in snapshot, out snapshotTypeName, out snapshotJson);
         }
     }
 }

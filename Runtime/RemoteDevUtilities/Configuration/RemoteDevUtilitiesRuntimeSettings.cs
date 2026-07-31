@@ -6,61 +6,59 @@ namespace SAS.Utilities.RemoteDevUtilities
 {
     public enum BuildDebugUiVisibility
     {
-        [InspectorName("Show When Enabled")]
-        ShowWhenEnabled = 0,
-        [InspectorName("Always Hidden")]
-        AlwaysHidden = 1,
-        [InspectorName("Hidden While Editor Connected")]
-        HiddenWhileEditorConnected = 3
+        [InspectorName("Show When Enabled")] ShowWhenEnabled = 0,
+        [InspectorName("Always Hidden")] AlwaysHidden = 1,
+
+        [InspectorName("Hidden While Editor Connected")] HiddenWhileEditorConnected = 3
     }
 
     [Serializable]
     internal sealed class RemoteDevUtilitiesRuntimeConfiguration
     {
         [SerializeField] private bool _enableRemoteAgent = true;
+
         [SerializeField, InspectorName("Debug UI in Build")]
         [Tooltip("Controls debug-tool UI rendered inside the game build. Debug Host and Remote Dev Utilities Editor UI are configured separately.")]
-        private BuildDebugUiVisibility _buildDebugUiVisibility =
-            BuildDebugUiVisibility.HiddenWhileEditorConnected;
+        private BuildDebugUiVisibility _buildDebugUiVisibility = BuildDebugUiVisibility.HiddenWhileEditorConnected;
+
         [SerializeField] private bool _allowCommandExecution = true;
         [SerializeField] private bool _streamLogs = true;
         [SerializeField] private bool _allowMiniTools = true;
-        [FormerlySerializedAs("_allowRuntimeDebugger")]
-        [SerializeField] private bool _allowRuntimeSceneInspector = true;
+
+        [FormerlySerializedAs("_allowRuntimeDebugger")] [SerializeField] private bool _allowRuntimeSceneInspector = true;
+
         [SerializeField] private bool _keepPlayerRunningInBackground = true;
+
         [Header("ENABLE_DEBUG Network Transport")]
         [Tooltip("Direct-IP TCP port used by Development and non-Development Players built with ENABLE_DEBUG.")]
         [SerializeField, Range(1024, 65535)]
         private int _tcpPort = Protocol.RemoteProtocolConstants.DefaultTcpPort;
+
         [Tooltip("Allow the TCP transport to listen on network interfaces in addition to loopback. A non-empty access token is required.")]
-        [SerializeField] private bool _allowTcpConnectionsFromOtherMachines;
+        [SerializeField]
+        private bool _allowTcpConnectionsFromOtherMachines;
+
         [Tooltip("Shared access token required by the runtime handshake. TCP traffic is not encrypted; use Remote Dev Utilities only on a trusted development network.")]
-        [SerializeField] private string _tcpAccessToken = string.Empty;
+        [SerializeField]
+        private string _tcpAccessToken = string.Empty;
+
         [SerializeField, Min(16)] private int _maxQueuedLogs = 512;
         [SerializeField, Min(1)] private int _maxLogsPerBatch = 64;
 
         internal bool EnableRemoteAgent => _enableRemoteAgent;
-        internal BuildDebugUiVisibility BuildUiVisibility =>
-            RemoteDevUtilitiesRuntimeSettings.NormalizeBuildUiVisibility(
-                _buildDebugUiVisibility);
+        internal BuildDebugUiVisibility BuildUiVisibility => RemoteDevUtilitiesRuntimeSettings.NormalizeBuildUiVisibility(_buildDebugUiVisibility);
         internal bool AllowCommandExecution => _allowCommandExecution;
         internal bool StreamLogs => _streamLogs;
         internal bool AllowMiniTools => _allowMiniTools;
         internal bool AllowRuntimeSceneInspector => _allowRuntimeSceneInspector;
-        internal bool KeepPlayerRunningInBackground =>
-            _keepPlayerRunningInBackground;
+        internal bool KeepPlayerRunningInBackground => _keepPlayerRunningInBackground;
         internal int TcpPort => Mathf.Clamp(_tcpPort, 1024, 65535);
-        internal bool AllowTcpConnectionsFromOtherMachines =>
-            _allowTcpConnectionsFromOtherMachines;
-        internal string TcpAccessToken =>
-            string.IsNullOrWhiteSpace(_tcpAccessToken)
-                ? string.Empty
-                : _tcpAccessToken;
+        internal bool AllowTcpConnectionsFromOtherMachines => _allowTcpConnectionsFromOtherMachines;
+        internal string TcpAccessToken => string.IsNullOrWhiteSpace(_tcpAccessToken) ? string.Empty : _tcpAccessToken;
         internal int MaxQueuedLogs => Mathf.Max(16, _maxQueuedLogs);
         internal int MaxLogsPerBatch => Mathf.Max(1, _maxLogsPerBatch);
 
-        internal void CopyFrom(
-            RemoteDevUtilitiesRuntimeSettings settings)
+        internal void CopyFrom(RemoteDevUtilitiesRuntimeSettings settings)
         {
             if (settings == null)
                 return;
@@ -71,52 +69,55 @@ namespace SAS.Utilities.RemoteDevUtilities
             _streamLogs = settings.StreamLogs;
             _allowMiniTools = settings.AllowMiniTools;
             _allowRuntimeSceneInspector = settings.AllowRuntimeSceneInspector;
-            _keepPlayerRunningInBackground =
-                settings.KeepPlayerRunningInBackground;
+            _keepPlayerRunningInBackground = settings.KeepPlayerRunningInBackground;
             _tcpPort = settings.TcpPort;
-            _allowTcpConnectionsFromOtherMachines =
-                settings.AllowTcpConnectionsFromOtherMachines;
+            _allowTcpConnectionsFromOtherMachines = settings.AllowTcpConnectionsFromOtherMachines;
             _tcpAccessToken = settings.TcpAccessToken;
             _maxQueuedLogs = settings.MaxQueuedLogs;
             _maxLogsPerBatch = settings.MaxLogsPerBatch;
         }
     }
 
-    public sealed class RemoteDevUtilitiesRuntimeSettings :
-        ScriptableObject,
-        ISerializationCallbackReceiver
+    public sealed class RemoteDevUtilitiesRuntimeSettings : ScriptableObject, ISerializationCallbackReceiver
     {
         private const string ResourceName = "RemoteDevUtilitiesSettings";
-        private static RemoteDevUtilitiesRuntimeSettings
-            s_BuildSnapshot;
+        private static RemoteDevUtilitiesRuntimeSettings s_BuildSnapshot;
 
         [SerializeField] private bool m_EnableRemoteAgent = true;
+
         [FormerlySerializedAs("m_PresentationMode")]
         [FormerlySerializedAs("m_PlayerDebugUiMode")]
         [SerializeField, InspectorName("Debug UI in Build")]
         [Tooltip("Controls debug-tool UI rendered inside the game build. Debug Host and Remote Dev Utilities Editor UI are configured separately.")]
-        private BuildDebugUiVisibility m_BuildDebugUiVisibility =
-            BuildDebugUiVisibility.ShowWhenEnabled;
+        private BuildDebugUiVisibility m_BuildDebugUiVisibility = BuildDebugUiVisibility.ShowWhenEnabled;
+
         [SerializeField] private bool m_AllowCommandExecution = true;
         [SerializeField] private bool m_StreamLogs = true;
         [SerializeField] private bool m_AllowMiniTools = true;
-        [FormerlySerializedAs("m_AllowRuntimeDebugger")]
-        [SerializeField] private bool m_AllowRuntimeSceneInspector = true;
+
+        [FormerlySerializedAs("m_AllowRuntimeDebugger")] [SerializeField] private bool m_AllowRuntimeSceneInspector = true;
+
         [SerializeField] private bool m_KeepPlayerRunningInBackground = true;
+
         [Header("ENABLE_DEBUG Network Transport")]
         [Tooltip("Direct-IP TCP port used by Development and non-Development Players built with ENABLE_DEBUG.")]
-        [SerializeField, Range(1024, 65535)] private int m_TcpPort = Protocol.RemoteProtocolConstants.DefaultTcpPort;
+        [SerializeField, Range(1024, 65535)]
+        private int m_TcpPort = Protocol.RemoteProtocolConstants.DefaultTcpPort;
+
         [Tooltip("Allow the TCP transport to listen on network interfaces in addition to loopback. " + "A non-empty access token is required.")]
-        [SerializeField] private bool m_AllowTcpConnectionsFromOtherMachines;
+        [SerializeField]
+        private bool m_AllowTcpConnectionsFromOtherMachines;
+
         [Tooltip("Shared access token required by the runtime handshake. TCP traffic is not encrypted; " + "use Remote Dev Utilities only on a trusted development network.")]
-        [SerializeField] private string m_TcpAccessToken = string.Empty;
+        [SerializeField]
+        private string m_TcpAccessToken = string.Empty;
+
         [SerializeField, Min(16)] private int m_MaxQueuedLogs = 512;
         [SerializeField, Min(1)] private int m_MaxLogsPerBatch = 64;
         [SerializeField, HideInInspector] private bool m_IsBuildSnapshot;
 
         public bool EnableRemoteAgent => m_EnableRemoteAgent;
-        public BuildDebugUiVisibility BuildUiVisibility =>
-            NormalizeBuildUiVisibility(m_BuildDebugUiVisibility);
+        public BuildDebugUiVisibility BuildUiVisibility => NormalizeBuildUiVisibility(m_BuildDebugUiVisibility);
         public bool AllowCommandExecution => m_AllowCommandExecution;
         public bool StreamLogs => m_StreamLogs;
         public bool AllowMiniTools => m_AllowMiniTools;
@@ -129,19 +130,14 @@ namespace SAS.Utilities.RemoteDevUtilities
         public int MaxLogsPerBatch => Mathf.Max(1, m_MaxLogsPerBatch);
         internal bool IsBuildSnapshot => m_IsBuildSnapshot;
 
-        internal static BuildDebugUiVisibility NormalizeBuildUiVisibility(
-            BuildDebugUiVisibility visibility)
+        internal static BuildDebugUiVisibility NormalizeBuildUiVisibility(BuildDebugUiVisibility visibility)
         {
             return visibility switch
             {
-                BuildDebugUiVisibility.ShowWhenEnabled =>
-                    BuildDebugUiVisibility.ShowWhenEnabled,
-                BuildDebugUiVisibility.AlwaysHidden =>
-                    BuildDebugUiVisibility.AlwaysHidden,
-                BuildDebugUiVisibility.HiddenWhileEditorConnected =>
-                    BuildDebugUiVisibility.HiddenWhileEditorConnected,
-                (BuildDebugUiVisibility)2 =>
-                    BuildDebugUiVisibility.ShowWhenEnabled,
+                BuildDebugUiVisibility.ShowWhenEnabled => BuildDebugUiVisibility.ShowWhenEnabled,
+                BuildDebugUiVisibility.AlwaysHidden => BuildDebugUiVisibility.AlwaysHidden,
+                BuildDebugUiVisibility.HiddenWhileEditorConnected => BuildDebugUiVisibility.HiddenWhileEditorConnected,
+                (BuildDebugUiVisibility)2 => BuildDebugUiVisibility.ShowWhenEnabled,
                 _ => BuildDebugUiVisibility.HiddenWhileEditorConnected
             };
         }
@@ -152,14 +148,12 @@ namespace SAS.Utilities.RemoteDevUtilities
 
         void ISerializationCallbackReceiver.OnAfterDeserialize()
         {
-            m_BuildDebugUiVisibility =
-                NormalizeBuildUiVisibility(m_BuildDebugUiVisibility);
+            m_BuildDebugUiVisibility = NormalizeBuildUiVisibility(m_BuildDebugUiVisibility);
         }
 
         private void OnValidate()
         {
-            m_BuildDebugUiVisibility =
-                NormalizeBuildUiVisibility(m_BuildDebugUiVisibility);
+            m_BuildDebugUiVisibility = NormalizeBuildUiVisibility(m_BuildDebugUiVisibility);
         }
 
         private void OnEnable()
@@ -174,27 +168,20 @@ namespace SAS.Utilities.RemoteDevUtilities
                 s_BuildSnapshot = null;
         }
 
-        internal void Apply(
-            RemoteDevUtilitiesRuntimeConfiguration configuration,
-            bool isBuildSnapshot)
+        internal void Apply(RemoteDevUtilitiesRuntimeConfiguration configuration, bool isBuildSnapshot)
         {
             if (configuration == null)
                 return;
 
             m_EnableRemoteAgent = configuration.EnableRemoteAgent;
-            m_BuildDebugUiVisibility =
-                configuration.BuildUiVisibility;
-            m_AllowCommandExecution =
-                configuration.AllowCommandExecution;
+            m_BuildDebugUiVisibility = configuration.BuildUiVisibility;
+            m_AllowCommandExecution = configuration.AllowCommandExecution;
             m_StreamLogs = configuration.StreamLogs;
             m_AllowMiniTools = configuration.AllowMiniTools;
-            m_AllowRuntimeSceneInspector =
-                configuration.AllowRuntimeSceneInspector;
-            m_KeepPlayerRunningInBackground =
-                configuration.KeepPlayerRunningInBackground;
+            m_AllowRuntimeSceneInspector = configuration.AllowRuntimeSceneInspector;
+            m_KeepPlayerRunningInBackground = configuration.KeepPlayerRunningInBackground;
             m_TcpPort = configuration.TcpPort;
-            m_AllowTcpConnectionsFromOtherMachines =
-                configuration.AllowTcpConnectionsFromOtherMachines;
+            m_AllowTcpConnectionsFromOtherMachines = configuration.AllowTcpConnectionsFromOtherMachines;
             m_TcpAccessToken = configuration.TcpAccessToken;
             m_MaxQueuedLogs = configuration.MaxQueuedLogs;
             m_MaxLogsPerBatch = configuration.MaxLogsPerBatch;
@@ -208,9 +195,7 @@ namespace SAS.Utilities.RemoteDevUtilities
             if (s_BuildSnapshot != null)
                 return s_BuildSnapshot;
 
-            foreach (RemoteDevUtilitiesRuntimeSettings candidate in
-                     Resources.FindObjectsOfTypeAll<
-                         RemoteDevUtilitiesRuntimeSettings>())
+            foreach (RemoteDevUtilitiesRuntimeSettings candidate in Resources.FindObjectsOfTypeAll<RemoteDevUtilitiesRuntimeSettings>())
             {
                 if (candidate != null && candidate.m_IsBuildSnapshot)
                 {
@@ -223,9 +208,7 @@ namespace SAS.Utilities.RemoteDevUtilities
             if (settings != null)
                 return settings;
 
-            Debug.LogWarning(
-                $"[RemoteDevUtilities] Resources/{ResourceName}.asset could not be loaded. " +
-                "Using in-memory runtime defaults.");
+            Debug.LogWarning($"[RemoteDevUtilities] Resources/{ResourceName}.asset could not be loaded. " + "Using in-memory runtime defaults.");
             settings = CreateInstance<RemoteDevUtilitiesRuntimeSettings>();
             settings.hideFlags = HideFlags.HideAndDontSave;
             return settings;

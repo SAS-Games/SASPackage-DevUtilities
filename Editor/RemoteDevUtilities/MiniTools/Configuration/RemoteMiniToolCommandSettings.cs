@@ -10,40 +10,27 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
     /// Focused facade for the command section of the unified mini-tool project
     /// settings.
     /// </summary>
-    internal sealed class RemoteMiniToolCommandSettings :
-       ScriptableSingleton<RemoteMiniToolCommandSettings>
+    internal sealed class RemoteMiniToolCommandSettings : ScriptableSingleton<RemoteMiniToolCommandSettings>
     {
         internal static event Action Changed;
 
-        internal RemoteMiniToolCommandConfiguration Configuration =>
-            RemoteDevUtilitiesProjectSettings.instance.Commands;
+        internal RemoteMiniToolCommandConfiguration Configuration => RemoteDevUtilitiesProjectSettings.instance.Commands;
 
-        internal bool TryGetOverride(
-            string toolId,
-            out RemoteMiniToolCommandOverride commandOverride)
+        internal bool TryGetOverride(string toolId, out RemoteMiniToolCommandOverride commandOverride)
         {
             return Configuration.TryGet(toolId, out commandOverride);
         }
 
-        internal bool SetOverride(
-            string toolId,
-            string commandName,
-            RemoteCommandRouting routing,
-            out string error)
+        internal bool SetOverride(string toolId, string commandName, RemoteCommandRouting routing, out string error)
         {
             error = string.Empty;
             try
             {
                 if (!string.IsNullOrWhiteSpace(commandName))
                 {
-                    _ = new RemoteCommandPresentationBinding(
-                        commandName,
-                        toolId,
-                        routing);
+                    _ = new RemoteCommandPresentationBinding(commandName, toolId, routing);
                 }
-                else if (!Enum.IsDefined(
-                             typeof(RemoteCommandRouting),
-                             routing))
+                else if (!Enum.IsDefined(typeof(RemoteCommandRouting), routing))
                 {
                     throw new ArgumentOutOfRangeException(nameof(routing));
                 }

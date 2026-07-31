@@ -21,10 +21,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection.Tcp
 
         private readonly struct Notification
         {
-            public Notification(
-                NotificationType type,
-                string error = null,
-                RemoteEnvelope envelope = null)
+            public Notification(NotificationType type, string error = null, RemoteEnvelope envelope = null)
             {
                 Type = type;
                 Error = error;
@@ -98,17 +95,9 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection.Tcp
             }
         }
 
-        public void Send<T>(
-            string messageType,
-            long requestId,
-            string editorSessionId,
-            T payload)
+        public void Send<T>(string messageType, long requestId, string editorSessionId, T payload)
         {
-            byte[] data = RemoteProtocolSerializer.Serialize(
-                messageType,
-                requestId,
-                editorSessionId,
-                payload);
+            byte[] data = RemoteProtocolSerializer.Serialize(messageType, requestId, editorSessionId, payload);
 
             lock (_sendLock)
             {
@@ -122,10 +111,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection.Tcp
                 {
                     RemoteTcpFrameProtocol.WriteFrame(client.GetStream(), data);
                 }
-                catch (Exception exception) when (
-                    exception is IOException ||
-                    exception is ObjectDisposedException ||
-                    exception is SocketException)
+                catch (Exception exception) when (exception is IOException || exception is ObjectDisposedException || exception is SocketException)
                 {
                     CloseClient(client);
                 }
@@ -142,6 +128,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection.Tcp
                 client = _client;
                 _client = null;
             }
+
             CloseClient(client);
 
             Thread worker = _worker;
@@ -186,37 +173,23 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection.Tcp
                     byte[] data = RemoteTcpFrameProtocol.ReadFrame(stream);
                     if (data == null)
                         break;
-                    if (RemoteProtocolSerializer.TryDeserializeEnvelope(
-                            data,
-                            out RemoteEnvelope envelope,
-                            out _))
+                    if (RemoteProtocolSerializer.TryDeserializeEnvelope(data, out RemoteEnvelope envelope, out _))
                     {
-                        Enqueue(new Notification(
-                            NotificationType.Message,
-                            envelope: envelope));
+                        Enqueue(new Notification(NotificationType.Message, envelope: envelope));
                     }
                 }
 
                 if (_running)
                 {
-                    Enqueue(new Notification(
-                        NotificationType.Disconnected,
-                        "The TCP connection to the Player closed."));
+                    Enqueue(new Notification(NotificationType.Disconnected, "The TCP connection to the Player closed."));
                 }
             }
-            catch (Exception exception) when (
-                exception is IOException ||
-                exception is ObjectDisposedException ||
-                exception is SocketException)
+            catch (Exception exception) when (exception is IOException || exception is ObjectDisposedException || exception is SocketException)
             {
                 if (_running)
                 {
                     bool hadConnected = client.Connected;
-                    Enqueue(new Notification(
-                        hadConnected
-                            ? NotificationType.Disconnected
-                            : NotificationType.Error,
-                        exception.Message));
+                    Enqueue(new Notification(hadConnected ? NotificationType.Disconnected : NotificationType.Error, exception.Message));
                 }
             }
             finally
@@ -226,6 +199,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection.Tcp
                     if (ReferenceEquals(_client, client))
                         _client = null;
                 }
+
                 CloseClient(client);
             }
         }

@@ -26,11 +26,9 @@ namespace SAS.DevUtilities
 
         private void CaptureAndPublishIfChanged()
         {
-            FrameStepperSnapshot snapshot =
-                FrameStepperSnapshotCollector.Capture();
+            FrameStepperSnapshot snapshot = FrameStepperSnapshotCollector.Capture();
 
-            if (_hasLastSnapshot && snapshot.IsPaused == _lastSnapshot.IsPaused &&
-                Mathf.Approximately(snapshot.TimeScale, _lastSnapshot.TimeScale))
+            if (_hasLastSnapshot && snapshot.IsPaused == _lastSnapshot.IsPaused && Mathf.Approximately(snapshot.TimeScale, _lastSnapshot.TimeScale))
             {
                 return;
             }

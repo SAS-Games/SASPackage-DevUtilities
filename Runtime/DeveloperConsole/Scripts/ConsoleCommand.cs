@@ -25,6 +25,9 @@ namespace SAS.Utilities.DeveloperConsole
         }
 
         public abstract bool Process(DeveloperConsoleBehaviour developerConsole, string command, string[] args = null);
-        public virtual void Init() { }
+
+        public virtual void Init()
+        {
+        }
     }
 }

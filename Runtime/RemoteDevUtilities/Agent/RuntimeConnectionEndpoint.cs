@@ -81,36 +81,31 @@ namespace SAS.Utilities.RemoteDevUtilities.Agent
                 return;
             }
 
-            if (_context.Sender.RequiresAccessToken &&
-                !AccessTokenMatches(
-                    _context.Settings.TcpAccessToken,
-                    request.AccessToken))
+            if (_context.Sender.RequiresAccessToken && !AccessTokenMatches(_context.Settings.TcpAccessToken, request.AccessToken))
             {
-                SendRejected(
-                    envelope.RequestId,
-                    "The Remote Dev Utilities access token was rejected.");
+                SendRejected(envelope.RequestId, "The Remote Dev Utilities access token was rejected.");
                 return;
             }
 
             IsSessionAccepted = true;
             AcceptedEditorSessionId = request.EditorSessionId;
             _context.Sender.Send(RemoteMessageTypes.HandshakeResponse, envelope.RequestId, new RemoteHandshakeResponse
+            {
+                Accepted = true,
+                ProtocolVersion = RemoteProtocolConstants.Version,
+                PackageVersion = RemoteProtocolConstants.PackageVersion,
+                RuntimeSessionId = _context.RuntimeSessionId,
+                Target = new RemoteTargetDescriptor
                 {
-                    Accepted = true,
-                    ProtocolVersion = RemoteProtocolConstants.Version,
-                    PackageVersion = RemoteProtocolConstants.PackageVersion,
-                    RuntimeSessionId = _context.RuntimeSessionId,
-                    Target = new RemoteTargetDescriptor
-                    {
-                        ProductName = Application.productName,
-                        ApplicationVersion = Application.version,
-                        UnityVersion = Application.unityVersion,
-                        Platform = Application.platform.ToString(),
-                        DeviceName = SystemInfo.deviceName,
-                        IsDebugBuild = UnityEngine.Debug.isDebugBuild,
-                        IsDevUtilitiesEnabled = IsDevUtilitiesEnabled()
-                    }
-                });
+                    ProductName = Application.productName,
+                    ApplicationVersion = Application.version,
+                    UnityVersion = Application.unityVersion,
+                    Platform = Application.platform.ToString(),
+                    DeviceName = SystemInfo.deviceName,
+                    IsDebugBuild = UnityEngine.Debug.isDebugBuild,
+                    IsDevUtilitiesEnabled = IsDevUtilitiesEnabled()
+                }
+            });
             SessionStateChanged?.Invoke(true);
         }
 
@@ -120,23 +115,23 @@ namespace SAS.Utilities.RemoteDevUtilities.Agent
                 return;
 
             _context.Sender.Send(RemoteMessageTypes.PingResponse, envelope.RequestId, new RemotePingResponse
-                {
-                    EditorTimestamp = request.EditorTimestamp,
-                    RuntimeTimestamp = Time.realtimeSinceStartupAsDouble,
-                    RuntimeFrame = Time.frameCount
-                });
+            {
+                EditorTimestamp = request.EditorTimestamp,
+                RuntimeTimestamp = Time.realtimeSinceStartupAsDouble,
+                RuntimeFrame = Time.frameCount
+            });
         }
 
         private void SendRejected(long requestId, string error)
         {
             _context.Sender.Send(RemoteMessageTypes.HandshakeResponse, requestId, new RemoteHandshakeResponse
-                {
-                    Accepted = false,
-                    Error = error,
-                    ProtocolVersion = RemoteProtocolConstants.Version,
-                    PackageVersion = RemoteProtocolConstants.PackageVersion,
-                    RuntimeSessionId = _context.RuntimeSessionId
-                });
+            {
+                Accepted = false,
+                Error = error,
+                ProtocolVersion = RemoteProtocolConstants.Version,
+                PackageVersion = RemoteProtocolConstants.PackageVersion,
+                RuntimeSessionId = _context.RuntimeSessionId
+            });
         }
 
         private static bool AccessTokenMatches(string expected, string received)

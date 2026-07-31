@@ -99,8 +99,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
 
     public readonly struct RuntimeShaderPropertyValue
     {
-        private RuntimeShaderPropertyValue(RuntimeShaderPropertyType type, float floatValue, int integerValue,
-            Color colorValue, Vector4 vectorValue, Texture textureValue)
+        private RuntimeShaderPropertyValue(RuntimeShaderPropertyType type, float floatValue, int integerValue, Color colorValue, Vector4 vectorValue, Texture textureValue)
         {
             Type = type;
             FloatValue = floatValue;
@@ -117,19 +116,14 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
         public Vector4 VectorValue { get; }
         public Texture TextureValue { get; }
 
-        public static RuntimeShaderPropertyValue Float(RuntimeShaderPropertyType type, float value) =>
-            new(type, value, default, default, default, null);
+        public static RuntimeShaderPropertyValue Float(RuntimeShaderPropertyType type, float value) => new(type, value, default, default, default, null);
 
-        public static RuntimeShaderPropertyValue Integer(int value) =>
-            new(RuntimeShaderPropertyType.Integer, default, value, default, default, null);
+        public static RuntimeShaderPropertyValue Integer(int value) => new(RuntimeShaderPropertyType.Integer, default, value, default, default, null);
 
-        public static RuntimeShaderPropertyValue Color(Color value) =>
-            new(RuntimeShaderPropertyType.Color, default, default, value, default, null);
+        public static RuntimeShaderPropertyValue Color(Color value) => new(RuntimeShaderPropertyType.Color, default, default, value, default, null);
 
-        public static RuntimeShaderPropertyValue Vector(Vector4 value) =>
-            new(RuntimeShaderPropertyType.Vector, default, default, default, value, null);
+        public static RuntimeShaderPropertyValue Vector(Vector4 value) => new(RuntimeShaderPropertyType.Vector, default, default, default, value, null);
 
-        public static RuntimeShaderPropertyValue Texture(Texture value) =>
-            new(RuntimeShaderPropertyType.Texture, default, default, default, default, value);
+        public static RuntimeShaderPropertyValue Texture(Texture value) => new(RuntimeShaderPropertyType.Texture, default, default, default, default, value);
     }
 }

@@ -45,11 +45,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Transport.Tcp
         private Thread _worker;
         private volatile bool _running;
 
-        public RuntimeTcpServerTransport(
-            string runtimeSessionId,
-            IPAddress listenAddress,
-            int port,
-            bool requiresAccessToken)
+        public RuntimeTcpServerTransport(string runtimeSessionId, IPAddress listenAddress, int port, bool requiresAccessToken)
         {
             _runtimeSessionId = runtimeSessionId;
             _listenAddress = listenAddress ?? throw new ArgumentNullException(nameof(listenAddress));
@@ -78,9 +74,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Transport.Tcp
                     Name = "Remote Dev Utilities TCP"
                 };
                 _worker.Start();
-                Debug.Log(
-                    $"[RemoteDevUtilities] ENABLE_DEBUG TCP transport listening on " +
-                    $"{_listenAddress}:{_port}.");
+                Debug.Log($"[RemoteDevUtilities] ENABLE_DEBUG TCP transport listening on " + $"{_listenAddress}:{_port}.");
             }
             catch (Exception exception)
             {
@@ -92,34 +86,16 @@ namespace SAS.Utilities.RemoteDevUtilities.Transport.Tcp
 
         private void LogStartFailure(Exception exception)
         {
-            string listenScope = IPAddress.Any.Equals(_listenAddress)
-                ? "All network interfaces"
-                : IPAddress.Loopback.Equals(_listenAddress)
-                    ? "Loopback only"
-                    : "Specific interface";
-            string commonDetails =
-                $"Endpoint={_listenAddress}:{_port}, " +
-                $"Scope={listenScope}, " +
-                $"Platform={Application.platform}, " +
-                $"Unity={Application.unityVersion}";
+            string listenScope = IPAddress.Any.Equals(_listenAddress) ? "All network interfaces" : IPAddress.Loopback.Equals(_listenAddress) ? "Loopback only" : "Specific interface";
+            string commonDetails = $"Endpoint={_listenAddress}:{_port}, " + $"Scope={listenScope}, " + $"Platform={Application.platform}, " + $"Unity={Application.unityVersion}";
 
             if (exception is SocketException socketException)
             {
-                Debug.LogError(
-                    $"[RemoteDevUtilities] Could not start the ENABLE_DEBUG TCP transport. " +
-                    $"{commonDetails}, " +
-                    $"SocketError={socketException.SocketErrorCode}, " +
-                    $"NativeErrorCode={socketException.NativeErrorCode}, " +
-                    $"ErrorCode={socketException.ErrorCode}. " +
-                    $"Message: {socketException.Message}");
+                Debug.LogError($"[RemoteDevUtilities] Could not start the ENABLE_DEBUG TCP transport. " + $"{commonDetails}, " + $"SocketError={socketException.SocketErrorCode}, " + $"NativeErrorCode={socketException.NativeErrorCode}, " + $"ErrorCode={socketException.ErrorCode}. " + $"Message: {socketException.Message}");
                 return;
             }
 
-            Debug.LogError(
-                $"[RemoteDevUtilities] Could not start the ENABLE_DEBUG TCP transport. " +
-                $"{commonDetails}, " +
-                $"Exception={exception.GetType().FullName}. " +
-                $"Message: {exception.Message}");
+            Debug.LogError($"[RemoteDevUtilities] Could not start the ENABLE_DEBUG TCP transport. " + $"{commonDetails}, " + $"Exception={exception.GetType().FullName}. " + $"Message: {exception.Message}");
         }
 
         private void StopListener()
@@ -156,11 +132,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Transport.Tcp
 
         public void Send<T>(string messageType, long requestId, T payload)
         {
-            byte[] data = RemoteProtocolSerializer.Serialize(
-                messageType,
-                requestId,
-                _runtimeSessionId,
-                payload);
+            byte[] data = RemoteProtocolSerializer.Serialize(messageType, requestId, _runtimeSessionId, payload);
 
             lock (_sendLock)
             {
@@ -174,10 +146,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Transport.Tcp
                 {
                     RemoteTcpFrameProtocol.WriteFrame(client.GetStream(), data);
                 }
-                catch (Exception exception) when (
-                    exception is IOException ||
-                    exception is ObjectDisposedException ||
-                    exception is SocketException)
+                catch (Exception exception) when (exception is IOException || exception is ObjectDisposedException || exception is SocketException)
                 {
                     CloseClient(client);
                 }
@@ -195,6 +164,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Transport.Tcp
                 client = _client;
                 _client = null;
             }
+
             CloseClient(client);
 
             Thread worker = _worker;
@@ -229,20 +199,13 @@ namespace SAS.Utilities.RemoteDevUtilities.Transport.Tcp
                         byte[] data = RemoteTcpFrameProtocol.ReadFrame(stream);
                         if (data == null)
                             break;
-                        if (RemoteProtocolSerializer.TryDeserializeEnvelope(
-                                data,
-                                out RemoteEnvelope envelope,
-                                out _))
+                        if (RemoteProtocolSerializer.TryDeserializeEnvelope(data, out RemoteEnvelope envelope, out _))
                         {
                             Enqueue(new Notification(NotificationType.Message, envelope));
                         }
                     }
                 }
-                catch (Exception exception) when (
-                    !_running ||
-                    exception is IOException ||
-                    exception is ObjectDisposedException ||
-                    exception is SocketException)
+                catch (Exception exception) when (!_running || exception is IOException || exception is ObjectDisposedException || exception is SocketException)
                 {
                 }
                 finally

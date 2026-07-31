@@ -21,9 +21,9 @@ public class SubCommandDrawer : PropertyDrawer
         var presetsProp = property.FindPropertyRelative("Presets");
         var methodProp = property.FindPropertyRelative("MethodName");
 
-        height += line + spacing; 
         height += line + spacing;
-        height += line + spacing; 
+        height += line + spacing;
+        height += line + spacing;
 
         height += EditorGUI.GetPropertyHeight(presetsProp, true) + spacing;
 
@@ -92,19 +92,9 @@ public class SubCommandDrawer : PropertyDrawer
     }
 
 
-
-
     private static MethodInfo[] GetValidMethods(Type type)
     {
-        return type.GetMethods(FLAGS)
-            .Where(m =>
-                m.ReturnType == typeof(bool) &&
-                m.GetParameters().Length == 1 &&
-                m.GetParameters()[0].ParameterType == typeof(string[]) &&
-                !m.IsGenericMethod &&
-                !m.IsAbstract)
-            .OrderBy(m => m.Name)
-            .ToArray();
+        return type.GetMethods(FLAGS).Where(m => m.ReturnType == typeof(bool) && m.GetParameters().Length == 1 && m.GetParameters()[0].ParameterType == typeof(string[]) && !m.IsGenericMethod && !m.IsAbstract).OrderBy(m => m.Name).ToArray();
     }
 
     private static bool IsMethodValid(Type type, string methodName)
@@ -112,13 +102,6 @@ public class SubCommandDrawer : PropertyDrawer
         if (string.IsNullOrEmpty(methodName))
             return false;
 
-        return type.GetMethods(FLAGS).Any(m =>
-            m.Name == methodName &&
-            m.ReturnType == typeof(bool) &&
-            m.GetParameters().Length == 1 &&
-            m.GetParameters()[0].ParameterType == typeof(string[]) &&
-            !m.IsGenericMethod &&
-            !m.IsAbstract);
+        return type.GetMethods(FLAGS).Any(m => m.Name == methodName && m.ReturnType == typeof(bool) && m.GetParameters().Length == 1 && m.GetParameters()[0].ParameterType == typeof(string[]) && !m.IsGenericMethod && !m.IsAbstract);
     }
-
 }

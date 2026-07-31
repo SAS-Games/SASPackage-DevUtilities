@@ -11,22 +11,17 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
     /// </summary>
     internal sealed class RemoteMiniToolVisibilitySettings
     {
-        private static readonly RemoteMiniToolVisibilitySettings
-            SharedInstance = new();
+        private static readonly RemoteMiniToolVisibilitySettings SharedInstance = new();
 
-        internal static RemoteMiniToolVisibilitySettings instance =>
-            SharedInstance;
+        internal static RemoteMiniToolVisibilitySettings instance => SharedInstance;
 
         internal static event Action Changed;
 
-        internal RemoteMiniToolVisibilityConfiguration Configuration =>
-            RemoteDevUtilitiesProjectSettings.instance.Visibility;
+        internal RemoteMiniToolVisibilityConfiguration Configuration => RemoteDevUtilitiesProjectSettings.instance.Visibility;
 
-        internal bool IsVisible(string toolId) =>
-            Configuration.IsVisible(toolId);
+        internal bool IsVisible(string toolId) => Configuration.IsVisible(toolId);
 
-        internal void RegisterCatalog(
-            IEnumerable<RemoteMiniToolDescriptor> descriptors)
+        internal void RegisterCatalog(IEnumerable<RemoteMiniToolDescriptor> descriptors)
         {
             if (Configuration.RegisterCatalog(descriptors))
                 Persist(false);

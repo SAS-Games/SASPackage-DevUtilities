@@ -67,14 +67,13 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools
                 streamIntervalSeconds = descriptor.DefaultStreamIntervalSeconds;
             }
 
-            _session.Send(RemoteMessageTypes.MiniToolSubscriptionRequest,
-                new RemoteMiniToolSubscriptionRequest
-                {
-                    ToolId = toolId,
-                    Subscribe = subscribe,
-                    IntervalSeconds = intervalSeconds,
-                    StreamIntervalSeconds = streamIntervalSeconds
-                });
+            _session.Send(RemoteMessageTypes.MiniToolSubscriptionRequest, new RemoteMiniToolSubscriptionRequest
+            {
+                ToolId = toolId,
+                Subscribe = subscribe,
+                IntervalSeconds = intervalSeconds,
+                StreamIntervalSeconds = streamIntervalSeconds
+            });
         }
 
         public void ExecuteAction(string toolId, string actionId)
@@ -87,10 +86,10 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools
             }
 
             _session.Send(RemoteMessageTypes.MiniToolActionRequest, new RemoteMiniToolActionRequest
-                {
-                    ToolId = toolId,
-                    ActionId = actionId
-                });
+            {
+                ToolId = toolId,
+                ActionId = actionId
+            });
         }
 
         public void DrainStreamBatches(string toolId, ICollection<RemoteMiniToolStreamBatch> destination)
@@ -136,6 +135,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools
                                 _streamBatches.Remove(subscription.ToolId);
                             }
                         }
+
                         Error = subscription.Success ? null : subscription.Error;
                     }
                     else
@@ -176,6 +176,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools
 
                         batches.Enqueue(batch);
                     }
+
                     break;
             }
 

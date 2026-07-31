@@ -22,8 +22,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
         private const string HostPreferenceKey = "RemoteDevUtilities.TcpHost";
         private const string PortPreferenceKey = "RemoteDevUtilities.TcpPort";
         private const string TokenSessionKey = "RemoteDevUtilities.AccessToken";
-        private const string ExpandedPreferenceKey =
-            "RemoteDevUtilities.ConnectionPanelExpanded";
+        private const string ExpandedPreferenceKey = "RemoteDevUtilities.ConnectionPanelExpanded";
 
         private int? _selectedPlayerId;
         private ConnectionMode _mode;
@@ -32,43 +31,26 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
         private string _accessToken;
         private bool _expanded;
 
-        private RemoteDevUtilitiesRuntimeConfiguration RuntimeSettings =>
-            RemoteDevUtilitiesProjectSettings.instance.Runtime;
-        private int ConfiguredTcpPort => RuntimeSettings?.TcpPort ??
-                                         RemoteProtocolConstants.DefaultTcpPort;
+        private RemoteDevUtilitiesRuntimeConfiguration RuntimeSettings => RemoteDevUtilitiesProjectSettings.instance.Runtime;
+        private int ConfiguredTcpPort => RuntimeSettings?.TcpPort ?? RemoteProtocolConstants.DefaultTcpPort;
 
         public RemoteConnectionPanel()
         {
-            _mode = (ConnectionMode)Mathf.Clamp(
-                EditorPrefs.GetInt(
-                    ModePreferenceKey,
-                    (int)ConnectionMode.DiscoveredPlayer),
-                0,
-                1);
+            _mode = (ConnectionMode)Mathf.Clamp(EditorPrefs.GetInt(ModePreferenceKey, (int)ConnectionMode.DiscoveredPlayer), 0, 1);
             _tcpHost = EditorPrefs.GetString(HostPreferenceKey, "127.0.0.1");
-            _tcpPort = EditorPrefs.GetInt(
-                PortPreferenceKey,
-                ConfiguredTcpPort);
+            _tcpPort = EditorPrefs.GetInt(PortPreferenceKey, ConfiguredTcpPort);
             _accessToken = SessionState.GetString(TokenSessionKey, string.Empty);
-            _expanded = EditorPrefs.GetBool(
-                ExpandedPreferenceKey,
-                true);
+            _expanded = EditorPrefs.GetBool(ExpandedPreferenceKey, true);
         }
 
         public void Draw(RemoteDevUtilitiesClient client)
         {
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-            bool expanded = EditorGUILayout.Foldout(
-                _expanded,
-                BuildHeader(client),
-                true,
-                EditorStyles.foldoutHeader);
+            bool expanded = EditorGUILayout.Foldout(_expanded, BuildHeader(client), true, EditorStyles.foldoutHeader);
             if (expanded != _expanded)
             {
                 _expanded = expanded;
-                EditorPrefs.SetBool(
-                    ExpandedPreferenceKey,
-                    _expanded);
+                EditorPrefs.SetBool(ExpandedPreferenceKey, _expanded);
             }
 
             if (!_expanded)
@@ -96,15 +78,11 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
             EditorGUILayout.EndVertical();
         }
 
-        private static string BuildHeader(
-            RemoteDevUtilitiesClient client)
+        private static string BuildHeader(RemoteDevUtilitiesClient client)
         {
             if (client.IsConnected)
             {
-                string target = string.IsNullOrWhiteSpace(
-                    client.SelectedTargetName)
-                    ? "Connected"
-                    : client.SelectedTargetName;
+                string target = string.IsNullOrWhiteSpace(client.SelectedTargetName) ? "Connected" : client.SelectedTargetName;
                 return $"Remote Target — {target}";
             }
 
@@ -116,9 +94,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
 
         private void DrawConnectionMode()
         {
-            ConnectionMode nextMode = (ConnectionMode)GUILayout.Toolbar(
-                (int)_mode,
-                new[] { "Discovered Players", "Direct IP" });
+            ConnectionMode nextMode = (ConnectionMode)GUILayout.Toolbar((int)_mode, new[] { "Discovered Players", "Direct IP" });
             if (nextMode == _mode)
                 return;
 
@@ -130,17 +106,12 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
             IReadOnlyList<RemoteEditorPlayerDescriptor> players = client.ConnectedPlayers;
             string[] labels = new string[players.Count];
             int selectedIndex = -1;
-            int? activePlayerId =
-                client.ConnectionKind ==
-                RemoteEditorConnectionKind.PlayerConnection
-                    ? client.SelectedPlayerId
-                    : _selectedPlayerId;
+            int? activePlayerId = client.ConnectionKind == RemoteEditorConnectionKind.PlayerConnection ? client.SelectedPlayerId : _selectedPlayerId;
             for (int i = 0; i < players.Count; i++)
             {
                 RemoteEditorPlayerDescriptor player = players[i];
                 labels[i] = $"{player.Name}  [{player.PlayerId}]";
-                if (activePlayerId.HasValue &&
-                    player.PlayerId == activePlayerId.Value)
+                if (activePlayerId.HasValue && player.PlayerId == activePlayerId.Value)
                     selectedIndex = i;
             }
 
@@ -149,45 +120,32 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
 
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("Player", GUILayout.Width(90f));
-            int nextIndex = EditorGUILayout.Popup(
-                Mathf.Max(0, selectedIndex),
-                labels.Length == 0
-                    ? new[] { "No Unity-discovered Players" }
-                    : labels);
-            if (GUILayout.Button(
-                    new GUIContent(
-                        "Refresh",
-                        "Reload the Players currently known to Unity PlayerConnection."),
-                    GUILayout.Width(68f)))
+            int nextIndex = EditorGUILayout.Popup(Mathf.Max(0, selectedIndex), labels.Length == 0 ? new[] { "No Unity-discovered Players" } : labels);
+            if (GUILayout.Button(new GUIContent("Refresh", "Reload the Players currently known to Unity PlayerConnection."), GUILayout.Width(68f)))
             {
                 client.RefreshConnectedPlayers();
             }
+
             EditorGUILayout.EndHorizontal();
 
             if (labels.Length == 0)
             {
                 _selectedPlayerId = null;
-                EditorGUILayout.HelpBox(
-                    "Unity only lists Players that have established a PlayerConnection. " +
-                    "If Autoconnect Profiler is disabled, use Direct IP instead.",
-                    MessageType.Info);
-                if (GUILayout.Button(
-                        "Use Direct IP",
-                        GUILayout.Width(110f)))
+                EditorGUILayout.HelpBox("Unity only lists Players that have established a PlayerConnection. " + "If Autoconnect Profiler is disabled, use Direct IP instead.", MessageType.Info);
+                if (GUILayout.Button("Use Direct IP", GUILayout.Width(110f)))
                 {
                     SetConnectionMode(ConnectionMode.DirectIp);
                 }
+
                 return;
             }
 
-            _selectedPlayerId =
-                players[Mathf.Clamp(nextIndex, 0, players.Count - 1)].PlayerId;
+            _selectedPlayerId = players[Mathf.Clamp(nextIndex, 0, players.Count - 1)].PlayerId;
         }
 
         private void DrawTcpTarget()
         {
-            RemoteDevUtilitiesRuntimeConfiguration runtimeSettings =
-                RuntimeSettings;
+            RemoteDevUtilitiesRuntimeConfiguration runtimeSettings = RuntimeSettings;
             int configuredTcpPort = ConfiguredTcpPort;
 
             EditorGUI.BeginChangeCheck();
@@ -204,47 +162,30 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
                 _tcpHost = "127.0.0.1";
                 PersistTcpTarget();
             }
-            if (GUILayout.Button(
-                    $"Use Port {configuredTcpPort}",
-                    GUILayout.Width(112f)))
+
+            if (GUILayout.Button($"Use Port {configuredTcpPort}", GUILayout.Width(112f)))
             {
                 _tcpPort = configuredTcpPort;
                 PersistTcpTarget();
             }
+
             if (GUILayout.Button("Open Settings", GUILayout.Width(100f)))
             {
                 RemoteDevUtilitiesProjectSettings.Open();
             }
+
             EditorGUILayout.EndHorizontal();
 
-            string listenerScope =
-                runtimeSettings != null &&
-                runtimeSettings.AllowTcpConnectionsFromOtherMachines
-                    ? "local network"
-                    : "this machine only";
-            EditorGUILayout.LabelField(
-                $"The current build settings use TCP port {configuredTcpPort} " +
-                $"and allow connections from {listenerScope}.",
-                EditorStyles.wordWrappedMiniLabel);
+            string listenerScope = runtimeSettings != null && runtimeSettings.AllowTcpConnectionsFromOtherMachines ? "local network" : "this machine only";
+            EditorGUILayout.LabelField($"The current build settings use TCP port {configuredTcpPort} " + $"and allow connections from {listenerScope}.", EditorStyles.wordWrappedMiniLabel);
 
-            if (!IsLoopbackHost(_tcpHost) &&
-                (runtimeSettings == null ||
-                 !runtimeSettings.AllowTcpConnectionsFromOtherMachines))
+            if (!IsLoopbackHost(_tcpHost) && (runtimeSettings == null || !runtimeSettings.AllowTcpConnectionsFromOtherMachines))
             {
-                EditorGUILayout.HelpBox(
-                    "The runtime settings are loopback-only. Enable " +
-                    "\"Allow Tcp Connections From Other Machines\" before " +
-                    "building a Player for another PC.",
-                    MessageType.Warning);
+                EditorGUILayout.HelpBox("The runtime settings are loopback-only. Enable " + "\"Allow Tcp Connections From Other Machines\" before " + "building a Player for another PC.", MessageType.Warning);
             }
-            else if (!IsLoopbackHost(_tcpHost) &&
-                     string.IsNullOrWhiteSpace(
-                         runtimeSettings?.TcpAccessToken))
+            else if (!IsLoopbackHost(_tcpHost) && string.IsNullOrWhiteSpace(runtimeSettings?.TcpAccessToken))
             {
-                EditorGUILayout.HelpBox(
-                    "Connections from another machine require a non-empty " +
-                    "access token in the runtime settings.",
-                    MessageType.Warning);
+                EditorGUILayout.HelpBox("Connections from another machine require a non-empty " + "access token in the runtime settings.", MessageType.Warning);
             }
         }
 
@@ -274,12 +215,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
             }
             else
             {
-                bool canConnect =
-                    _mode == ConnectionMode.DiscoveredPlayer
-                        ? _selectedPlayerId.HasValue
-                        : !string.IsNullOrWhiteSpace(_tcpHost) &&
-                          _tcpPort > 0 &&
-                          _tcpPort <= 65535;
+                bool canConnect = _mode == ConnectionMode.DiscoveredPlayer ? _selectedPlayerId.HasValue : !string.IsNullOrWhiteSpace(_tcpHost) && _tcpPort > 0 && _tcpPort <= 65535;
                 using (new EditorGUI.DisabledScope(!canConnect))
                 {
                     if (GUILayout.Button("Connect", GUILayout.Width(90f)))
@@ -304,16 +240,9 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
             else if (client.IsHandshakePending)
                 EditorGUILayout.LabelField("Waiting for the runtime agent handshake...", EditorStyles.miniLabel);
             else if (_mode == ConnectionMode.DirectIp)
-                EditorGUILayout.LabelField(
-                    "Direct IP works with Development and release Players built " +
-                    "with ENABLE_DEBUG. Use 127.0.0.1 on the same machine, or " +
-                    "the Player machine's IP address on a trusted network.",
-                    EditorStyles.wordWrappedMiniLabel);
+                EditorGUILayout.LabelField("Direct IP works with Development and release Players built " + "with ENABLE_DEBUG. Use 127.0.0.1 on the same machine, or " + "the Player machine's IP address on a trusted network.", EditorStyles.wordWrappedMiniLabel);
             else
-                EditorGUILayout.LabelField(
-                    "Refresh shows Players already connected through Unity. " +
-                    "Use Direct IP when Unity discovery is unavailable.",
-                    EditorStyles.wordWrappedMiniLabel);
+                EditorGUILayout.LabelField("Refresh shows Players already connected through Unity. " + "Use Direct IP when Unity discovery is unavailable.", EditorStyles.wordWrappedMiniLabel);
         }
 
         private static void DrawTarget(RemoteDevUtilitiesClient client)
@@ -335,11 +264,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
 
         private void PersistTcpTarget()
         {
-            EditorPrefs.SetString(
-                HostPreferenceKey,
-                string.IsNullOrWhiteSpace(_tcpHost)
-                    ? "127.0.0.1"
-                    : _tcpHost.Trim());
+            EditorPrefs.SetString(HostPreferenceKey, string.IsNullOrWhiteSpace(_tcpHost) ? "127.0.0.1" : _tcpHost.Trim());
             EditorPrefs.SetInt(PortPreferenceKey, _tcpPort);
         }
 
@@ -349,12 +274,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
                 return false;
 
             string value = host.Trim();
-            return string.Equals(
-                       value,
-                       "localhost",
-                       StringComparison.OrdinalIgnoreCase) ||
-                   value == "127.0.0.1" ||
-                   value == "::1";
+            return string.Equals(value, "localhost", StringComparison.OrdinalIgnoreCase) || value == "127.0.0.1" || value == "::1";
         }
     }
 }

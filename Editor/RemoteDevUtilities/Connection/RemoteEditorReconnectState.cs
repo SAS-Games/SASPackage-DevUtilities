@@ -20,9 +20,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
                     case RemoteEditorConnectionKind.PlayerConnection:
                         return true;
                     case RemoteEditorConnectionKind.DirectTcp:
-                        return !string.IsNullOrWhiteSpace(Host) &&
-                               Port >= 1 &&
-                               Port <= 65535;
+                        return !string.IsNullOrWhiteSpace(Host) && Port >= 1 && Port <= 65535;
                     default:
                         return false;
                 }

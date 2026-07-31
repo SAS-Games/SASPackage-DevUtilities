@@ -12,11 +12,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
     /// </summary>
     internal static class MiniToolProviderReferenceResolver
     {
-        internal static bool TrySynchronize(
-            MiniToolDefinition definition,
-            string definitionPath,
-            out string error,
-            out string warning)
+        internal static bool TrySynchronize(MiniToolDefinition definition, string definitionPath, out string error, out string warning)
         {
             error = string.Empty;
             warning = string.Empty;
@@ -27,14 +23,11 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
             }
 
             var serialized = new SerializedObject(definition);
-            SerializedProperty guidProperty =
-                serialized.FindProperty("_providerScriptGuid");
-            SerializedProperty typeProperty =
-                serialized.FindProperty("_providerTypeName");
+            SerializedProperty guidProperty = serialized.FindProperty("_providerScriptGuid");
+            SerializedProperty typeProperty = serialized.FindProperty("_providerTypeName");
             if (guidProperty == null || typeProperty == null)
             {
-                error =
-                    "Data Provider reference fields are missing from the definition.";
+                error = "Data Provider reference fields are missing from the definition.";
                 return false;
             }
 
@@ -43,39 +36,26 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
             MonoScript providerScript;
             if (string.IsNullOrWhiteSpace(scriptGuid))
             {
-                if (!TryFindLegacyProviderScript(
-                        storedTypeName,
-                        out providerScript,
-                        out error))
+                if (!TryFindLegacyProviderScript(storedTypeName, out providerScript, out error))
                 {
                     return false;
                 }
 
-                string providerPath =
-                    AssetDatabase.GetAssetPath(providerScript);
-                scriptGuid =
-                    AssetDatabase.AssetPathToGUID(providerPath);
+                string providerPath = AssetDatabase.GetAssetPath(providerScript);
+                scriptGuid = AssetDatabase.AssetPathToGUID(providerPath);
                 if (string.IsNullOrWhiteSpace(scriptGuid))
                 {
-                    error =
-                        "Data Provider script does not have a valid asset GUID.";
+                    error = "Data Provider script does not have a valid asset GUID.";
                     return false;
                 }
             }
             else
             {
-                string providerPath =
-                    AssetDatabase.GUIDToAssetPath(scriptGuid);
-                providerScript =
-                    string.IsNullOrWhiteSpace(providerPath)
-                        ? null
-                        : AssetDatabase.LoadAssetAtPath<MonoScript>(
-                            providerPath);
+                string providerPath = AssetDatabase.GUIDToAssetPath(scriptGuid);
+                providerScript = string.IsNullOrWhiteSpace(providerPath) ? null : AssetDatabase.LoadAssetAtPath<MonoScript>(providerPath);
                 if (providerScript == null)
                 {
-                    error =
-                        $"Data Provider script GUID '{scriptGuid}' could not be resolved. " +
-                        "The script or its .meta file may be missing.";
+                    error = $"Data Provider script GUID '{scriptGuid}' could not be resolved. " + "The script or its .meta file may be missing.";
                     return false;
                 }
             }
@@ -83,32 +63,18 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
             Type providerType = providerScript.GetClass();
             if (providerType == null)
             {
-                error =
-                    $"Data Provider script '{providerScript.name}' does not currently expose a compiled type. " +
-                    "Check the first Unity compilation error.";
+                error = $"Data Provider script '{providerScript.name}' does not currently expose a compiled type. " + "Check the first Unity compilation error.";
                 return false;
             }
 
-            if (!typeof(IMiniToolDataProvider).IsAssignableFrom(
-                    providerType))
+            if (!typeof(IMiniToolDataProvider).IsAssignableFrom(providerType))
             {
-                error =
-                    $"'{providerType.FullName}' does not implement {nameof(IMiniToolDataProvider)}.";
+                error = $"'{providerType.FullName}' does not implement {nameof(IMiniToolDataProvider)}.";
                 return false;
             }
 
-            string currentTypeName =
-                $"{providerType.FullName}, " +
-                providerType.Assembly.GetName().Name;
-            bool changed =
-                !string.Equals(
-                    guidProperty.stringValue,
-                    scriptGuid,
-                    StringComparison.Ordinal) ||
-                !string.Equals(
-                    typeProperty.stringValue,
-                    currentTypeName,
-                    StringComparison.Ordinal);
+            string currentTypeName = $"{providerType.FullName}, " + providerType.Assembly.GetName().Name;
+            bool changed = !string.Equals(guidProperty.stringValue, scriptGuid, StringComparison.Ordinal) || !string.Equals(typeProperty.stringValue, currentTypeName, StringComparison.Ordinal);
             if (!changed)
                 return true;
 
@@ -120,13 +86,9 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
             if (string.IsNullOrWhiteSpace(definitionPath))
                 return true;
 
-            if (!AssetDatabase.IsOpenForEdit(
-                    definitionPath,
-                    StatusQueryOptions.UseCachedIfPossible))
+            if (!AssetDatabase.IsOpenForEdit(definitionPath, StatusQueryOptions.UseCachedIfPossible))
             {
-                warning =
-                    "Data Provider identity was refreshed in memory, but the definition is read-only. " +
-                    "Check out the definition asset to persist the refreshed namespace and assembly.";
+                warning = "Data Provider identity was refreshed in memory, but the definition is read-only. " + "Check out the definition asset to persist the refreshed namespace and assembly.";
                 return true;
             }
 
@@ -134,10 +96,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
             return true;
         }
 
-        private static bool TryFindLegacyProviderScript(
-            string storedTypeName,
-            out MonoScript providerScript,
-            out string error)
+        private static bool TryFindLegacyProviderScript(string storedTypeName, out MonoScript providerScript, out string error)
         {
             providerScript = null;
             error = string.Empty;
@@ -146,8 +105,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
             {
                 try
                 {
-                    storedType =
-                        Type.GetType(storedTypeName, false);
+                    storedType = Type.GetType(storedTypeName, false);
                 }
                 catch (Exception)
                 {
@@ -155,13 +113,12 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
                     // migrated safely by a unique provider class name.
                 }
             }
+
             if (storedType != null)
             {
-                foreach (MonoScript script in
-                         MonoImporter.GetAllRuntimeMonoScripts())
+                foreach (MonoScript script in MonoImporter.GetAllRuntimeMonoScripts())
                 {
-                    if (script != null &&
-                        script.GetClass() == storedType)
+                    if (script != null && script.GetClass() == storedType)
                     {
                         providerScript = script;
                         return true;
@@ -172,23 +129,15 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
             string className = GetClassName(storedTypeName);
             if (string.IsNullOrWhiteSpace(className))
             {
-                error =
-                    "Data Provider script is missing. Assign a provider script to the definition.";
+                error = "Data Provider script is missing. Assign a provider script to the definition.";
                 return false;
             }
 
             var matches = new List<MonoScript>();
-            foreach (MonoScript script in
-                     MonoImporter.GetAllRuntimeMonoScripts())
+            foreach (MonoScript script in MonoImporter.GetAllRuntimeMonoScripts())
             {
                 Type candidate = script?.GetClass();
-                if (candidate == null ||
-                    !string.Equals(
-                        candidate.Name,
-                        className,
-                        StringComparison.Ordinal) ||
-                    !typeof(IMiniToolDataProvider).IsAssignableFrom(
-                        candidate))
+                if (candidate == null || !string.Equals(candidate.Name, className, StringComparison.Ordinal) || !typeof(IMiniToolDataProvider).IsAssignableFrom(candidate))
                 {
                     continue;
                 }
@@ -202,9 +151,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
                 return true;
             }
 
-            error = matches.Count == 0
-                ? $"Data Provider '{className}' could not be found. Assign its script to the definition."
-                : $"More than one Data Provider is named '{className}'. Assign the intended script to the definition.";
+            error = matches.Count == 0 ? $"Data Provider '{className}' could not be found. Assign its script to the definition." : $"More than one Data Provider is named '{className}'. Assign the intended script to the definition.";
             return false;
         }
 
@@ -214,19 +161,11 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
                 return string.Empty;
 
             int assemblySeparator = typeName.IndexOf(',');
-            string fullName =
-                (assemblySeparator < 0
-                    ? typeName
-                    : typeName.Substring(0, assemblySeparator))
-                .Trim();
+            string fullName = (assemblySeparator < 0 ? typeName : typeName.Substring(0, assemblySeparator)).Trim();
             int nestedSeparator = fullName.LastIndexOf('+');
             int namespaceSeparator = fullName.LastIndexOf('.');
-            int separator = Math.Max(
-                nestedSeparator,
-                namespaceSeparator);
-            return separator < 0
-                ? fullName
-                : fullName.Substring(separator + 1);
+            int separator = Math.Max(nestedSeparator, namespaceSeparator);
+            return separator < 0 ? fullName : fullName.Substring(separator + 1);
         }
     }
 }

@@ -10,15 +10,13 @@ namespace SAS.Utilities.RemoteDevUtilities.Commands
 
         public static DeveloperConsoleBehaviour GetOrCreate()
         {
-            DeveloperConsoleBehaviour behaviour =
-                DeveloperConsoleBehaviour.Instance;
+            DeveloperConsoleBehaviour behaviour = DeveloperConsoleBehaviour.Instance;
             if (behaviour == null)
                 behaviour = CreateConsole();
 
             if (behaviour != null)
             {
-                MiniToolRuntimeRegistry.RegisterCommands(
-                    behaviour.DeveloperConsole);
+                MiniToolRuntimeRegistry.RegisterCommands(behaviour.DeveloperConsole);
             }
 
             return behaviour;
@@ -33,8 +31,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Commands
             GameObject instance = Object.Instantiate(prefab);
             instance.name = "[Remote Developer Console]";
             Object.DontDestroyOnLoad(instance);
-            return instance.GetComponent<DeveloperConsoleBehaviour>() ??
-                   instance.GetComponentInChildren<DeveloperConsoleBehaviour>(true);
+            return instance.GetComponent<DeveloperConsoleBehaviour>() ?? instance.GetComponentInChildren<DeveloperConsoleBehaviour>(true);
         }
     }
 }

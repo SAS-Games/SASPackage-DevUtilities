@@ -215,12 +215,8 @@ namespace SAS.Utilities.RuntimeSceneInspector
             var matches = new HashSet<long>();
             foreach (RuntimeHierarchyEntry item in _snapshot.Entries)
             {
-                if ((item.Name?.IndexOf(_search, StringComparison.OrdinalIgnoreCase) ?? -1) >= 0 ||
-                    (item.ComponentTypeNames?.Any(
-                        type => type.IndexOf(_search, StringComparison.OrdinalIgnoreCase) >= 0) ?? false))
-                    for (RuntimeHierarchyEntry current = item;
-                         current != null && matches.Add(current.Id.Value) &&
-                         byId.TryGetValue(current.ParentId.Value, out current);)
+                if ((item.Name?.IndexOf(_search, StringComparison.OrdinalIgnoreCase) ?? -1) >= 0 || (item.ComponentTypeNames?.Any(type => type.IndexOf(_search, StringComparison.OrdinalIgnoreCase) >= 0) ?? false))
+                    for (RuntimeHierarchyEntry current = item; current != null && matches.Add(current.Id.Value) && byId.TryGetValue(current.ParentId.Value, out current);)
                     {
                     }
             }

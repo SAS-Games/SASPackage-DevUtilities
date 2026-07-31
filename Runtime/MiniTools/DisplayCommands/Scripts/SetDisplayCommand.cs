@@ -3,12 +3,10 @@ using UnityEngine.SceneManagement;
 
 namespace SAS.Utilities.DeveloperConsole
 {
-    [CreateAssetMenu(fileName = "New SetDisplay Command", menuName =  DeveloperConsole.CommandBasePath + "SetDisplay Command")]
+    [CreateAssetMenu(fileName = "New SetDisplay Command", menuName = DeveloperConsole.CommandBasePath + "SetDisplay Command")]
     public class SetDisplayCommand : ConsoleCommand
     {
-        public override string HelpText =>
-            "Usage: SetDisplay <canvasName> <displayIndex>.\nExample: SetDisplay DebugCanvas 1.\n" +
-            "Moves the specified UI Canvas to the given display.";
+        public override string HelpText => "Usage: SetDisplay <canvasName> <displayIndex>.\nExample: SetDisplay DebugCanvas 1.\n" + "Moves the specified UI Canvas to the given display.";
 
         public override bool Process(DeveloperConsoleBehaviour developerConsole, string command, string[] args)
         {
@@ -53,7 +51,8 @@ namespace SAS.Utilities.DeveloperConsole
             for (int i = 0; i < SceneManager.sceneCount; i++)
             {
                 Scene scene = SceneManager.GetSceneAt(i);
-                if (!scene.isLoaded) continue;
+                if (!scene.isLoaded)
+                    continue;
 
                 foreach (GameObject root in scene.GetRootGameObjects())
                 {
@@ -65,6 +64,7 @@ namespace SAS.Utilities.DeveloperConsole
                     }
                 }
             }
+
             return null;
         }
     }

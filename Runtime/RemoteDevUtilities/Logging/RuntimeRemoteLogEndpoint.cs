@@ -8,14 +8,13 @@ using UnityEngine;
 
 namespace SAS.Utilities.RemoteDevUtilities.Logging
 {
-    internal sealed class RuntimeRemoteLogEndpoint :
-        IRuntimeRemoteEndpoint,
-        IRuntimeRemoteSessionListener
+    internal sealed class RuntimeRemoteLogEndpoint : IRuntimeRemoteEndpoint, IRuntimeRemoteSessionListener
     {
         private static readonly string[] SupportedMessages =
         {
             RemoteMessageTypes.LogSettingsRequest
         };
+
         private readonly object _queueLock = new();
         private readonly Queue<RemoteLogEntry> _queue = new();
         private RuntimeRemoteEndpointContext _context;
@@ -66,10 +65,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Logging
                     entries[i] = _queue.Dequeue();
             }
 
-            _context.Sender.Send(
-                RemoteMessageTypes.LogBatch,
-                0,
-                new RemoteLogBatch { Entries = entries });
+            _context.Sender.Send(RemoteMessageTypes.LogBatch, 0, new RemoteLogBatch { Entries = entries });
         }
 
         public void Dispose()
@@ -100,18 +96,12 @@ namespace SAS.Utilities.RemoteDevUtilities.Logging
 
         private void SendSettings(long requestId)
         {
-            _context.Sender.Send(
-                RemoteMessageTypes.LogSettingsResponse,
-                requestId,
-                new RemoteLogSettingsResponse
-                {
-                    InfoEnabled =
-                        SAS.Debug.IsLogLevelEnabled(SAS.LogLevel.Info),
-                    WarningEnabled =
-                        SAS.Debug.IsLogLevelEnabled(SAS.LogLevel.Warning),
-                    ErrorEnabled =
-                        SAS.Debug.IsLogLevelEnabled(SAS.LogLevel.Error)
-                });
+            _context.Sender.Send(RemoteMessageTypes.LogSettingsResponse, requestId, new RemoteLogSettingsResponse
+            {
+                InfoEnabled = SAS.Debug.IsLogLevelEnabled(SAS.LogLevel.Info),
+                WarningEnabled = SAS.Debug.IsLogLevelEnabled(SAS.LogLevel.Warning),
+                ErrorEnabled = SAS.Debug.IsLogLevelEnabled(SAS.LogLevel.Error)
+            });
         }
 
         private void OnLog(string condition, string stackTrace, LogType type)

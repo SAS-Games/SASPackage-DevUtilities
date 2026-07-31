@@ -5,10 +5,7 @@ using SAS.DevUtilities;
 /// Publishes Input Latency snapshots and incremental samples for the local Player
 /// presentation. It contains no rendering or close-input logic.
 /// </summary>
-public sealed class InputLatencySnapshotProvider :
-    MiniToolStreamingSnapshotProviderBehaviour<
-        InputLatencySnapshot,
-        InputLatencySampleEvent>
+public sealed class InputLatencySnapshotProvider : MiniToolStreamingSnapshotProviderBehaviour<InputLatencySnapshot, InputLatencySampleEvent>
 {
 #if ENABLE_DEBUG
     private readonly InputLatencySampleReader _sampleReader =
@@ -72,9 +69,7 @@ public sealed class InputLatencySnapshotProvider :
         PublishSnapshot(in snapshot);
     }
 
-    public override bool TryGetEvents(
-        out InputLatencySampleEvent[] events,
-        out int droppedEventCount)
+    public override bool TryGetEvents(out InputLatencySampleEvent[] events, out int droppedEventCount)
     {
         events = Array.Empty<InputLatencySampleEvent>();
         droppedEventCount = 0;

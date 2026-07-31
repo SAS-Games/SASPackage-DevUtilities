@@ -52,9 +52,7 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools
         internal void Stop() => _provider.Stop();
         internal void Tick() => _provider.Tick();
 
-        internal bool TryExecuteAction(
-            string actionId,
-            out string error)
+        internal bool TryExecuteAction(string actionId, out string error)
         {
             if (_actionProvider == null || !ContainsAction(actionId))
             {
@@ -64,8 +62,7 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools
 
             try
             {
-                bool success =
-                    _actionProvider.TryExecuteAction(actionId, out error);
+                bool success = _actionProvider.TryExecuteAction(actionId, out error);
                 if (!success && string.IsNullOrWhiteSpace(error))
                     error = "The mini-tool rejected the requested action.";
                 return success;
@@ -128,13 +125,9 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools
             if (string.IsNullOrWhiteSpace(actionId))
                 return false;
 
-            foreach (RemoteMiniToolActionDescriptor action in
-                     Descriptor.Actions)
+            foreach (RemoteMiniToolActionDescriptor action in Descriptor.Actions)
             {
-                if (string.Equals(
-                        action.Id,
-                        actionId,
-                        StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(action.Id, actionId, StringComparison.OrdinalIgnoreCase))
                 {
                     return true;
                 }
@@ -143,8 +136,7 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools
             return false;
         }
 
-        private static RemoteMiniToolActionDescriptor[] GetValidActions(
-            MiniToolDataProvider provider)
+        private static RemoteMiniToolActionDescriptor[] GetValidActions(MiniToolDataProvider provider)
         {
             if (provider == null)
                 return Array.Empty<RemoteMiniToolActionDescriptor>();
@@ -152,21 +144,16 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools
             RemoteMiniToolActionDescriptor[] declared;
             try
             {
-                declared =
-                    provider.GetActions() ??
-                    Array.Empty<RemoteMiniToolActionDescriptor>();
+                declared = provider.GetActions() ?? Array.Empty<RemoteMiniToolActionDescriptor>();
             }
             catch (Exception exception)
             {
-                Debug.LogWarning(
-                    "A mini-tool provider could not describe its actions: " +
-                    exception.GetBaseException().Message);
+                Debug.LogWarning("A mini-tool provider could not describe its actions: " + exception.GetBaseException().Message);
                 return Array.Empty<RemoteMiniToolActionDescriptor>();
             }
 
             var actions = new List<RemoteMiniToolActionDescriptor>();
-            var ids = new HashSet<string>(
-                StringComparer.OrdinalIgnoreCase);
+            var ids = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (RemoteMiniToolActionDescriptor action in declared)
             {
                 string id = action?.Id?.Trim();
@@ -176,12 +163,8 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools
                 actions.Add(new RemoteMiniToolActionDescriptor
                 {
                     Id = id,
-                    DisplayName =
-                        string.IsNullOrWhiteSpace(action.DisplayName)
-                            ? id
-                            : action.DisplayName.Trim(),
-                    HideInNativeWorkspace =
-                        action.HideInNativeWorkspace
+                    DisplayName = string.IsNullOrWhiteSpace(action.DisplayName) ? id : action.DisplayName.Trim(),
+                    HideInNativeWorkspace = action.HideInNativeWorkspace
                 });
             }
 
@@ -235,8 +218,7 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools
                 registrations.Add(new MiniToolProviderRegistration(descriptor, provider));
             }
 
-            registrations.Sort((left, right) => string.Compare(
-                    left.Descriptor.Id, right.Descriptor.Id, StringComparison.OrdinalIgnoreCase));
+            registrations.Sort((left, right) => string.Compare(left.Descriptor.Id, right.Descriptor.Id, StringComparison.OrdinalIgnoreCase));
             return registrations;
         }
 
@@ -282,8 +264,7 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools
 
             var result = new MiniToolDefinition[definitions.Count];
             definitions.Values.CopyTo(result, 0);
-            Array.Sort(result, (left, right) => string.Compare(
-                    left.ToolId, right.ToolId, StringComparison.OrdinalIgnoreCase));
+            Array.Sort(result, (left, right) => string.Compare(left.ToolId, right.ToolId, StringComparison.OrdinalIgnoreCase));
             return result;
         }
 

@@ -99,9 +99,7 @@ namespace SAS.Utilities.DeveloperConsole
                     }
                 }
 
-                SetDeveloperConsole(
-                    new DeveloperConsole(m_Prefix, allCommands),
-                    false);
+                SetDeveloperConsole(new DeveloperConsole(m_Prefix, allCommands), false);
                 return _developerConsole;
             }
         }
@@ -260,8 +258,7 @@ namespace SAS.Utilities.DeveloperConsole
             EventSystem eventSystem = EventSystem.current;
             yield return null; // wait one frame
 
-            if (m_InputField == null ||
-                !CanApplyDelayedFocus(eventSystem, m_InputField.gameObject))
+            if (m_InputField == null || !CanApplyDelayedFocus(eventSystem, m_InputField.gameObject))
                 yield break;
 
             m_InputField.ActivateInputField();
@@ -274,8 +271,7 @@ namespace SAS.Utilities.DeveloperConsole
             EventSystem eventSystem = EventSystem.current;
             yield return null; // wait one frame
 
-            if (m_SubmitButton == null ||
-                !CanApplyDelayedFocus(eventSystem, m_SubmitButton.gameObject))
+            if (m_SubmitButton == null || !CanApplyDelayedFocus(eventSystem, m_SubmitButton.gameObject))
                 yield break;
 
             m_SubmitButton.Select();
@@ -289,8 +285,7 @@ namespace SAS.Utilities.DeveloperConsole
 
         private bool CanApplyDelayedFocus(EventSystem eventSystem, GameObject selection = null)
         {
-            if (m_UiCanvas == null || !m_UiCanvas.activeInHierarchy || eventSystem == null ||
-                !eventSystem.isActiveAndEnabled || EventSystem.current != eventSystem)
+            if (m_UiCanvas == null || !m_UiCanvas.activeInHierarchy || eventSystem == null || !eventSystem.isActiveAndEnabled || EventSystem.current != eventSystem)
                 return false;
 
             return selection == null || selection.activeInHierarchy;
@@ -358,8 +353,7 @@ namespace SAS.Utilities.DeveloperConsole
             _compactCommandPanelHeight = m_CommandPanel.sizeDelta.y;
             _minimumHelpHeight = helpRect.sizeDelta.y;
             _helpBottomOffset = helpRect.anchoredPosition.y - _minimumHelpHeight * helpRect.pivot.y;
-            _helpTopPadding = Mathf.Max(0f,
-                _compactCommandPanelHeight - _helpBottomOffset - _minimumHelpHeight);
+            _helpTopPadding = Mathf.Max(0f, _compactCommandPanelHeight - _helpBottomOffset - _minimumHelpHeight);
 
             m_SuggestionPanels ??= Array.Empty<RectTransform>();
             _suggestionPanelGaps = new float[m_SuggestionPanels.Length];
@@ -387,10 +381,8 @@ namespace SAS.Utilities.DeveloperConsole
             if (hasHelp)
             {
                 float availableWidth = Mathf.Max(1f, helpRect.rect.width);
-                float preferredHeight = m_HelpText
-                    .GetPreferredValues(m_HelpText.text, availableWidth, Mathf.Infinity).y;
-                helpHeight = Mathf.Clamp(Mathf.Ceil(preferredHeight), _minimumHelpHeight,
-                    Mathf.Max(_minimumHelpHeight, m_MaxHelpHeight));
+                float preferredHeight = m_HelpText.GetPreferredValues(m_HelpText.text, availableWidth, Mathf.Infinity).y;
+                helpHeight = Mathf.Clamp(Mathf.Ceil(preferredHeight), _minimumHelpHeight, Mathf.Max(_minimumHelpHeight, m_MaxHelpHeight));
             }
 
             Vector2 helpSize = helpRect.sizeDelta;
@@ -401,8 +393,7 @@ namespace SAS.Utilities.DeveloperConsole
             helpPosition.y = _helpBottomOffset + helpHeight * helpRect.pivot.y;
             helpRect.anchoredPosition = helpPosition;
 
-            float commandPanelHeight = Mathf.Max(_compactCommandPanelHeight,
-                _helpBottomOffset + helpHeight + _helpTopPadding);
+            float commandPanelHeight = Mathf.Max(_compactCommandPanelHeight, _helpBottomOffset + helpHeight + _helpTopPadding);
             Vector2 panelSize = m_CommandPanel.sizeDelta;
             panelSize.y = commandPanelHeight;
             m_CommandPanel.sizeDelta = panelSize;
@@ -426,8 +417,7 @@ namespace SAS.Utilities.DeveloperConsole
 
         private void OnInputChanged(string input)
         {
-            if (!string.IsNullOrWhiteSpace(input) && m_HelpText != null &&
-                !string.IsNullOrEmpty(m_HelpText.text))
+            if (!string.IsNullOrWhiteSpace(input) && m_HelpText != null && !string.IsNullOrEmpty(m_HelpText.text))
                 DisplayHelpText(string.Empty);
 
             InputChangedEvent?.Invoke(input);
@@ -450,8 +440,7 @@ namespace SAS.Utilities.DeveloperConsole
             EventSystem eventSystem = EventSystem.current;
             yield return null;
 
-            if (m_SubmitButton == null ||
-                !CanApplyDelayedFocus(eventSystem, m_SubmitButton.gameObject))
+            if (m_SubmitButton == null || !CanApplyDelayedFocus(eventSystem, m_SubmitButton.gameObject))
                 yield break;
 
             eventSystem.SetSelectedGameObject(null);
@@ -460,7 +449,8 @@ namespace SAS.Utilities.DeveloperConsole
 
         private void OnSubmit(CallbackContext context)
         {
-            if (!context.performed) return;
+            if (!context.performed)
+                return;
 
             if (m_InputField != null && m_InputField.isFocused)
             {
@@ -470,7 +460,8 @@ namespace SAS.Utilities.DeveloperConsole
 
         private void FocusInput(CallbackContext context)
         {
-            if (!context.performed) return;
+            if (!context.performed)
+                return;
 
             if (m_InputField != null && m_UiCanvas != null && m_UiCanvas.activeInHierarchy)
             {
@@ -515,34 +506,24 @@ namespace SAS.Utilities.DeveloperConsole
             }
         }
 
-        private void RebuildGatewayCommands()                                       
-        {                                                                          
-            if (_commandGateway == null)                                           
-                return;                                                            
-                                                                                   
-            var commands = new List<IConsoleCommand>();                            
-            DeveloperConsoleCommandDescriptor[] descriptors =                      
-                _commandGateway.Commands ??                                        
-                Array.Empty<DeveloperConsoleCommandDescriptor>();                  
-            foreach (DeveloperConsoleCommandDescriptor descriptor in descriptors)  
-            {                                                                      
+        private void RebuildGatewayCommands()
+        {
+            if (_commandGateway == null)
+                return;
+
+            var commands = new List<IConsoleCommand>();
+            DeveloperConsoleCommandDescriptor[] descriptors = _commandGateway.Commands ?? Array.Empty<DeveloperConsoleCommandDescriptor>();
+            foreach (DeveloperConsoleCommandDescriptor descriptor in descriptors)
+            {
                 if (descriptor != null && !string.IsNullOrWhiteSpace(descriptor.Name))
-                    commands.Add(new GatewayConsoleCommandProxy(                   
-                        descriptor,                                                
-                        _commandGateway));                                         
-            }                                                                      
-                                                                                   
-            SetDeveloperConsole(
-                new DeveloperConsole(
-                    _commandGateway.Prefix ?? string.Empty,
-                    commands),
-                true);
+                    commands.Add(new GatewayConsoleCommandProxy(descriptor, _commandGateway));
+            }
+
+            SetDeveloperConsole(new DeveloperConsole(_commandGateway.Prefix ?? string.Empty, commands), true);
             InputChangedEvent?.Invoke(m_InputField != null ? m_InputField.text : string.Empty);
         }
 
-        private void SetDeveloperConsole(
-            DeveloperConsole console,
-            bool notify)
+        private void SetDeveloperConsole(DeveloperConsole console, bool notify)
         {
             if (ReferenceEquals(_developerConsole, console))
                 return;
@@ -563,13 +544,14 @@ namespace SAS.Utilities.DeveloperConsole
         {
             CommandsChanged?.Invoke();
         }
-                                                                                    
-        private void OnGatewayCommandCompleted(DeveloperConsoleCommandResult response)                                 
-        {                                                                           
-            if (response == null)                                                   
-                return;                                                             
-            DisplayHelpText(response.Message ?? string.Empty);                      
-        }  
+
+        private void OnGatewayCommandCompleted(DeveloperConsoleCommandResult response)
+        {
+            if (response == null)
+                return;
+            DisplayHelpText(response.Message ?? string.Empty);
+        }
+
         private void OnPresentationSuppressionChanged()
         {
             if (DevUtilityPresentationRegistry.CanShowLocalUi)

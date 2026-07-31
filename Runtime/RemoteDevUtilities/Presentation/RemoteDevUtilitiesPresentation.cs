@@ -16,8 +16,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Presentation
         public static event Action StateChanged;
 
         public static bool IsRemoteSessionActive { get; private set; }
-        public static BuildDebugUiVisibility BuildUiVisibility =>
-            _buildUiVisibility;
+        public static BuildDebugUiVisibility BuildUiVisibility => _buildUiVisibility;
 
         public static bool ShouldAllowBuildDebugUi
         {
@@ -39,9 +38,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Presentation
 
         internal static void Configure(BuildDebugUiVisibility visibility)
         {
-            BuildDebugUiVisibility normalized =
-                RemoteDevUtilitiesRuntimeSettings.NormalizeBuildUiVisibility(
-                    visibility);
+            BuildDebugUiVisibility normalized = RemoteDevUtilitiesRuntimeSettings.NormalizeBuildUiVisibility(visibility);
             bool changed = _buildUiVisibility != normalized;
             _buildUiVisibility = normalized;
             ApplySuppressionPolicy();
@@ -61,17 +58,14 @@ namespace SAS.Utilities.RemoteDevUtilities.Presentation
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetRuntimeState()
         {
-            _buildUiVisibility =
-                BuildDebugUiVisibility.ShowWhenEnabled;
+            _buildUiVisibility = BuildDebugUiVisibility.ShowWhenEnabled;
             IsRemoteSessionActive = false;
             StateChanged = null;
         }
 
         private static void ApplySuppressionPolicy()
         {
-            DevUtilityPresentationRegistry.SetSuppressed(
-                SuppressionSource,
-                !ShouldAllowBuildDebugUi);
+            DevUtilityPresentationRegistry.SetSuppressed(SuppressionSource, !ShouldAllowBuildDebugUi);
         }
     }
 }

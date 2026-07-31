@@ -14,9 +14,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Logging.Settings
         {
             EditorGUILayout.Space(3f);
             EditorGUILayout.LabelField("Tag Filters", EditorStyles.boldLabel);
-            EditorGUILayout.LabelField(
-                "Target tags apply to tagged debug logs. An empty list allows every tag.",
-                EditorStyles.wordWrappedMiniLabel);
+            EditorGUILayout.LabelField("Target tags apply to tagged debug logs. An empty list allows every tag.", EditorStyles.wordWrappedMiniLabel);
 
             int removeIndex = -1;
             for (int i = 0; i < _tags.Count; i++)
@@ -72,11 +70,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Logging.Settings
 
         private void Apply(Action<string> execute)
         {
-            if (!RemoteLoggingCommandBuilder.TrySetTags(
-                    _tags,
-                    out string command,
-                    out string[] normalizedTags,
-                    out _validationError))
+            if (!RemoteLoggingCommandBuilder.TrySetTags(_tags, out string command, out string[] normalizedTags, out _validationError))
                 return;
 
             _tags.Clear();

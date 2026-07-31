@@ -16,8 +16,7 @@ namespace SAS.DevUtilities
             if (m_TextInfo == null)
                 return;
 
-            m_TextInfo.text = $"Game Version: <color=cyan>{snapshot.GameVersion}</color>\n" +
-                              $"Unity Version: <color=cyan>{snapshot.UnityVersion}</color>";
+            m_TextInfo.text = $"Game Version: <color=cyan>{snapshot.GameVersion}</color>\n" + $"Unity Version: <color=cyan>{snapshot.UnityVersion}</color>";
         }
     }
 }

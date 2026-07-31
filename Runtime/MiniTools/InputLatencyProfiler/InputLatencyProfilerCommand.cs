@@ -3,7 +3,6 @@ using UnityEngine.InputSystem;
 using SAS.Utilities.Presentation;
 
 #if ENABLE_DEBUG
-
 namespace SAS.Utilities.DeveloperConsole
 {
     [CreateAssetMenu(fileName = "New Input Latency Profiler Command", menuName = DeveloperConsole.CommandBasePath + "Input Latency Profiler")]

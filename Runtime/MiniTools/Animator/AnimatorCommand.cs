@@ -39,15 +39,13 @@ namespace SAS.Utilities.DeveloperConsole
                     break;
                 case "cullupdate":
                 case "update":
-                    mode =
-                        AnimatorCullingMode.CullUpdateTransforms;
+                    mode = AnimatorCullingMode.CullUpdateTransforms;
                     break;
                 case "cull":
                     mode = AnimatorCullingMode.CullCompletely;
                     break;
                 default:
-                    Debug.LogError(
-                        "Unknown mode. Use: always | cullupdate | cull");
+                    Debug.LogError("Unknown mode. Use: always | cullupdate | cull");
                     return false;
             }
 

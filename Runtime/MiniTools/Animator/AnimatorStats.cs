@@ -21,33 +21,11 @@ public sealed class AnimatorStats : UIBehaviour, IMiniToolSnapshotView<AnimatorS
             return;
 
         _builder.Clear();
-        _builder.AppendLine("<color=#00FFFF><b>ANIMATORS</b></color>")
-            .AppendLine("<color=#00FF00>Active:</color>")
-            .Append("  Always: ")
-            .Append(snapshot.ActiveAlways)
-            .AppendLine()
-            .Append("  CullUpdate: ")
-            .Append(snapshot.ActiveCullUpdate)
-            .AppendLine()
-            .Append("  Cull: ")
-            .Append(snapshot.ActiveCullCompletely)
-            .AppendLine()
-            .AppendLine("<color=#FF4444>Disabled:</color>")
-            .Append("  Always: ")
-            .Append(snapshot.DisabledAlways)
-            .AppendLine()
-            .Append("  CullUpdate: ")
-            .Append(snapshot.DisabledCullUpdate)
-            .AppendLine()
-            .Append("  Cull: ")
-            .Append(snapshot.DisabledCullCompletely)
-            .AppendLine();
+        _builder.AppendLine("<color=#00FFFF><b>ANIMATORS</b></color>").AppendLine("<color=#00FF00>Active:</color>").Append("  Always: ").Append(snapshot.ActiveAlways).AppendLine().Append("  CullUpdate: ").Append(snapshot.ActiveCullUpdate).AppendLine().Append("  Cull: ").Append(snapshot.ActiveCullCompletely).AppendLine().AppendLine("<color=#FF4444>Disabled:</color>").Append("  Always: ").Append(snapshot.DisabledAlways).AppendLine().Append("  CullUpdate: ").Append(snapshot.DisabledCullUpdate).AppendLine().Append("  Cull: ").Append(snapshot.DisabledCullCompletely).AppendLine();
 
         if (snapshot.HasCpuTiming)
         {
-            _builder.Append("<color=#FFA500>CPU:</color> ")
-                .Append(snapshot.CpuTimeMs.ToString("F3"))
-                .AppendLine(" ms");
+            _builder.Append("<color=#FFA500>CPU:</color> ").Append(snapshot.CpuTimeMs.ToString("F3")).AppendLine(" ms");
         }
 
         m_Display.text = _builder.ToString();

@@ -9,9 +9,7 @@ using RuntimeConsole = SAS.Utilities.DeveloperConsole.DeveloperConsole;
 
 namespace SAS.Utilities.RemoteDevUtilities.Commands
 {
-    internal sealed class RuntimeRemoteCommandEndpoint :
-        IRuntimeRemoteEndpoint,
-        IRuntimeRemoteSessionListener
+    internal sealed class RuntimeRemoteCommandEndpoint : IRuntimeRemoteEndpoint, IRuntimeRemoteSessionListener
     {
         private static readonly string[] SupportedMessages =
         {
@@ -75,13 +73,10 @@ namespace SAS.Utilities.RemoteDevUtilities.Commands
             SetConsoleBehaviour(behaviour);
             if (behaviour == null)
             {
-                _context.Sender.Send(
-                    RemoteMessageTypes.CommandCatalogResponse,
-                    requestId,
-                    new RemoteCommandCatalogResponse
-                    {
-                        Error = "The runtime Developer Console has not been created."
-                    });
+                _context.Sender.Send(RemoteMessageTypes.CommandCatalogResponse, requestId, new RemoteCommandCatalogResponse
+                {
+                    Error = "The runtime Developer Console has not been created."
+                });
                 _catalogDirty = false;
                 return;
             }
@@ -102,30 +97,25 @@ namespace SAS.Utilities.RemoteDevUtilities.Commands
                 });
             }
 
-            _context.Sender.Send(
-                RemoteMessageTypes.CommandCatalogResponse,
-                requestId,
-                new RemoteCommandCatalogResponse
-                {
-                    Available = true,
-                    Prefix = console._prefix ?? string.Empty,
-                    Commands = descriptors.ToArray()
-                });
+            _context.Sender.Send(RemoteMessageTypes.CommandCatalogResponse, requestId, new RemoteCommandCatalogResponse
+            {
+                Available = true,
+                Prefix = console._prefix ?? string.Empty,
+                Commands = descriptors.ToArray()
+            });
             _catalogDirty = false;
         }
 
         private void EnsureConsoleSubscription()
         {
-            DeveloperConsoleBehaviour current =
-                DeveloperConsoleBehaviour.Instance;
+            DeveloperConsoleBehaviour current = DeveloperConsoleBehaviour.Instance;
             if (current == null && _behaviour == null)
                 current = RuntimeDeveloperConsoleProvider.GetOrCreate();
 
             SetConsoleBehaviour(current);
         }
 
-        private void SetConsoleBehaviour(
-            DeveloperConsoleBehaviour behaviour)
+        private void SetConsoleBehaviour(DeveloperConsoleBehaviour behaviour)
         {
             if (_behaviour == behaviour)
                 return;
@@ -155,10 +145,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Commands
                 return;
             }
 
-            if (!RemoteProtocolSerializer.TryDeserializePayload(
-                    envelope,
-                    out RemoteCommandExecuteRequest request,
-                    out string error))
+            if (!RemoteProtocolSerializer.TryDeserializePayload(envelope, out RemoteCommandExecuteRequest request, out string error))
             {
                 SendExecutionResult(envelope.RequestId, false, false, error);
                 return;
@@ -167,21 +154,17 @@ namespace SAS.Utilities.RemoteDevUtilities.Commands
             DeveloperConsoleBehaviour behaviour = RuntimeDeveloperConsoleProvider.GetOrCreate();
             if (behaviour == null)
             {
-                SendExecutionResult(
-                    envelope.RequestId,
-                    false,
-                    false,
-                    "The runtime Developer Console has not been created.");
+                SendExecutionResult(envelope.RequestId, false, false, "The runtime Developer Console has not been created.");
                 return;
             }
 
             RuntimeConsole console = behaviour.DeveloperConsole;
             string commandLine = request.CommandLine?.Trim() ?? string.Empty;
-            if (!string.IsNullOrEmpty(console._prefix) &&
-                !commandLine.StartsWith(console._prefix, StringComparison.Ordinal))
+            if (!string.IsNullOrEmpty(console._prefix) && !commandLine.StartsWith(console._prefix, StringComparison.Ordinal))
                 commandLine = console._prefix + commandLine;
 
             string output = null;
+
             void CaptureOutput(string value)
             {
                 if (!string.IsNullOrWhiteSpace(value))
@@ -192,19 +175,11 @@ namespace SAS.Utilities.RemoteDevUtilities.Commands
             try
             {
                 bool success = console.TryProcessCommand(commandLine, behaviour, out bool close);
-                SendExecutionResult(
-                    envelope.RequestId,
-                    success,
-                    close,
-                    output ?? (success ? "Command completed." : "Command failed."));
+                SendExecutionResult(envelope.RequestId, success, close, output ?? (success ? "Command completed." : "Command failed."));
             }
             catch (Exception exception)
             {
-                SendExecutionResult(
-                    envelope.RequestId,
-                    false,
-                    false,
-                    exception.GetType().Name + ": " + exception.Message);
+                SendExecutionResult(envelope.RequestId, false, false, exception.GetType().Name + ": " + exception.Message);
             }
             finally
             {
@@ -214,15 +189,12 @@ namespace SAS.Utilities.RemoteDevUtilities.Commands
 
         private void SendExecutionResult(long requestId, bool success, bool close, string message)
         {
-            _context.Sender.Send(
-                RemoteMessageTypes.CommandExecuteResponse,
-                requestId,
-                new RemoteCommandExecuteResponse
-                {
-                    Success = success,
-                    CloseRequested = close,
-                    Message = message
-                });
+            _context.Sender.Send(RemoteMessageTypes.CommandExecuteResponse, requestId, new RemoteCommandExecuteResponse
+            {
+                Success = success,
+                CloseRequested = close,
+                Message = message
+            });
         }
     }
 }

@@ -20,7 +20,8 @@ namespace SAS.Utilities
 
             foreach (var t in transforms)
             {
-                if (!t) continue;
+                if (!t)
+                    continue;
 
                 // Backup original position only once
                 if (!_originalPositions.ContainsKey(t))
@@ -54,7 +55,8 @@ namespace SAS.Utilities
         /// </summary>
         public void Reset(Transform t)
         {
-            if (!t) return;
+            if (!t)
+                return;
 
             if (_originalPositions.TryGetValue(t, out var pos))
             {

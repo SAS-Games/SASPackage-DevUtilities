@@ -31,9 +31,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Logging.Settings
             return $"{LoggingCommandName}.LogLevel {level} {(enabled ? "On" : "Off")}";
         }
 
-        internal static string SetStackTrace(
-            RemoteStackTraceTarget target,
-            StackTraceLogType mode)
+        internal static string SetStackTrace(RemoteStackTraceTarget target, StackTraceLogType mode)
         {
             int value = mode switch
             {
@@ -46,11 +44,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Logging.Settings
             return $"{LoggingCommandName}.SetStackTrace {target} {value}";
         }
 
-        internal static bool TrySetTags(
-            IEnumerable<string> tags,
-            out string command,
-            out string[] normalizedTags,
-            out string error)
+        internal static bool TrySetTags(IEnumerable<string> tags, out string command, out string[] normalizedTags, out string error)
         {
             var uniqueTags = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var values = new List<string>();
@@ -67,8 +61,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Logging.Settings
                     {
                         command = null;
                         normalizedTags = Array.Empty<string>();
-                        error =
-                            $"Tag '{normalized}' is invalid. Tags cannot contain whitespace or '|'.";
+                        error = $"Tag '{normalized}' is invalid. Tags cannot contain whitespace or '|'.";
                         return false;
                     }
 
@@ -78,9 +71,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Logging.Settings
             }
 
             normalizedTags = values.ToArray();
-            command = values.Count == 0
-                ? ClearTagsCommand
-                : $"{LoggingCommandName}.SetTags {string.Join("|", values)}";
+            command = values.Count == 0 ? ClearTagsCommand : $"{LoggingCommandName}.SetTags {string.Join("|", values)}";
             error = null;
             return true;
         }
@@ -92,10 +83,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Logging.Settings
 
             foreach (RemoteCommandDescriptor command in commands)
             {
-                if (string.Equals(
-                        command?.Name,
-                        LoggingCommandName,
-                        StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(command?.Name, LoggingCommandName, StringComparison.OrdinalIgnoreCase))
                     return true;
             }
 

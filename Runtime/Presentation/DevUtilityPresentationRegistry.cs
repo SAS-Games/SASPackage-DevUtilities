@@ -39,7 +39,7 @@ namespace SAS.Utilities.Presentation
         /// </summary>
         public static void SetSuppressed(string sourceId, bool suppressed)
         {
-            if (string.IsNullOrWhiteSpace(sourceId)) 
+            if (string.IsNullOrWhiteSpace(sourceId))
                 throw new ArgumentException("A suppression source identifier is required.", nameof(sourceId));
 
             bool wasSuppressed = IsSuppressed;
@@ -92,8 +92,7 @@ namespace SAS.Utilities.Presentation
             if (presentation == null)
                 return true;
 
-            return presentation is UnityEngine.Object unityObject &&
-                   unityObject == null;
+            return presentation is UnityEngine.Object unityObject && unityObject == null;
         }
     }
 }

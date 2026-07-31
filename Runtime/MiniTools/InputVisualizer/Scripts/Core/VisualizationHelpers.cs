@@ -13,7 +13,12 @@ namespace SAS.Utilities.DeveloperConsole.InputVisualizers
 
     internal static class VisualizationHelpers
     {
-        public enum Axis { X, Y, Z }
+        public enum Axis
+        {
+            X,
+            Y,
+            Z
+        }
 
         public abstract class Visualizer
         {
@@ -21,8 +26,7 @@ namespace SAS.Utilities.DeveloperConsole.InputVisualizers
             public abstract void AddSample(object value, double time);
         }
 
-        public abstract class ValueVisualizer<TValue> : Visualizer
-            where TValue : struct
+        public abstract class ValueVisualizer<TValue> : Visualizer where TValue : struct
         {
             public RingBuffer<TValue> samples;
             public RingBuffer<GUIContent> samplesText;
@@ -40,9 +44,7 @@ namespace SAS.Utilities.DeveloperConsole.InputVisualizers
                 if (value != null)
                 {
                     if (!(value is TValue val))
-                        throw new ArgumentException(
-                            $"Expecting value of type '{typeof(TValue).Name}' but value of type '{value?.GetType().Name}' instead",
-                            nameof(value));
+                        throw new ArgumentException($"Expecting value of type '{typeof(TValue).Name}' but value of type '{value?.GetType().Name}' instead", nameof(value));
                     v = val;
                 }
 
@@ -52,16 +54,14 @@ namespace SAS.Utilities.DeveloperConsole.InputVisualizers
         }
 
         // Visualizes integer and real type primitives.
-        public class ScalarVisualizer<TValue> : ValueVisualizer<TValue>
-            where TValue : struct
+        public class ScalarVisualizer<TValue> : ValueVisualizer<TValue> where TValue : struct
         {
             public TValue limitMin;
             public TValue limitMax;
             public TValue min;
             public TValue max;
 
-            public ScalarVisualizer(int numSamples = 10)
-                : base(numSamples)
+            public ScalarVisualizer(int numSamples = 10) : base(numSamples)
             {
             }
 
@@ -168,8 +168,7 @@ namespace SAS.Utilities.DeveloperConsole.InputVisualizers
                 else if (device is Pointer) // should be last, because it's a base class for Mouse and Pen
                     m_CurrentDevice = Pointer.current;
                 else
-                    throw new ArgumentException(
-                        $"Expected device type that implements .current, but got '{device.name}' (deviceId: {device.deviceId}) instead ");
+                    throw new ArgumentException($"Expected device type that implements .current, but got '{device.name}' (deviceId: {device.deviceId}) instead ");
             }
         }
 
@@ -186,8 +185,7 @@ namespace SAS.Utilities.DeveloperConsole.InputVisualizers
             private GUIContent limitsXText;
             private GUIContent limitsYText;
 
-            public Vector2Visualizer(int numSamples = 10)
-                : base(numSamples)
+            public Vector2Visualizer(int numSamples = 10) : base(numSamples)
             {
             }
 
@@ -214,6 +212,7 @@ namespace SAS.Utilities.DeveloperConsole.InputVisualizers
                         limits.x = limitX;
                         limitsXText = null;
                     }
+
                     if (!Mathf.Approximately(limitY, limits.y))
                     {
                         limits.y = limitY;
@@ -265,6 +264,7 @@ namespace SAS.Utilities.DeveloperConsole.InputVisualizers
                     lastMaximumPos = valuePos;
                     ++numMaximums;
                 }
+
                 if (numMaximums > 1)
                     DrawLine(lastMaximumPos, firstMaximumPos, new Color(1, 1, 1, 0.25f));
 
@@ -301,8 +301,7 @@ namespace SAS.Utilities.DeveloperConsole.InputVisualizers
                 var y = Mathf.Abs(value.y) / limits.y * Mathf.Sign(value.y) * -1; // GUI Y is upside down.
                 var xInPixels = x * rect.width / 2;
                 var yInPixels = y * rect.height / 2;
-                return new Vector2(center.x + xInPixels,
-                    center.y + yInPixels);
+                return new Vector2(center.x + xInPixels, center.y + yInPixels);
             }
         }
 
@@ -312,7 +311,9 @@ namespace SAS.Utilities.DeveloperConsole.InputVisualizers
             public bool showLegend { get; set; }
             public bool showLimits { get; set; }
             public TimeUnit timeUnit { get; set; } = TimeUnit.Seconds;
+
             public GUIContent valueUnit { get; set; }
+
             ////REVIEW: should this be per timeline?
             public int timelineCount => m_Timelines != null ? m_Timelines.Length : 0;
             public int historyDepth { get; set; } = 100;
@@ -343,9 +344,7 @@ namespace SAS.Utilities.DeveloperConsole.InputVisualizers
                 for (var i = 0; i < timelineCount; ++i)
                 {
                     var timeline = m_Timelines[i];
-                    var sampleCount = timeUnit == TimeUnit.Frames
-                        ? timeline.frameSamples.count
-                        : timeline.timeSamples.count;
+                    var sampleCount = timeUnit == TimeUnit.Frames ? timeline.frameSamples.count : timeline.timeSamples.count;
 
                     // Set up clip rect so that we can do stuff like render lines to samples
                     // falling outside the render rectangle and have them get clipped.
@@ -356,9 +355,7 @@ namespace SAS.Utilities.DeveloperConsole.InputVisualizers
                     var color = m_Timelines[i].color;
                     for (var n = sampleCount - 1; n >= 0; --n)
                     {
-                        var sample = timeUnit == TimeUnit.Frames
-                            ? timeline.frameSamples[n].value
-                            : timeline.timeSamples[n].value;
+                        var sample = timeUnit == TimeUnit.Frames ? timeline.frameSamples[n].value : timeline.timeSamples[n].value;
 
                         ////TODO: respect limitsY
 
@@ -370,9 +367,7 @@ namespace SAS.Utilities.DeveloperConsole.InputVisualizers
 
                         y /= limitsY.y;
 
-                        var deltaTime = timeUnit == TimeUnit.Frames
-                            ? timeline.frameSamples[n].frame - startFrame
-                            : timeline.timeSamples[n].time - startTime;
+                        var deltaTime = timeUnit == TimeUnit.Frames ? timeline.frameSamples[n].frame - startFrame : timeline.timeSamples[n].time - startTime;
                         var pos = new Vector2(deltaTime * timeUnitsPerPixel, rect.height - y * rect.height);
 
                         if (plotType == PlotType.LineGraph)
@@ -393,6 +388,7 @@ namespace SAS.Utilities.DeveloperConsole.InputVisualizers
 
                         lastPos = pos;
                     }
+
                     GUI.EndGroup();
                 }
 
@@ -488,7 +484,7 @@ namespace SAS.Utilities.DeveloperConsole.InputVisualizers
                     Debug.Assert(samples[count - 1].frame < frame, "Frame numbers must be ascending");
                 }
 
-                return ref samples.Append(new FrameSample {frame = frame}).value;
+                return ref samples.Append(new FrameSample { frame = frame }).value;
             }
 
             private float m_TotalTimeUnitsShown;
@@ -644,6 +640,7 @@ namespace SAS.Utilities.DeveloperConsole.InputVisualizers
                     s_ValueTextStyle.fontSize -= 2;
                     s_ValueTextStyle.normal.textColor = Color.white;
                 }
+
                 return s_ValueTextStyle;
             }
         }
@@ -687,6 +684,7 @@ namespace SAS.Utilities.DeveloperConsole.InputVisualizers
                     index = (head + count) % bufferSize;
                     ++head;
                 }
+
                 array[index] = value;
                 return ref array[index];
             }

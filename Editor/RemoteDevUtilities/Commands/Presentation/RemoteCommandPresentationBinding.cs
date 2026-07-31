@@ -25,6 +25,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
             {
                 throw new ArgumentException("The command name cannot contain whitespace.", nameof(commandName));
             }
+
             if (!Enum.IsDefined(typeof(RemoteCommandRouting), routing))
                 throw new ArgumentOutOfRangeException(nameof(routing));
             if (routing != RemoteCommandRouting.ExecuteInBuildOnly && string.IsNullOrWhiteSpace(miniToolId))

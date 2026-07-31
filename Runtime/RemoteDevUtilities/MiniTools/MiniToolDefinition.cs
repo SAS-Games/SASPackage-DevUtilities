@@ -18,7 +18,9 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools
         [SerializeField] private string _displayName = string.Empty;
         [SerializeField, TextArea(2, 5)] private string _description = string.Empty;
         [SerializeField, Min(0.1f)] private float _updateInterval = 1f;
+
         [SerializeField, Min(0.02f)] private float _streamInterval = 0.1f;
+
         // The Editor uses the stable script GUID to refresh the runtime type
         // identity after namespace or asmdef changes. Players use only the
         // baked provider type name and never depend on UnityEditor.MonoScript.
@@ -28,6 +30,7 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools
         [SerializeField, HideInInspector] private string _commandName = string.Empty;
 
         [SerializeField] private RemoteCommandRouting _commandRouting = RemoteCommandRouting.ControlEditorToolOnly;
+
         // A GUID is deliberately stored instead of a GameObject reference so an Editor-only Debug Host prefab is never pulled into a Player build.
         [SerializeField, HideInInspector] private string _debugHostPrefabGuid = string.Empty;
         [SerializeField] private bool _visibleByDefault = true;
@@ -54,7 +57,7 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools
         {
             string commandName = CommandName;
             TryGetProviderType(out Type providerType);
-           
+
             RemoteMiniToolCapabilities capabilities = RemoteMiniToolCapabilities.None;
             if (MiniToolProviderCapabilities.ProvidesFields(providerType))
                 capabilities |= RemoteMiniToolCapabilities.NativeWorkspaceFields;
@@ -72,7 +75,9 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools
                 DefaultStreamIntervalSeconds = StreamInterval,
                 VisibleByDefault = _visibleByDefault,
                 Capabilities = capabilities,
-                Command = string.IsNullOrWhiteSpace(commandName) ? null : new RemoteMiniToolCommandManifest
+                Command = string.IsNullOrWhiteSpace(commandName)
+                    ? null
+                    : new RemoteMiniToolCommandManifest
                     {
                         Name = commandName.Trim(),
                         SuggestedRouting = _commandRouting
@@ -87,6 +92,7 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools
                 error = "Tool ID is missing.";
                 return false;
             }
+
             if (_toolId.IndexOfAny(new[] { ' ', '\t', '\r', '\n' }) >= 0)
             {
                 error = "Tool ID cannot contain whitespace.";
@@ -182,8 +188,7 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools
 
             _displayName = _displayName?.Trim() ?? string.Empty;
             _description = _description?.Trim() ?? string.Empty;
-            _providerScriptGuid =
-                _providerScriptGuid?.Trim() ?? string.Empty;
+            _providerScriptGuid = _providerScriptGuid?.Trim() ?? string.Empty;
             _providerTypeName = _providerTypeName?.Trim() ?? string.Empty;
             _commandName = _commandName?.Trim() ?? string.Empty;
             _debugHostPrefabGuid = _debugHostPrefabGuid?.Trim() ?? string.Empty;

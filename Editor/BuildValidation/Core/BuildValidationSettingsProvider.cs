@@ -19,7 +19,8 @@ namespace SAS.BuildValidation
 
             _cachedSettings = AssetDatabase.LoadAssetAtPath<BuildValidationSettings>(AssetPath);
 
-            if (_cachedSettings != null) return _cachedSettings;
+            if (_cachedSettings != null)
+                return _cachedSettings;
 
             EnsureFolderExists(RootFolder);
             EnsureFolderExists(EditorFolder);

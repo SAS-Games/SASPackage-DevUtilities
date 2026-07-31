@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace SAS.Utilities.DeveloperConsole
 {
-    [CreateAssetMenu(fileName = "New Particle Command", menuName =  DeveloperConsole.CommandBasePath + "Particle Command")]
+    [CreateAssetMenu(fileName = "New Particle Command", menuName = DeveloperConsole.CommandBasePath + "Particle Command")]
     public class ParticleCommand : CompositeConsoleCommand
     {
         private class ParticleBackupState
@@ -87,10 +87,12 @@ namespace SAS.Utilities.DeveloperConsole
 
             foreach (var ps in systems)
             {
-                if (!ps) continue;
+                if (!ps)
+                    continue;
 
                 var psRenderer = ps.GetComponent<ParticleSystemRenderer>();
-                if (!psRenderer) continue;
+                if (!psRenderer)
+                    continue;
 
                 bool visible = IsVisible(cam, psRenderer);
 
@@ -129,7 +131,8 @@ namespace SAS.Utilities.DeveloperConsole
 
             foreach (var entry in _backupStates)
             {
-                if (!entry.ps) continue;
+                if (!entry.ps)
+                    continue;
 
                 entry.ps.gameObject.SetActive(entry.wasActive);
             }
@@ -153,7 +156,8 @@ namespace SAS.Utilities.DeveloperConsole
 
                     foreach (var ps in systems)
                     {
-                        if (!ps) continue;
+                        if (!ps)
+                            continue;
 
                         // Backup state only once
                         if (!_backupStates.Exists(e => e.ps == ps))
@@ -189,8 +193,8 @@ namespace SAS.Utilities.DeveloperConsole
             {
                 Debug.LogError("Offset usage: Offset x y z");
                 return false;
-            } 
-            
+            }
+
             if (!VectorParseUtil.TryParseVector3(args[0], args[1], args[2], out var offset))
             {
                 Debug.LogError("Offset parsing error");

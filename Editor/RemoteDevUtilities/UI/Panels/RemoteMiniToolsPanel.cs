@@ -21,6 +21,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
                 if (GUILayout.Button("Refresh", EditorStyles.toolbarButton))
                     client.RequestCatalog();
             }
+
             EditorGUILayout.EndHorizontal();
 
             if (!connected)
@@ -41,15 +42,11 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
                 if (tool == null || string.IsNullOrWhiteSpace(tool.Id))
                     continue;
                 bool hasActions = HasNativeWorkspaceActions(tool);
-                if (tool.Capabilities !=
-                        RemoteMiniToolCapabilities.None &&
-                    (tool.Capabilities &
-                     RemoteMiniToolCapabilities
-                         .NativeWorkspaceFields) == 0 &&
-                    !hasActions)
+                if (tool.Capabilities != RemoteMiniToolCapabilities.None && (tool.Capabilities & RemoteMiniToolCapabilities.NativeWorkspaceFields) == 0 && !hasActions)
                 {
                     continue;
                 }
+
                 if (!settings.IsVisible(tool.Id))
                     continue;
                 visibleTools++;
@@ -58,10 +55,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
 
             if (visibleTools == 0)
             {
-                EditorGUILayout.HelpBox(
-                    "No selected mini-tools expose Native Workspace fields or actions. " +
-                    "Typed-state-only tools remain available in the Debug Host.",
-                    MessageType.Info);
+                EditorGUILayout.HelpBox("No selected mini-tools expose Native Workspace fields or actions. " + "Typed-state-only tools remain available in the Debug Host.", MessageType.Info);
             }
         }
 
@@ -75,6 +69,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
             {
                 client.SetSubscription(descriptor.Id, !subscribed, descriptor.DefaultIntervalSeconds);
             }
+
             EditorGUILayout.EndHorizontal();
 
             if (!string.IsNullOrWhiteSpace(descriptor.Description))
@@ -91,6 +86,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
                     string value = string.IsNullOrWhiteSpace(field.Unit) ? field.Value : $"{field.Value} {field.Unit}";
                     EditorGUILayout.LabelField(field.DisplayName ?? field.Name, value);
                 }
+
                 EditorGUILayout.LabelField($"Target frame {sample.Frame}", EditorStyles.centeredGreyMiniLabel);
             }
             else
@@ -99,14 +95,9 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
             EditorGUILayout.EndVertical();
         }
 
-        private static void DrawActions(
-            RemoteMiniToolClient client,
-            RemoteMiniToolDescriptor descriptor,
-            bool subscribed)
+        private static void DrawActions(RemoteMiniToolClient client, RemoteMiniToolDescriptor descriptor, bool subscribed)
         {
-            RemoteMiniToolActionDescriptor[] actions =
-                descriptor.Actions ??
-                Array.Empty<RemoteMiniToolActionDescriptor>();
+            RemoteMiniToolActionDescriptor[] actions = descriptor.Actions ?? Array.Empty<RemoteMiniToolActionDescriptor>();
             if (actions.Length == 0)
                 return;
 
@@ -116,41 +107,27 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
             {
                 foreach (RemoteMiniToolActionDescriptor action in actions)
                 {
-                    if (action == null ||
-                        string.IsNullOrWhiteSpace(action.Id) ||
-                        action.HideInNativeWorkspace)
+                    if (action == null || string.IsNullOrWhiteSpace(action.Id) || action.HideInNativeWorkspace)
                     {
                         continue;
                     }
 
-                    string label =
-                        string.IsNullOrWhiteSpace(action.DisplayName)
-                            ? action.Id
-                            : action.DisplayName;
-                    if (GUILayout.Button(
-                            label,
-                            EditorStyles.miniButton,
-                            GUILayout.MinWidth(54f)))
+                    string label = string.IsNullOrWhiteSpace(action.DisplayName) ? action.Id : action.DisplayName;
+                    if (GUILayout.Button(label, EditorStyles.miniButton, GUILayout.MinWidth(54f)))
                     {
-                        client.ExecuteAction(
-                            descriptor.Id,
-                            action.Id);
+                        client.ExecuteAction(descriptor.Id, action.Id);
                     }
                 }
             }
+
             EditorGUILayout.EndHorizontal();
         }
 
-        private static bool HasNativeWorkspaceActions(
-            RemoteMiniToolDescriptor descriptor)
+        private static bool HasNativeWorkspaceActions(RemoteMiniToolDescriptor descriptor)
         {
-            foreach (RemoteMiniToolActionDescriptor action in
-                     descriptor?.Actions ??
-                     Array.Empty<RemoteMiniToolActionDescriptor>())
+            foreach (RemoteMiniToolActionDescriptor action in descriptor?.Actions ?? Array.Empty<RemoteMiniToolActionDescriptor>())
             {
-                if (action != null &&
-                    !string.IsNullOrWhiteSpace(action.Id) &&
-                    !action.HideInNativeWorkspace)
+                if (action != null && !string.IsNullOrWhiteSpace(action.Id) && !action.HideInNativeWorkspace)
                 {
                     return true;
                 }

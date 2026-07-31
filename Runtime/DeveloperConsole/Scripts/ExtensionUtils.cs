@@ -22,21 +22,20 @@ namespace SAS.Utilities.DeveloperConsole
         public static readonly Vector2 BottomCenter = new Vector2(0.5f, 0f);
         public static readonly Vector2 BottomRight = new Vector2(1f, 0f);
 
-        private static readonly Dictionary<string, Vector2> Presets =
-            new Dictionary<string, Vector2>(System.StringComparer.OrdinalIgnoreCase)
-            {
-                 { "topleft", TopLeft },
-                 { "topcenter", TopCenter },
-                 { "topright", TopRight },
+        private static readonly Dictionary<string, Vector2> Presets = new Dictionary<string, Vector2>(System.StringComparer.OrdinalIgnoreCase)
+        {
+            { "topleft", TopLeft },
+            { "topcenter", TopCenter },
+            { "topright", TopRight },
 
-                 { "middleleft", MiddleLeft },
-                 { "middlecenter",MiddleCenter },
-                 { "middleright", MiddleRight },
+            { "middleleft", MiddleLeft },
+            { "middlecenter", MiddleCenter },
+            { "middleright", MiddleRight },
 
-                 { "bottomleft", BottomLeft },
-                 { "bottomcenter",BottomCenter },
-                 { "bottomright", BottomRight },
-            };
+            { "bottomleft", BottomLeft },
+            { "bottomcenter", BottomCenter },
+            { "bottomright", BottomRight },
+        };
 
         public static bool TryGetAnchorValues(string key, out Vector2 pivot)
         {
@@ -66,6 +65,7 @@ namespace SAS.Utilities.DeveloperConsole
 
             return new Rect(bl, tr - bl);
         }
+
         public static Bounds GetWorldBounds(this RectTransform rt)
         {
             Vector3[] corners = new Vector3[4];
@@ -160,10 +160,7 @@ namespace SAS.Utilities.DeveloperConsole
             rectTransform.pivot = pivot;
 
             // Padding direction derived from pivot
-            Vector2 offset = new Vector2(
-                Mathf.Lerp(+padding.x, -padding.x, pivot.x),
-                Mathf.Lerp(+padding.y, -padding.y, pivot.y)
-            );
+            Vector2 offset = new Vector2(Mathf.Lerp(+padding.x, -padding.x, pivot.x), Mathf.Lerp(+padding.y, -padding.y, pivot.y));
 
             rectTransform.anchoredPosition = offset;
         }
@@ -184,9 +181,9 @@ namespace SAS.Utilities.DeveloperConsole
                     DontDestroyOnLoad(go);
                     _instance = go.AddComponent<CoroutineRunner>();
                 }
+
                 _instance.StartCoroutine(routine);
             }
         }
-
     }
 }

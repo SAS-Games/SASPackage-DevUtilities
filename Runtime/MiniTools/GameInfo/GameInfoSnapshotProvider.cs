@@ -7,7 +7,6 @@ namespace SAS.DevUtilities
     /// Remote providers use the same <see cref="GameInfoSnapshotCollector"/>.
     /// </summary>
     [AddComponentMenu("Dev Utilities/GameInfo/Provider")]
-
     public sealed class GameInfoSnapshotProvider : MiniToolSnapshotProviderBehaviour<GameInfoSnapshot>
     {
         private void OnEnable()

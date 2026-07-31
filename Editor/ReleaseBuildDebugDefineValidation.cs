@@ -12,7 +12,6 @@ namespace SAS.BuildValidation
             BuildValidationResult result = BuildValidationResult.Create();
 
 #if ENABLE_DEBUG
-
             bool isDevelopmentBuild = (report.summary.options.HasFlag(UnityEditor.BuildOptions.Development));
 
             if (!isDevelopmentBuild)

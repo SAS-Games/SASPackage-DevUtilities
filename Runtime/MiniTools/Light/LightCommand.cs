@@ -13,21 +13,13 @@ namespace SAS.Utilities.DeveloperConsole
         {
             if (args == null || args.Length < 3)
             {
-                Debug.LogError(
-                    "Light.Offset: Missing parameters.\n" +
-                    "Usage: Light.Offset <x> <y> <z>\n" +
-                    "Example: Light.Offset 0 5 0"
-                );
+                Debug.LogError("Light.Offset: Missing parameters.\n" + "Usage: Light.Offset <x> <y> <z>\n" + "Example: Light.Offset 0 5 0");
                 return false;
             }
 
             if (!VectorParseUtil.TryParseVector3(args[0], args[1], args[2], out var offset))
             {
-                Debug.LogError(
-                    $"Light.Offset: Invalid values.\n" +
-                    $"Received: x='{args[0]}', y='{args[1]}', z='{args[2]}'\n" +
-                    "All values must be valid numbers."
-                );
+                Debug.LogError($"Light.Offset: Invalid values.\n" + $"Received: x='{args[0]}', y='{args[1]}', z='{args[2]}'\n" + "All values must be valid numbers.");
                 return false;
             }
 
@@ -36,7 +28,8 @@ namespace SAS.Utilities.DeveloperConsole
             var transforms = new List<Transform>(lights.Length);
             foreach (var l in lights)
             {
-                if (!l) continue;
+                if (!l)
+                    continue;
                 transforms.Add(l.transform);
             }
 
@@ -57,11 +50,7 @@ namespace SAS.Utilities.DeveloperConsole
         {
             if (args == null || args.Length < 2)
             {
-                Debug.LogError(
-                    "Light.Cull: Invalid usage.\n" +
-                    "Usage: Light.Cull <onscreen|offscreen> <on|off>\n" +
-                    "Example: Light.Cull offscreen off"
-                );
+                Debug.LogError("Light.Cull: Invalid usage.\n" + "Usage: Light.Cull <onscreen|offscreen> <on|off>\n" + "Example: Light.Cull offscreen off");
                 return false;
             }
 
@@ -69,10 +58,7 @@ namespace SAS.Utilities.DeveloperConsole
 
             if (!BoolUtil.TryParse(args[1], out bool enable))
             {
-                Debug.LogError(
-                    "Light.Cull: Invalid state.\n" +
-                    "Usage: Light.Cull <onscreen|offscreen> <on|off>"
-                );
+                Debug.LogError("Light.Cull: Invalid state.\n" + "Usage: Light.Cull <onscreen|offscreen> <on|off>");
                 return false;
             }
 
@@ -94,9 +80,7 @@ namespace SAS.Utilities.DeveloperConsole
                 return false;
             }
 
-            var lights = FindObjectsByType<Light>(
-                FindObjectsInactive.Include,
-                FindObjectsSortMode.None);
+            var lights = FindObjectsByType<Light>(FindObjectsInactive.Include, FindObjectsSortMode.None);
 
             var planes = GeometryUtility.CalculateFrustumPlanes(cam);
 
@@ -107,7 +91,8 @@ namespace SAS.Utilities.DeveloperConsole
 
             foreach (var l in lights)
             {
-                if (!l) continue;
+                if (!l)
+                    continue;
 
                 total++;
 
@@ -129,13 +114,7 @@ namespace SAS.Utilities.DeveloperConsole
                 }
             }
 
-            Debug.Log(
-                $"Light.Cull [{mode} -> {(enable ? "ON" : "OFF")}]\n" +
-                $"Total Lights : {total}\n" +
-                $"On-screen    : {onscreen}\n" +
-                $"Off-screen   : {offscreen}\n" +
-                $"Affected     : {affected}"
-            );
+            Debug.Log($"Light.Cull [{mode} -> {(enable ? "ON" : "OFF")}]\n" + $"Total Lights : {total}\n" + $"On-screen    : {onscreen}\n" + $"Off-screen   : {offscreen}\n" + $"Affected     : {affected}");
 
             return true;
         }
@@ -150,10 +129,7 @@ namespace SAS.Utilities.DeveloperConsole
 
             if (light.type == LightType.Point || light.type == LightType.Spot)
             {
-                bounds = new Bounds(
-                    light.transform.position,
-                    Vector3.one * light.range * 2f
-                );
+                bounds = new Bounds(light.transform.position, Vector3.one * light.range * 2f);
             }
             else
             {

@@ -17,7 +17,7 @@ namespace SAS.Utilities.DeveloperConsole
         private List<GameObject> _activeSuggestions = new();
         private ScrollSnapper _scrollSnapper;
         private CommandHistory _commandHistory;
-        
+
         protected override void Awake()
         {
             base.Awake();
@@ -54,7 +54,8 @@ namespace SAS.Utilities.DeveloperConsole
 
         protected override void Navigate(float direction)
         {
-            if (_activeSuggestions.Count == 0) return;
+            if (_activeSuggestions.Count == 0)
+                return;
             if (direction > 0)
                 _selectedIndex = Mathf.Max(_selectedIndex - 1, 0);
             else if (direction < 0)

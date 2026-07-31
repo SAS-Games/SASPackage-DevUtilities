@@ -18,10 +18,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
         public void Draw(RemoteRuntimeSceneInspectorClient client)
         {
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
-            _search = GUILayout.TextField(
-                _search,
-                GUI.skin.FindStyle("ToolbarSearchTextField"),
-                GUILayout.MinWidth(100f));
+            _search = GUILayout.TextField(_search, GUI.skin.FindStyle("ToolbarSearchTextField"), GUILayout.MinWidth(100f));
             if (GUILayout.Button("Refresh", EditorStyles.toolbarButton, GUILayout.Width(55f)))
                 client.RequestHierarchy(true);
             EditorGUILayout.EndHorizontal();
@@ -31,9 +28,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
 
             if (hierarchy.Entries == null || hierarchy.Entries.Length == 0)
             {
-                EditorGUILayout.LabelField(
-                    "No hierarchy data has been received.",
-                    EditorStyles.centeredGreyMiniLabel);
+                EditorGUILayout.LabelField("No hierarchy data has been received.", EditorStyles.centeredGreyMiniLabel);
             }
             else if (string.IsNullOrWhiteSpace(_search))
             {
@@ -43,7 +38,6 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
             {
                 DrawSearchResults(client, hierarchy.Entries);
             }
-
         }
 
         private void EnsureLookup(RemoteSceneInspectorHierarchyResponse hierarchy)
@@ -62,6 +56,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
                     list = new List<RemoteHierarchyEntry>();
                     _children[parentId] = list;
                 }
+
                 list.Add(entry);
             }
         }
@@ -80,38 +75,25 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
             }
         }
 
-        private void DrawSearchResults(
-            RemoteRuntimeSceneInspectorClient client,
-            RemoteHierarchyEntry[] entries)
+        private void DrawSearchResults(RemoteRuntimeSceneInspectorClient client, RemoteHierarchyEntry[] entries)
         {
             string search = _search.Trim();
             foreach (RemoteHierarchyEntry entry in entries)
             {
-                if (entry.Kind == 0 ||
-                    (entry.Name?.IndexOf(search, StringComparison.OrdinalIgnoreCase) ?? -1) >= 0 ||
-                    ContainsComponent(entry.ComponentTypeNames, search))
+                if (entry.Kind == 0 || (entry.Name?.IndexOf(search, StringComparison.OrdinalIgnoreCase) ?? -1) >= 0 || ContainsComponent(entry.ComponentTypeNames, search))
                     DrawRow(client, entry, 0, false);
             }
         }
 
-        private void DrawRow(
-            RemoteRuntimeSceneInspectorClient client,
-            RemoteHierarchyEntry entry,
-            int depth,
-            bool hasChildren)
+        private void DrawRow(RemoteRuntimeSceneInspectorClient client, RemoteHierarchyEntry entry, int depth, bool hasChildren)
         {
-            EditorGUILayout.BeginHorizontal(
-                entry.Id == SelectedObjectId ? "SelectionRect" : GUIStyle.none);
+            EditorGUILayout.BeginHorizontal(entry.Id == SelectedObjectId ? "SelectionRect" : GUIStyle.none);
             GUILayout.Space(depth * 14f);
 
             if (hasChildren)
             {
                 bool expanded = _expanded.Contains(entry.Id);
-                bool next = GUILayout.Toggle(
-                    expanded,
-                    GUIContent.none,
-                    EditorStyles.foldout,
-                    GUILayout.Width(13f));
+                bool next = GUILayout.Toggle(expanded, GUIContent.none, EditorStyles.foldout, GUILayout.Width(13f));
                 if (next != expanded)
                 {
                     if (next)
@@ -144,6 +126,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
                     client.Inspect(entry.Id);
                 }
             }
+
             GUI.contentColor = previous;
             EditorGUILayout.EndHorizontal();
         }

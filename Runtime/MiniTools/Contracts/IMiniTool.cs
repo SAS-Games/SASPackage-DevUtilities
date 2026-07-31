@@ -11,10 +11,7 @@ namespace SAS.DevUtilities
     /// IMiniToolSnapshotProvider&lt;TSnapshot&gt; and
     /// IMiniToolSnapshotView&lt;TSnapshot&gt;.
     /// </remarks>
-    [Obsolete(
-        "Mini-tool identity is owned by MiniToolDefinition. " +
-        "Implement IMiniToolSnapshotProvider<TSnapshot> and/or " +
-        "IMiniToolSnapshotView<TSnapshot> without duplicating an ID.")]
+    [Obsolete("Mini-tool identity is owned by MiniToolDefinition. " + "Implement IMiniToolSnapshotProvider<TSnapshot> and/or " + "IMiniToolSnapshotView<TSnapshot> without duplicating an ID.")]
     public interface IMiniTool
     {
         string ToolId { get; }

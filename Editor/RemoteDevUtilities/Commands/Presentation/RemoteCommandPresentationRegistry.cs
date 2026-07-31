@@ -13,20 +13,15 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
     public static class RemoteCommandPresentationRegistry
     {
         private static readonly object Sync = new();
-        private static readonly Dictionary<string, RemoteCommandPresentationBinding>
-            RegisteredBindings =
-            new(StringComparer.OrdinalIgnoreCase);
-        private static Dictionary<string, RemoteCommandPresentationBinding>
-            _definitionDefaults;
-        private static Dictionary<string, RemoteCommandPresentationBinding>
-            _resolvedBindings;
+        private static readonly Dictionary<string, RemoteCommandPresentationBinding> RegisteredBindings = new(StringComparer.OrdinalIgnoreCase);
+        private static Dictionary<string, RemoteCommandPresentationBinding> _definitionDefaults;
+        private static Dictionary<string, RemoteCommandPresentationBinding> _resolvedBindings;
 
         static RemoteCommandPresentationRegistry()
         {
             EditorApplication.projectChanged += InvalidateDefinitions;
             MiniToolRegistry.Changed += InvalidateDefinitions;
-            RemoteMiniToolCommandSettings.Changed +=
-                InvalidateDefinitions;
+            RemoteMiniToolCommandSettings.Changed += InvalidateDefinitions;
         }
 
         public static event Action Changed;
@@ -35,18 +30,14 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
         /// Registers a command presentation. Pass replaceExisting to intentionally override a
         /// package or project registration with the same command name.
         /// </summary>
-        public static bool Register(
-            RemoteCommandPresentationBinding binding,
-            bool replaceExisting = false)
+        public static bool Register(RemoteCommandPresentationBinding binding, bool replaceExisting = false)
         {
             if (binding == null)
                 throw new ArgumentNullException(nameof(binding));
 
             lock (Sync)
             {
-                if (!replaceExisting &&
-                    (RegisteredBindings.ContainsKey(binding.CommandName) ||
-                     ResolvedBindings.ContainsKey(binding.CommandName)))
+                if (!replaceExisting && (RegisteredBindings.ContainsKey(binding.CommandName) || ResolvedBindings.ContainsKey(binding.CommandName)))
                     return false;
                 RegisteredBindings[binding.CommandName] = binding;
             }
@@ -73,9 +64,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
             return removed;
         }
 
-        public static bool TryGet(
-            string commandName,
-            out RemoteCommandPresentationBinding binding)
+        public static bool TryGet(string commandName, out RemoteCommandPresentationBinding binding)
         {
             if (string.IsNullOrWhiteSpace(commandName))
             {
@@ -86,14 +75,11 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
             lock (Sync)
             {
                 string normalized = commandName.Trim();
-                return RegisteredBindings.TryGetValue(normalized, out binding) ||
-                       ResolvedBindings.TryGetValue(normalized, out binding);
+                return RegisteredBindings.TryGetValue(normalized, out binding) || ResolvedBindings.TryGetValue(normalized, out binding);
             }
         }
 
-        internal static bool TryGetAdvancedRegistration(
-            string commandName,
-            out RemoteCommandPresentationBinding binding)
+        internal static bool TryGetAdvancedRegistration(string commandName, out RemoteCommandPresentationBinding binding)
         {
             binding = null;
             if (string.IsNullOrWhiteSpace(commandName))
@@ -101,39 +87,25 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
 
             lock (Sync)
             {
-                return RegisteredBindings.TryGetValue(
-                    commandName.Trim(),
-                    out binding);
+                return RegisteredBindings.TryGetValue(commandName.Trim(), out binding);
             }
         }
 
-        internal static bool TryGetProjectOverride(
-            string commandName,
-            out RemoteCommandPresentationBinding binding)
+        internal static bool TryGetProjectOverride(string commandName, out RemoteCommandPresentationBinding binding)
         {
             binding = null;
             if (string.IsNullOrWhiteSpace(commandName))
                 return false;
 
             string normalizedCommandName = commandName.Trim();
-            foreach (RemoteMiniToolCommandOverride commandOverride in
-                     RemoteMiniToolCommandSettings.instance.Configuration
-                         .Overrides)
+            foreach (RemoteMiniToolCommandOverride commandOverride in RemoteMiniToolCommandSettings.instance.Configuration.Overrides)
             {
-                if (commandOverride == null ||
-                    string.IsNullOrWhiteSpace(commandOverride.CommandName) ||
-                    !string.Equals(
-                        commandOverride.CommandName,
-                        normalizedCommandName,
-                        StringComparison.OrdinalIgnoreCase))
+                if (commandOverride == null || string.IsNullOrWhiteSpace(commandOverride.CommandName) || !string.Equals(commandOverride.CommandName, normalizedCommandName, StringComparison.OrdinalIgnoreCase))
                     continue;
 
                 try
                 {
-                    binding = new RemoteCommandPresentationBinding(
-                        commandOverride.CommandName,
-                        commandOverride.ToolId,
-                        commandOverride.Routing);
+                    binding = new RemoteCommandPresentationBinding(commandOverride.CommandName, commandOverride.ToolId, commandOverride.Routing);
                     return true;
                 }
                 catch (ArgumentException)
@@ -145,16 +117,12 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
             return false;
         }
 
-        internal static bool HasProjectOverrideForMiniTool(
-            string miniToolId)
+        internal static bool HasProjectOverrideForMiniTool(string miniToolId)
         {
-            return RemoteMiniToolCommandSettings.instance.Configuration
-                .TryGet(miniToolId, out _);
+            return RemoteMiniToolCommandSettings.instance.Configuration.TryGet(miniToolId, out _);
         }
 
-        internal static bool TryGetDefinitionBinding(
-            string commandName,
-            out RemoteCommandPresentationBinding binding)
+        internal static bool TryGetDefinitionBinding(string commandName, out RemoteCommandPresentationBinding binding)
         {
             binding = null;
             if (string.IsNullOrWhiteSpace(commandName))
@@ -162,9 +130,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
 
             lock (Sync)
             {
-                return ResolvedBindings.TryGetValue(
-                    commandName.Trim(),
-                    out binding);
+                return ResolvedBindings.TryGetValue(commandName.Trim(), out binding);
             }
         }
 
@@ -172,70 +138,45 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
         {
             lock (Sync)
             {
-                var combined =
-                    new Dictionary<string, RemoteCommandPresentationBinding>(
-                        ResolvedBindings,
-                        StringComparer.OrdinalIgnoreCase);
-                foreach (KeyValuePair<string, RemoteCommandPresentationBinding>
-                         registration in RegisteredBindings)
+                var combined = new Dictionary<string, RemoteCommandPresentationBinding>(ResolvedBindings, StringComparer.OrdinalIgnoreCase);
+                foreach (KeyValuePair<string, RemoteCommandPresentationBinding> registration in RegisteredBindings)
                 {
                     combined[registration.Key] = registration.Value;
                 }
 
-                var registrations =
-                    new RemoteCommandPresentationBinding[combined.Count];
+                var registrations = new RemoteCommandPresentationBinding[combined.Count];
                 combined.Values.CopyTo(registrations, 0);
-                Array.Sort(
-                    registrations,
-                    (left, right) => string.Compare(
-                        left.CommandName,
-                        right.CommandName,
-                        StringComparison.OrdinalIgnoreCase));
+                Array.Sort(registrations, (left, right) => string.Compare(left.CommandName, right.CommandName, StringComparison.OrdinalIgnoreCase));
                 return registrations;
             }
         }
 
-        internal static bool TryGetDefinitionDefaultForMiniTool(
-            string miniToolId,
-            out RemoteCommandPresentationBinding binding)
+        internal static bool TryGetDefinitionDefaultForMiniTool(string miniToolId, out RemoteCommandPresentationBinding binding)
         {
             binding = null;
             if (string.IsNullOrWhiteSpace(miniToolId))
                 return false;
 
-            foreach (RemoteCommandPresentationBinding candidate in
-                     DefinitionDefaults.Values)
+            foreach (RemoteCommandPresentationBinding candidate in DefinitionDefaults.Values)
             {
-                if (!string.Equals(
-                        candidate.MiniToolId,
-                        miniToolId,
-                        StringComparison.OrdinalIgnoreCase))
+                if (!string.Equals(candidate.MiniToolId, miniToolId, StringComparison.OrdinalIgnoreCase))
                     continue;
 
-                if (binding == null ||
-                    string.Compare(
-                        candidate.CommandName,
-                        binding.CommandName,
-                        StringComparison.OrdinalIgnoreCase) < 0)
+                if (binding == null || string.Compare(candidate.CommandName, binding.CommandName, StringComparison.OrdinalIgnoreCase) < 0)
                     binding = candidate;
             }
 
             return binding != null;
         }
 
-        internal static void ApplyProjectOverrides(
-            IDictionary<string, RemoteCommandPresentationBinding> bindings,
-            IEnumerable<RemoteMiniToolCommandOverride> overrides)
+        internal static void ApplyProjectOverrides(IDictionary<string, RemoteCommandPresentationBinding> bindings, IEnumerable<RemoteMiniToolCommandOverride> overrides)
         {
             if (bindings == null)
                 throw new ArgumentNullException(nameof(bindings));
 
-            foreach (RemoteMiniToolCommandOverride commandOverride in
-                     overrides ??
-                     Array.Empty<RemoteMiniToolCommandOverride>())
+            foreach (RemoteMiniToolCommandOverride commandOverride in overrides ?? Array.Empty<RemoteMiniToolCommandOverride>())
             {
-                if (commandOverride == null ||
-                    string.IsNullOrWhiteSpace(commandOverride.ToolId))
+                if (commandOverride == null || string.IsNullOrWhiteSpace(commandOverride.ToolId))
                     continue;
 
                 RemoveMiniToolBindings(bindings, commandOverride.ToolId);
@@ -244,10 +185,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
 
                 try
                 {
-                    var binding = new RemoteCommandPresentationBinding(
-                        commandOverride.CommandName,
-                        commandOverride.ToolId,
-                        commandOverride.Routing);
+                    var binding = new RemoteCommandPresentationBinding(commandOverride.CommandName, commandOverride.ToolId, commandOverride.Routing);
                     bindings[binding.CommandName] = binding;
                 }
                 catch (ArgumentException)
@@ -258,24 +196,17 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
             }
         }
 
-        private static Dictionary<string, RemoteCommandPresentationBinding>
-            DefinitionDefaults
+        private static Dictionary<string, RemoteCommandPresentationBinding> DefinitionDefaults
         {
             get
             {
                 if (_definitionDefaults != null)
                     return _definitionDefaults;
 
-                _definitionDefaults =
-                    new Dictionary<string, RemoteCommandPresentationBinding>(
-                        StringComparer.OrdinalIgnoreCase);
-                foreach (MiniToolRegistration registration in
-                         MiniToolRegistry.Registrations)
+                _definitionDefaults = new Dictionary<string, RemoteCommandPresentationBinding>(StringComparer.OrdinalIgnoreCase);
+                foreach (MiniToolRegistration registration in MiniToolRegistry.Registrations)
                 {
-                    if (RemoteMiniToolCommandManifestResolver
-                        .TryCreateBinding(
-                            registration.Descriptor,
-                            out RemoteCommandPresentationBinding binding))
+                    if (RemoteMiniToolCommandManifestResolver.TryCreateBinding(registration.Descriptor, out RemoteCommandPresentationBinding binding))
                     {
                         _definitionDefaults[binding.CommandName] = binding;
                     }
@@ -285,22 +216,15 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
             }
         }
 
-        private static Dictionary<string, RemoteCommandPresentationBinding>
-            ResolvedBindings
+        private static Dictionary<string, RemoteCommandPresentationBinding> ResolvedBindings
         {
             get
             {
                 if (_resolvedBindings != null)
                     return _resolvedBindings;
 
-                _resolvedBindings =
-                    new Dictionary<string, RemoteCommandPresentationBinding>(
-                        DefinitionDefaults,
-                        StringComparer.OrdinalIgnoreCase);
-                ApplyProjectOverrides(
-                    _resolvedBindings,
-                    RemoteMiniToolCommandSettings.instance
-                        .Configuration.Overrides);
+                _resolvedBindings = new Dictionary<string, RemoteCommandPresentationBinding>(DefinitionDefaults, StringComparer.OrdinalIgnoreCase);
+                ApplyProjectOverrides(_resolvedBindings, RemoteMiniToolCommandSettings.instance.Configuration.Overrides);
                 return _resolvedBindings;
             }
         }
@@ -312,21 +236,16 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
                 _definitionDefaults = null;
                 _resolvedBindings = null;
             }
+
             Changed?.Invoke();
         }
 
-        private static void RemoveMiniToolBindings(
-            IDictionary<string, RemoteCommandPresentationBinding> bindings,
-            string miniToolId)
+        private static void RemoveMiniToolBindings(IDictionary<string, RemoteCommandPresentationBinding> bindings, string miniToolId)
         {
             var commandNames = new List<string>();
-            foreach (KeyValuePair<string, RemoteCommandPresentationBinding>
-                     entry in bindings)
+            foreach (KeyValuePair<string, RemoteCommandPresentationBinding> entry in bindings)
             {
-                if (string.Equals(
-                        entry.Value?.MiniToolId,
-                        miniToolId,
-                        StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(entry.Value?.MiniToolId, miniToolId, StringComparison.OrdinalIgnoreCase))
                     commandNames.Add(entry.Key);
             }
 

@@ -4,11 +4,7 @@ using SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools;
 namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
 {
     [UnityEngine.Scripting.Preserve]
-    internal sealed class RuntimeInputLatencyMiniToolProvider :
-        MiniToolStreamingDataProvider<
-            InputLatencySnapshot,
-            InputLatencySampleEvent>,
-        IMiniToolFieldProvider
+    internal sealed class RuntimeInputLatencyMiniToolProvider : MiniToolStreamingDataProvider<InputLatencySnapshot, InputLatencySampleEvent>, IMiniToolFieldProvider
     {
 #if ENABLE_DEBUG
         private readonly InputLatencySampleReader _sampleReader =
@@ -101,8 +97,7 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
                 (statistics?.SampleCount ?? 0).ToString());
         }
 #else
-        public override bool TryGetSnapshot(
-            out InputLatencySnapshot snapshot)
+        public override bool TryGetSnapshot(out InputLatencySnapshot snapshot)
         {
             snapshot = new InputLatencySnapshot
             {
@@ -112,9 +107,7 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
             return true;
         }
 
-        public override bool TryGetEvents(
-            out InputLatencySampleEvent[] events,
-            out int droppedEventCount)
+        public override bool TryGetEvents(out InputLatencySampleEvent[] events, out int droppedEventCount)
         {
             events = Array.Empty<InputLatencySampleEvent>();
             droppedEventCount = 0;
@@ -125,10 +118,7 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
         {
             return new[]
             {
-                CreateField(
-                    "status",
-                    "Status",
-                    "Requires ENABLE_DEBUG")
+                CreateField("status", "Status", "Requires ENABLE_DEBUG")
             };
         }
 #endif

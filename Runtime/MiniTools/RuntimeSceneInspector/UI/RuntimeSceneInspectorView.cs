@@ -223,10 +223,7 @@ namespace SAS.Utilities.RuntimeSceneInspector
             if (_controller.IsSearchFocused)
                 return;
 
-            if (current.keyCode == KeyCode.UpArrow || current.keyCode == KeyCode.DownArrow ||
-                current.keyCode == KeyCode.LeftArrow || current.keyCode == KeyCode.RightArrow ||
-                current.keyCode == KeyCode.Home || current.keyCode == KeyCode.End ||
-                current.keyCode == KeyCode.PageUp || current.keyCode == KeyCode.PageDown)
+            if (current.keyCode == KeyCode.UpArrow || current.keyCode == KeyCode.DownArrow || current.keyCode == KeyCode.LeftArrow || current.keyCode == KeyCode.RightArrow || current.keyCode == KeyCode.Home || current.keyCode == KeyCode.End || current.keyCode == KeyCode.PageUp || current.keyCode == KeyCode.PageDown)
                 current.Use();
         }
 
@@ -412,8 +409,7 @@ namespace SAS.Utilities.RuntimeSceneInspector
 
         private void RevealInspectorCursorIfNeeded(int fieldIndex)
         {
-            if (!_controller.RevealInspectorCursor || !_controller.IsInspectorFocused ||
-                fieldIndex != _controller.InspectorCursor || Event.current.type != EventType.Repaint)
+            if (!_controller.RevealInspectorCursor || !_controller.IsInspectorFocused || fieldIndex != _controller.InspectorCursor || Event.current.type != EventType.Repaint)
                 return;
 
             GUI.ScrollTo(GUILayoutUtility.GetLastRect());

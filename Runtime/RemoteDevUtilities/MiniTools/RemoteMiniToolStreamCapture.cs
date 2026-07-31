@@ -12,19 +12,12 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools
     /// </summary>
     internal interface IRemoteMiniToolStreamCapture
     {
-        bool TryCapture(
-            out string eventTypeName,
-            out string eventsJson,
-            out int droppedEventCount);
+        bool TryCapture(out string eventTypeName, out string eventsJson, out int droppedEventCount);
     }
 
     internal static class RemoteMiniToolStreamSerializer
     {
-        internal static bool TrySerialize<TEvent>(
-            TEvent[] events,
-            out string eventTypeName,
-            out string eventsJson)
-            where TEvent : IMiniToolStreamEvent
+        internal static bool TrySerialize<TEvent>(TEvent[] events, out string eventTypeName, out string eventsJson) where TEvent : IMiniToolStreamEvent
         {
             eventTypeName = string.Empty;
             eventsJson = string.Empty;
@@ -33,14 +26,11 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools
 
             try
             {
-                eventTypeName =
-                    typeof(TEvent).AssemblyQualifiedName ??
-                    typeof(TEvent).FullName;
-                eventsJson = JsonUtility.ToJson(
-                    new RemoteMiniToolStreamPayload<TEvent>
-                    {
-                        Events = events
-                    });
+                eventTypeName = typeof(TEvent).AssemblyQualifiedName ?? typeof(TEvent).FullName;
+                eventsJson = JsonUtility.ToJson(new RemoteMiniToolStreamPayload<TEvent>
+                {
+                    Events = events
+                });
                 return !string.IsNullOrWhiteSpace(eventsJson);
             }
             catch (Exception exception)
@@ -55,12 +45,9 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools
 
     internal static class RemoteMiniToolStreamCaptureFactory
     {
-        private static readonly Type StreamProviderType =
-            typeof(IMiniToolStreamProvider<>);
+        private static readonly Type StreamProviderType = typeof(IMiniToolStreamProvider<>);
 
-        internal static IRemoteMiniToolStreamCapture Create(
-            IMiniToolDataProvider provider,
-            out string error)
+        internal static IRemoteMiniToolStreamCapture Create(IMiniToolDataProvider provider, out string error)
         {
             error = string.Empty;
             if (provider == null)
@@ -69,33 +56,19 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools
             if (provider is IRemoteMiniToolStreamCapture directCapture)
                 return directCapture;
 
-            foreach (Type implementedInterface in
-                     provider.GetType().GetInterfaces())
+            foreach (Type implementedInterface in provider.GetType().GetInterfaces())
             {
-                if (!implementedInterface.IsGenericType ||
-                    implementedInterface.GetGenericTypeDefinition() !=
-                    StreamProviderType)
+                if (!implementedInterface.IsGenericType || implementedInterface.GetGenericTypeDefinition() != StreamProviderType)
                 {
                     continue;
                 }
 
-                Type eventType =
-                    implementedInterface.GetGenericArguments()[0];
-                Type captureType =
-                    typeof(RemoteMiniToolStreamCapture<>)
-                        .MakeGenericType(eventType);
+                Type eventType = implementedInterface.GetGenericArguments()[0];
+                Type captureType = typeof(RemoteMiniToolStreamCapture<>).MakeGenericType(eventType);
 
                 try
                 {
-                    return Activator.CreateInstance(
-                            captureType,
-                            BindingFlags.Instance |
-                            BindingFlags.Public |
-                            BindingFlags.NonPublic,
-                            null,
-                            new object[] { provider },
-                            null) as
-                        IRemoteMiniToolStreamCapture;
+                    return Activator.CreateInstance(captureType, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new object[] { provider }, null) as IRemoteMiniToolStreamCapture;
                 }
                 catch (Exception exception)
                 {
@@ -108,38 +81,26 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools
         }
     }
 
-    internal sealed class RemoteMiniToolStreamCapture<TEvent> :
-        IRemoteMiniToolStreamCapture
-        where TEvent : IMiniToolStreamEvent
+    internal sealed class RemoteMiniToolStreamCapture<TEvent> : IRemoteMiniToolStreamCapture where TEvent : IMiniToolStreamEvent
     {
         private readonly IMiniToolStreamProvider<TEvent> _provider;
 
-        internal RemoteMiniToolStreamCapture(
-            IMiniToolStreamProvider<TEvent> provider)
+        internal RemoteMiniToolStreamCapture(IMiniToolStreamProvider<TEvent> provider)
         {
-            _provider = provider ??
-                        throw new ArgumentNullException(nameof(provider));
+            _provider = provider ?? throw new ArgumentNullException(nameof(provider));
         }
 
-        public bool TryCapture(
-            out string eventTypeName,
-            out string eventsJson,
-            out int droppedEventCount)
+        public bool TryCapture(out string eventTypeName, out string eventsJson, out int droppedEventCount)
         {
             eventTypeName = string.Empty;
             eventsJson = string.Empty;
             droppedEventCount = 0;
-            if (!_provider.TryGetEvents(
-                    out TEvent[] events,
-                    out droppedEventCount))
+            if (!_provider.TryGetEvents(out TEvent[] events, out droppedEventCount))
             {
                 return false;
             }
 
-            return RemoteMiniToolStreamSerializer.TrySerialize(
-                events,
-                out eventTypeName,
-                out eventsJson);
+            return RemoteMiniToolStreamSerializer.TrySerialize(events, out eventTypeName, out eventsJson);
         }
     }
 }

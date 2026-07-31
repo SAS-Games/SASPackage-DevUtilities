@@ -6,29 +6,26 @@ namespace SAS.Utilities.RuntimeSceneInspector
     [CreateAssetMenu(fileName = "RuntimeSceneInspectorSettings", menuName = "SAS/Dev Utilities/Runtime Scene Inspector Settings")]
     public sealed class RuntimeSceneInspectorSettings : ScriptableObject
     {
-        [Header("Availability")] [SerializeField]
-        private bool m_EnableInspector = true;
+        [Header("Availability")] [SerializeField] private bool m_EnableInspector = true;
 
         [SerializeField] private bool m_AutomaticallyCreateBootstrap = true;
         [Header("Behaviour")] [SerializeField] private bool m_PauseWhenOpen;
         [SerializeField] private bool m_ConsumeInput = true;
 
-        [Header("Hierarchy")] [SerializeField, Min(0.1f)]
-        private float m_HierarchyRefreshInterval = 1f;
+        [Header("Hierarchy")] [SerializeField, Min(0.1f)] private float m_HierarchyRefreshInterval = 1f;
 
         [SerializeField] private bool m_IncludeInactiveObjects = true;
         [SerializeField] private bool m_AutomaticRefresh = true;
 
-        [Header("Permissions")] [SerializeField]
-        private bool m_AllowValueChanges = true;
+        [Header("Permissions")] [SerializeField] private bool m_AllowValueChanges = true;
 
         [SerializeField] private bool m_AllowActivationChanges = true;
         [SerializeField] private bool m_AllowComponentEnableChanges = true;
         [SerializeField] private string[] m_BlockedNamespaces = { "UnityEditor" };
         [SerializeField] private string[] m_BlockedComponentTypes = Array.Empty<string>();
 
-        [Header("Shader Inspection")]
-        [SerializeField] private bool m_AllowShaderInspection = true;
+        [Header("Shader Inspection")] [SerializeField] private bool m_AllowShaderInspection = true;
+
         [SerializeField] private bool m_AllowShaderValueChanges = true;
         [SerializeField] private bool m_AllowMaterialPropertyBlockChanges = true;
         [SerializeField] private bool m_AllowMaterialInstantiation = true;
@@ -43,25 +40,20 @@ namespace SAS.Utilities.RuntimeSceneInspector
         [SerializeField] private float m_LargeNumericStep = 10f;
         [SerializeField] private float m_SmallNumericStep = 0.1f;
 
-        [Header("Input")] [SerializeField, Min(0.05f)]
-        private float m_NavigationRepeatDelay = 0.35f;
+        [Header("Input")] [SerializeField, Min(0.05f)] private float m_NavigationRepeatDelay = 0.35f;
 
         [SerializeField, Min(0.02f)] private float m_NavigationRepeatRate = 0.08f;
         [SerializeField, Range(0.1f, 0.95f)] private float m_ControllerDeadZone = 0.55f;
 
-        [Header("Appearance")] [SerializeField, Range(0.75f, 2f)]
-        private float m_UiScale = 1f;
+        [Header("Appearance")] [SerializeField, Range(0.75f, 2f)] private float m_UiScale = 1f;
 
         [SerializeField] private Color m_BackgroundColor = new(0.055f, 0.065f, 0.085f, 0.86f);
         [SerializeField] private Color m_FocusColor = new(0.22f, 0.75f, 1f);
         [SerializeField, Range(0.25f, 0.75f)] private float m_HierarchyPanelWidth = 0.42f;
 
-        [Header("Fonts")]
-        [SerializeField]
-        private Font m_RegularFont;
+        [Header("Fonts")] [SerializeField] private Font m_RegularFont;
 
-        [SerializeField]
-        private Font m_BoldFont;
+        [SerializeField] private Font m_BoldFont;
 
         public bool EnableInspector => m_EnableInspector;
         public bool AutomaticallyCreateBootstrap => m_AutomaticallyCreateBootstrap;

@@ -17,10 +17,7 @@ namespace SAS.Utilities.DeveloperConsole
             _navRepeat = new NavigationRepeat(Navigate);
 
             _inputActions.Developer.Navigate.performed += ctx => _navRepeat.Press(ctx.ReadValue<float>());
-            _inputActions.Developer.Navigate.canceled += _ =>
-            {
-                _navRepeat.Release();
-            };
+            _inputActions.Developer.Navigate.canceled += _ => { _navRepeat.Release(); };
             _inputActions.Developer.AutoComplete.performed += _ => SelectCurrent();
 
             _developerConsoleUI = GetComponentInParent<DeveloperConsoleBehaviour>();
@@ -28,6 +25,7 @@ namespace SAS.Utilities.DeveloperConsole
         }
 
         protected virtual void OnEnable() => _inputActions?.Developer.Enable();
+
         protected virtual void OnDisable()
         {
             _inputActions?.Developer.Disable();

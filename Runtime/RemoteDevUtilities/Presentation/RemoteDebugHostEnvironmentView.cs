@@ -13,8 +13,7 @@ namespace SAS.Utilities.RemoteDevUtilities.DebugHost.Presentation
 
         private void Awake()
         {
-            _backgroundExecution =
-                new RuntimeBackgroundExecutionLease();
+            _backgroundExecution = new RuntimeBackgroundExecutionLease();
             _backgroundExecution.Acquire(true);
 
             EventSystem eventSystem = GetComponentInChildren<EventSystem>(true);

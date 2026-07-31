@@ -38,8 +38,7 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
             _timeController.Tick();
         }
 
-        public override bool TryGetSnapshot(
-            out FrameStepperSnapshot snapshot)
+        public override bool TryGetSnapshot(out FrameStepperSnapshot snapshot)
         {
             snapshot = FrameStepperSnapshotCollector.Capture();
             return true;
@@ -47,24 +46,15 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
 
         public RemoteMiniToolField[] CaptureFields()
         {
-            FrameStepperSnapshot snapshot =
-                FrameStepperSnapshotCollector.Capture();
+            FrameStepperSnapshot snapshot = FrameStepperSnapshotCollector.Capture();
             return new[]
             {
-                CreateField(
-                    "state",
-                    "State",
-                    snapshot.IsPaused ? "Paused" : "Running"),
-                CreateField(
-                    "timeScale",
-                    "Time Scale",
-                    snapshot.TimeScale.ToString("0.###"))
+                CreateField("state", "State", snapshot.IsPaused ? "Paused" : "Running"),
+                CreateField("timeScale", "Time Scale", snapshot.TimeScale.ToString("0.###"))
             };
         }
 
-        public override bool TryExecuteAction(
-            string actionId,
-            out string error)
+        public override bool TryExecuteAction(string actionId, out string error)
         {
             switch (actionId)
             {
@@ -78,16 +68,14 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
                 case FrameStepperActionIds.Step:
                     if (!_timeController.TryStep())
                     {
-                        error =
-                            "Pause the Player before stepping a frame.";
+                        error = "Pause the Player before stepping a frame.";
                         return false;
                     }
 
                     error = string.Empty;
                     return true;
                 default:
-                    error =
-                        "The requested FrameStepper action is not available.";
+                    error = "The requested FrameStepper action is not available.";
                     return false;
             }
         }
@@ -100,6 +88,5 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
                 DisplayName = displayName
             };
         }
-
     }
 }

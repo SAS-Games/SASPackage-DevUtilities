@@ -17,8 +17,7 @@ namespace SAS.DevUtilities
         private const string ColorGreen = "<color=#00FF00>";
         private const string ColorEnd = "</color>";
 
-        [Header("Display")]
-        [SerializeField] private Text m_Display;
+        [Header("Display")] [SerializeField] private Text m_Display;
 
         private readonly StringBuilder _builder = new StringBuilder(128);
 
@@ -43,8 +42,7 @@ namespace SAS.DevUtilities
 
         private void AppendFrameTime(in FPSSnapshot snapshot)
         {
-            _builder.Append(snapshot.IsFrameTimeOverBudget ? ColorRed : ColorWhite).Append("Frame Time: ")
-                .Append(snapshot.AverageFrameTimeMs.ToString("F2")).Append(" ms").Append(ColorEnd);
+            _builder.Append(snapshot.IsFrameTimeOverBudget ? ColorRed : ColorWhite).Append("Frame Time: ").Append(snapshot.AverageFrameTimeMs.ToString("F2")).Append(" ms").Append(ColorEnd);
         }
 
         private static string GetFpsColor(double averageFps)

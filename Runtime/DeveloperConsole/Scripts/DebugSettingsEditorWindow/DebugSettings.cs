@@ -59,7 +59,7 @@ namespace SAS.Utilities.DeveloperConsole
             Debug.SetLogLevel((int)LogLevel);
             Debug.SetAllowedTags(_allowedTags);
         }
-        
+
 #if UNITY_EDITOR
         public static void ApplyFromEditor()
         {

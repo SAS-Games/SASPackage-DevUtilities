@@ -59,8 +59,7 @@ namespace SAS.DevUtilities
 
             _ownsPause = true;
             Time.timeScale = ValidRunningTimeScale();
-            _stepRunner =
-                FrameStepperStepRunner.Begin(CompleteStep);
+            _stepRunner = FrameStepperStepRunner.Begin(CompleteStep);
             return true;
         }
 
@@ -91,9 +90,7 @@ namespace SAS.DevUtilities
 
         private float ValidRunningTimeScale()
         {
-            return _runningTimeScale > 0f
-                ? _runningTimeScale
-                : DefaultRunningTimeScale;
+            return _runningTimeScale > 0f ? _runningTimeScale : DefaultRunningTimeScale;
         }
     }
 }

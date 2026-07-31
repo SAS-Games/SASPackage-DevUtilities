@@ -27,8 +27,7 @@ namespace SAS.Utilities.RuntimeSceneInspector
         private int _cursor;
         private bool _materialsExpanded = true;
 
-        internal RuntimeSceneInspectorDetailsController(IRuntimeSceneInspector service,
-            RuntimeSceneInspectorSettings settings)
+        internal RuntimeSceneInspectorDetailsController(IRuntimeSceneInspector service, RuntimeSceneInspectorSettings settings)
         {
             _service = service;
             _settings = settings;
@@ -168,12 +167,11 @@ namespace SAS.Utilities.RuntimeSceneInspector
                         ToggleRowExpansion(selected);
                     return null;
                 case InspectorRowKind.ShaderProperty:
-                    if (confirm && CanEditShaderProperty(selected.ShaderProperty, selected.Renderer.RendererId,
-                            selected.Slot.MaterialIndex))
+                    if (confirm && CanEditShaderProperty(selected.ShaderProperty, selected.Renderer.RendererId, selected.Slot.MaterialIndex))
                     {
-                        BeginShaderEdit(selected.Renderer.RendererId, selected.Slot.MaterialIndex,
-                            selected.ShaderProperty);
+                        BeginShaderEdit(selected.Renderer.RendererId, selected.Slot.MaterialIndex, selected.ShaderProperty);
                     }
+
                     return null;
                 default:
                     return null;
@@ -221,23 +219,19 @@ namespace SAS.Utilities.RuntimeSceneInspector
                 _cursor = rowIndex;
             if (_details == null)
                 return RuntimeCommandResult.Fail("No object is being inspected.");
-            return _service.Execute(new SetGameObjectActiveCommand
-                { ObjectId = _details.Id, Active = !_details.Active });
+            return _service.Execute(new SetGameObjectActiveCommand { ObjectId = _details.Id, Active = !_details.Active });
         }
 
-        internal RuntimeCommandResult ToggleComponentEnabled(RuntimeComponentDescriptor component,
-            int rowIndex = -1)
+        internal RuntimeCommandResult ToggleComponentEnabled(RuntimeComponentDescriptor component, int rowIndex = -1)
         {
             if (rowIndex >= 0)
                 _cursor = rowIndex;
             if (IsEditing)
                 CancelEdit();
-            return _service.Execute(new SetComponentEnabledCommand
-                { ComponentId = component.Id, Enabled = !component.Enabled });
+            return _service.Execute(new SetComponentEnabledCommand { ComponentId = component.Id, Enabled = !component.Enabled });
         }
 
-        internal void BeginEdit(RuntimeComponentDescriptor component, RuntimeMemberDescriptor member,
-            int rowIndex = -1)
+        internal void BeginEdit(RuntimeComponentDescriptor component, RuntimeMemberDescriptor member, int rowIndex = -1)
         {
             if (rowIndex >= 0)
                 _cursor = rowIndex;
@@ -248,8 +242,7 @@ namespace SAS.Utilities.RuntimeSceneInspector
             FocusEditField = true;
         }
 
-        internal void BeginShaderEdit(RuntimeObjectId rendererId, int materialIndex,
-            RuntimeShaderPropertyView property, int rowIndex = -1)
+        internal void BeginShaderEdit(RuntimeObjectId rendererId, int materialIndex, RuntimeShaderPropertyView property, int rowIndex = -1)
         {
             if (rowIndex >= 0)
                 _cursor = rowIndex;
@@ -309,20 +302,13 @@ namespace SAS.Utilities.RuntimeSceneInspector
             return result;
         }
 
-        internal bool IsEditingMember(RuntimeComponentDescriptor component, RuntimeMemberDescriptor member) =>
-            IsEditingMemberValue && component.Id.Equals(_editingComponent.Id) &&
-            string.Equals(member.Name, _editingMember.Name, StringComparison.Ordinal);
+        internal bool IsEditingMember(RuntimeComponentDescriptor component, RuntimeMemberDescriptor member) => IsEditingMemberValue && component.Id.Equals(_editingComponent.Id) && string.Equals(member.Name, _editingMember.Name, StringComparison.Ordinal);
 
-        internal bool IsEditingShaderProperty(RuntimeObjectId rendererId, int materialIndex, int propertyId) =>
-            IsEditingShaderValue && rendererId.Equals(_editingRendererId) &&
-            materialIndex == _editingMaterialIndex &&
-            propertyId == _editingShaderProperty.Property.PropertyId;
+        internal bool IsEditingShaderProperty(RuntimeObjectId rendererId, int materialIndex, int propertyId) => IsEditingShaderValue && rendererId.Equals(_editingRendererId) && materialIndex == _editingMaterialIndex && propertyId == _editingShaderProperty.Property.PropertyId;
 
-        internal bool IsMaterialRendererExpanded(RuntimeObjectId rendererId) =>
-            _expandedMaterialRenderers.Contains(rendererId.Value);
+        internal bool IsMaterialRendererExpanded(RuntimeObjectId rendererId) => _expandedMaterialRenderers.Contains(rendererId.Value);
 
-        internal bool IsMaterialSlotExpanded(RuntimeObjectId rendererId, int materialIndex) =>
-            _expandedMaterialSlots.Contains(new MaterialSlotKey(rendererId.Value, materialIndex));
+        internal bool IsMaterialSlotExpanded(RuntimeObjectId rendererId, int materialIndex) => _expandedMaterialSlots.Contains(new MaterialSlotKey(rendererId.Value, materialIndex));
 
         internal RuntimeMaterialEditScope GetMaterialScope(RuntimeObjectId rendererId, int materialIndex)
         {
@@ -335,8 +321,7 @@ namespace SAS.Utilities.RuntimeSceneInspector
             return scope;
         }
 
-        internal void SetMaterialScope(RuntimeObjectId rendererId, int materialIndex,
-            RuntimeMaterialEditScope scope)
+        internal void SetMaterialScope(RuntimeObjectId rendererId, int materialIndex, RuntimeMaterialEditScope scope)
         {
             if (!ScopeAllowed(scope))
                 return;
@@ -362,9 +347,7 @@ namespace SAS.Utilities.RuntimeSceneInspector
                 return false;
             if (string.IsNullOrWhiteSpace(_shaderPropertySearch))
                 return true;
-            return (property.Name?.IndexOf(_shaderPropertySearch, StringComparison.OrdinalIgnoreCase) ?? -1) >= 0 ||
-                   (property.DisplayName?.IndexOf(_shaderPropertySearch, StringComparison.OrdinalIgnoreCase) ??
-                    -1) >= 0;
+            return (property.Name?.IndexOf(_shaderPropertySearch, StringComparison.OrdinalIgnoreCase) ?? -1) >= 0 || (property.DisplayName?.IndexOf(_shaderPropertySearch, StringComparison.OrdinalIgnoreCase) ?? -1) >= 0;
         }
 
         internal bool ScopeAllowed(RuntimeMaterialEditScope scope)
@@ -384,8 +367,7 @@ namespace SAS.Utilities.RuntimeSceneInspector
             }
         }
 
-        internal static bool HasMembers(RuntimeComponentDescriptor component) =>
-            component.Members != null && component.Members.Count > 0;
+        internal static bool HasMembers(RuntimeComponentDescriptor component) => component.Members != null && component.Members.Count > 0;
 
         private void NavigateFoldout(List<InspectorRow> rows, RuntimeSceneInspectorNavigationCommand command)
         {
@@ -401,13 +383,13 @@ namespace SAS.Utilities.RuntimeSceneInspector
 
                 if (string.IsNullOrEmpty(selected.ParentId))
                     return;
-                int parentIndex = rows.FindIndex(row =>
-                    string.Equals(row.Id, selected.ParentId, StringComparison.Ordinal));
+                int parentIndex = rows.FindIndex(row => string.Equals(row.Id, selected.ParentId, StringComparison.Ordinal));
                 if (parentIndex >= 0)
                 {
                     _cursor = parentIndex;
                     RevealCursor = true;
                 }
+
                 return;
             }
 
@@ -420,8 +402,7 @@ namespace SAS.Utilities.RuntimeSceneInspector
                 return;
             }
 
-            if (_cursor + 1 < rows.Count &&
-                string.Equals(rows[_cursor + 1].ParentId, selected.Id, StringComparison.Ordinal))
+            if (_cursor + 1 < rows.Count && string.Equals(rows[_cursor + 1].ParentId, selected.Id, StringComparison.Ordinal))
             {
                 _cursor++;
                 RevealCursor = true;
@@ -484,15 +465,12 @@ namespace SAS.Utilities.RuntimeSceneInspector
                     SetContains(_expandedMaterialRenderers, row.Renderer.RendererId.Value, expanded);
                     break;
                 case InspectorRowKind.MaterialSlot:
-                    SetContains(_expandedMaterialSlots,
-                        new MaterialSlotKey(row.Renderer.RendererId.Value, row.Slot.MaterialIndex), expanded);
+                    SetContains(_expandedMaterialSlots, new MaterialSlotKey(row.Renderer.RendererId.Value, row.Slot.MaterialIndex), expanded);
                     break;
             }
         }
 
-        private bool CanEditShaderProperty(RuntimeShaderPropertyView property, RuntimeObjectId rendererId,
-            int materialIndex) =>
-            property != null && !property.ReadOnly && ScopeAllowed(GetMaterialScope(rendererId, materialIndex));
+        private bool CanEditShaderProperty(RuntimeShaderPropertyView property, RuntimeObjectId rendererId, int materialIndex) => property != null && !property.ReadOnly && ScopeAllowed(GetMaterialScope(rendererId, materialIndex));
 
         private RuntimeMaterialEditScope FirstAllowedScope()
         {
@@ -515,12 +493,8 @@ namespace SAS.Utilities.RuntimeSceneInspector
         {
             List<InspectorRow> rows = GetRows();
             int previousCursor = _cursor;
-            int restoredCursor = !string.IsNullOrEmpty(selectedRowId)
-                ? rows.FindIndex(row => string.Equals(row.Id, selectedRowId, StringComparison.Ordinal))
-                : -1;
-            _cursor = restoredCursor >= 0
-                ? restoredCursor
-                : Mathf.Clamp(previousCursor, 0, Mathf.Max(0, rows.Count - 1));
+            int restoredCursor = !string.IsNullOrEmpty(selectedRowId) ? rows.FindIndex(row => string.Equals(row.Id, selectedRowId, StringComparison.Ordinal)) : -1;
+            _cursor = restoredCursor >= 0 ? restoredCursor : Mathf.Clamp(previousCursor, 0, Mathf.Max(0, rows.Count - 1));
             if (_cursor != previousCursor || !string.IsNullOrEmpty(selectedRowId) && restoredCursor < 0)
                 RevealCursor = true;
         }
@@ -562,16 +536,14 @@ namespace SAS.Utilities.RuntimeSceneInspector
                 if (!IsMaterialRendererExpanded(renderer.RendererId))
                     continue;
 
-                foreach (RuntimeMaterialSlotDescriptor slot in renderer.MaterialSlots ??
-                         Array.Empty<RuntimeMaterialSlotDescriptor>())
+                foreach (RuntimeMaterialSlotDescriptor slot in renderer.MaterialSlots ?? Array.Empty<RuntimeMaterialSlotDescriptor>())
                 {
                     InspectorRow slotRow = InspectorRow.ForMaterialSlot(renderer, slot, rendererRow.Id);
                     rows.Add(slotRow);
                     if (!IsMaterialSlotExpanded(renderer.RendererId, slot.MaterialIndex))
                         continue;
 
-                    foreach (RuntimeShaderPropertyView property in slot.Properties ??
-                             Array.Empty<RuntimeShaderPropertyView>())
+                    foreach (RuntimeShaderPropertyView property in slot.Properties ?? Array.Empty<RuntimeShaderPropertyView>())
                     {
                         if (MatchesShaderProperty(property.Property))
                             rows.Add(InspectorRow.ForShaderProperty(renderer, slot, property, slotRow.Id));
@@ -592,8 +564,7 @@ namespace SAS.Utilities.RuntimeSceneInspector
             {
                 if (_knownMaterialRenderers.Add(renderer.RendererId.Value))
                     _expandedMaterialRenderers.Add(renderer.RendererId.Value);
-                foreach (RuntimeMaterialSlotDescriptor slot in renderer.MaterialSlots ??
-                         Array.Empty<RuntimeMaterialSlotDescriptor>())
+                foreach (RuntimeMaterialSlotDescriptor slot in renderer.MaterialSlots ?? Array.Empty<RuntimeMaterialSlotDescriptor>())
                 {
                     var key = new MaterialSlotKey(renderer.RendererId.Value, slot.MaterialIndex);
                     if (_knownMaterialSlots.Add(key))
@@ -606,30 +577,23 @@ namespace SAS.Utilities.RuntimeSceneInspector
         {
             if (IsEditingMemberValue)
             {
-                return _details != null && _details.Components.Any(component =>
-                    component.Id.Equals(_editingComponent.Id) && component.Members != null &&
-                    component.Members.Any(member =>
-                        string.Equals(member.Name, _editingMember.Name, StringComparison.Ordinal)));
+                return _details != null && _details.Components.Any(component => component.Id.Equals(_editingComponent.Id) && component.Members != null && component.Members.Any(member => string.Equals(member.Name, _editingMember.Name, StringComparison.Ordinal)));
             }
 
             if (!IsEditingShaderValue)
                 return true;
 
-            return FindShaderProperty(_editingRendererId, _editingMaterialIndex,
-                _editingShaderProperty.Property.PropertyId) != null;
+            return FindShaderProperty(_editingRendererId, _editingMaterialIndex, _editingShaderProperty.Property.PropertyId) != null;
         }
 
-        private RuntimeShaderPropertyView FindShaderProperty(RuntimeObjectId rendererId, int materialIndex,
-            int propertyId)
+        private RuntimeShaderPropertyView FindShaderProperty(RuntimeObjectId rendererId, int materialIndex, int propertyId)
         {
             RuntimeMaterialShaderSection section = _details?.MaterialsAndShaders;
             if (section?.Renderers == null)
                 return null;
 
-            RuntimeRendererMaterialDescriptor renderer = section.Renderers.FirstOrDefault(item =>
-                item.RendererId.Equals(rendererId));
-            RuntimeMaterialSlotDescriptor slot = renderer?.MaterialSlots?.FirstOrDefault(item =>
-                item.MaterialIndex == materialIndex);
+            RuntimeRendererMaterialDescriptor renderer = section.Renderers.FirstOrDefault(item => item.RendererId.Equals(rendererId));
+            RuntimeMaterialSlotDescriptor slot = renderer?.MaterialSlots?.FirstOrDefault(item => item.MaterialIndex == materialIndex);
             return slot?.Properties?.FirstOrDefault(item => item.Property.PropertyId == propertyId);
         }
 
@@ -673,66 +637,68 @@ namespace SAS.Utilities.RuntimeSceneInspector
             internal RuntimeMaterialSlotDescriptor Slot;
             internal RuntimeShaderPropertyView ShaderProperty;
 
-            internal static InspectorRow Active() => new()
-            {
-                Kind = InspectorRowKind.Active,
-                Id = "$active"
-            };
+            internal static InspectorRow Active() =>
+                new()
+                {
+                    Kind = InspectorRowKind.Active,
+                    Id = "$active"
+                };
 
-            internal static InspectorRow ForComponent(RuntimeComponentDescriptor component) => new()
-            {
-                Kind = InspectorRowKind.Component,
-                Id = $"component:{component.Id.Value}",
-                Component = component
-            };
+            internal static InspectorRow ForComponent(RuntimeComponentDescriptor component) =>
+                new()
+                {
+                    Kind = InspectorRowKind.Component,
+                    Id = $"component:{component.Id.Value}",
+                    Component = component
+                };
 
-            internal static InspectorRow ForMember(RuntimeComponentDescriptor component,
-                RuntimeMemberDescriptor member, string parentId) => new()
-            {
-                Kind = InspectorRowKind.ComponentMember,
-                Id = $"component:{component.Id.Value}:member:{member.Name}",
-                ParentId = parentId,
-                Component = component,
-                Member = member
-            };
+            internal static InspectorRow ForMember(RuntimeComponentDescriptor component, RuntimeMemberDescriptor member, string parentId) =>
+                new()
+                {
+                    Kind = InspectorRowKind.ComponentMember,
+                    Id = $"component:{component.Id.Value}:member:{member.Name}",
+                    ParentId = parentId,
+                    Component = component,
+                    Member = member
+                };
 
-            internal static InspectorRow ForMaterialSection(RuntimeMaterialShaderSection section) => new()
-            {
-                Kind = InspectorRowKind.MaterialSection,
-                Id = "shader:section",
-                Section = section
-            };
+            internal static InspectorRow ForMaterialSection(RuntimeMaterialShaderSection section) =>
+                new()
+                {
+                    Kind = InspectorRowKind.MaterialSection,
+                    Id = "shader:section",
+                    Section = section
+                };
 
-            internal static InspectorRow ForMaterialRenderer(RuntimeRendererMaterialDescriptor renderer,
-                string parentId) => new()
-            {
-                Kind = InspectorRowKind.MaterialRenderer,
-                Id = $"shader:renderer:{renderer.RendererId.Value}",
-                ParentId = parentId,
-                Renderer = renderer
-            };
+            internal static InspectorRow ForMaterialRenderer(RuntimeRendererMaterialDescriptor renderer, string parentId) =>
+                new()
+                {
+                    Kind = InspectorRowKind.MaterialRenderer,
+                    Id = $"shader:renderer:{renderer.RendererId.Value}",
+                    ParentId = parentId,
+                    Renderer = renderer
+                };
 
-            internal static InspectorRow ForMaterialSlot(RuntimeRendererMaterialDescriptor renderer,
-                RuntimeMaterialSlotDescriptor slot, string parentId) => new()
-            {
-                Kind = InspectorRowKind.MaterialSlot,
-                Id = $"shader:slot:{renderer.RendererId.Value}:{slot.MaterialIndex}",
-                ParentId = parentId,
-                Renderer = renderer,
-                Slot = slot
-            };
+            internal static InspectorRow ForMaterialSlot(RuntimeRendererMaterialDescriptor renderer, RuntimeMaterialSlotDescriptor slot, string parentId) =>
+                new()
+                {
+                    Kind = InspectorRowKind.MaterialSlot,
+                    Id = $"shader:slot:{renderer.RendererId.Value}:{slot.MaterialIndex}",
+                    ParentId = parentId,
+                    Renderer = renderer,
+                    Slot = slot
+                };
 
-            internal static InspectorRow ForShaderProperty(RuntimeRendererMaterialDescriptor renderer,
-                RuntimeMaterialSlotDescriptor slot, RuntimeShaderPropertyView property, string parentId) => new()
-            {
-                Kind = InspectorRowKind.ShaderProperty,
-                Id = $"shader:property:{renderer.RendererId.Value}:{slot.MaterialIndex}:" +
-                     property.Property.PropertyId,
-                ParentId = parentId,
-                Renderer = renderer,
-                Slot = slot,
-                ShaderProperty = property
-            };
+            internal static InspectorRow ForShaderProperty(RuntimeRendererMaterialDescriptor renderer, RuntimeMaterialSlotDescriptor slot, RuntimeShaderPropertyView property, string parentId) =>
+                new()
+                {
+                    Kind = InspectorRowKind.ShaderProperty,
+                    Id = $"shader:property:{renderer.RendererId.Value}:{slot.MaterialIndex}:" + property.Property.PropertyId,
+                    ParentId = parentId,
+                    Renderer = renderer,
+                    Slot = slot,
+                    ShaderProperty = property
+                };
         }
 
         private readonly struct MaterialSlotKey : IEquatable<MaterialSlotKey>
@@ -745,8 +711,7 @@ namespace SAS.Utilities.RuntimeSceneInspector
 
             private long RendererId { get; }
             private int MaterialIndex { get; }
-            public bool Equals(MaterialSlotKey other) =>
-                RendererId == other.RendererId && MaterialIndex == other.MaterialIndex;
+            public bool Equals(MaterialSlotKey other) => RendererId == other.RendererId && MaterialIndex == other.MaterialIndex;
             public override bool Equals(object obj) => obj is MaterialSlotKey other && Equals(other);
             public override int GetHashCode() => unchecked((int)(RendererId * 397) ^ MaterialIndex);
         }

@@ -22,9 +22,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
         private readonly Dictionary<string, int> _materialScopes = new();
         private string _shaderSearch = string.Empty;
 
-        public void Draw(
-            RemoteRuntimeSceneInspectorClient client,
-            RemoteMaterialShaderSection section)
+        public void Draw(RemoteRuntimeSceneInspectorClient client, RemoteMaterialShaderSection section)
         {
             if (section?.Renderers == null || section.Renderers.Length == 0)
                 return;
@@ -36,15 +34,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
             {
                 EditorGUILayout.BeginVertical(EditorStyles.helpBox);
                 bool rendererExpanded = _expandedRenderers.Contains(renderer.RendererId);
-                bool nextRenderer = EditorGUILayout.Foldout(
-                    rendererExpanded,
-                    $"{renderer.RendererName} " +
-                    $"({RemoteInspectorFormatting.ShortTypeName(renderer.RendererType)})",
-                    true);
-                RemoteInspectorFormatting.SetExpanded(
-                    _expandedRenderers,
-                    renderer.RendererId,
-                    nextRenderer);
+                bool nextRenderer = EditorGUILayout.Foldout(rendererExpanded, $"{renderer.RendererName} " + $"({RemoteInspectorFormatting.ShortTypeName(renderer.RendererType)})", true);
+                RemoteInspectorFormatting.SetExpanded(_expandedRenderers, renderer.RendererId, nextRenderer);
                 if (nextRenderer)
                     DrawMaterialSlots(client, renderer);
                 EditorGUILayout.EndVertical();
@@ -54,30 +45,19 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
         private void DrawHeader(RemoteMaterialShaderSection section)
         {
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField(
-                section.DisplayName ?? "Materials & Shaders",
-                EditorStyles.boldLabel);
+            EditorGUILayout.LabelField(section.DisplayName ?? "Materials & Shaders", EditorStyles.boldLabel);
             GUILayout.FlexibleSpace();
-            _shaderSearch = EditorGUILayout.TextField(
-                _shaderSearch,
-                GUI.skin.FindStyle("ToolbarSearchTextField"),
-                GUILayout.Width(190f));
+            _shaderSearch = EditorGUILayout.TextField(_shaderSearch, GUI.skin.FindStyle("ToolbarSearchTextField"), GUILayout.Width(190f));
             EditorGUILayout.EndHorizontal();
         }
 
-        private void DrawMaterialSlots(
-            RemoteRuntimeSceneInspectorClient client,
-            RemoteRendererMaterialDescriptor renderer)
+        private void DrawMaterialSlots(RemoteRuntimeSceneInspectorClient client, RemoteRendererMaterialDescriptor renderer)
         {
-            foreach (RemoteMaterialSlotDescriptor slot in renderer.MaterialSlots ??
-                     Array.Empty<RemoteMaterialSlotDescriptor>())
+            foreach (RemoteMaterialSlotDescriptor slot in renderer.MaterialSlots ?? Array.Empty<RemoteMaterialSlotDescriptor>())
             {
                 string slotKey = $"{renderer.RendererId}:{slot.MaterialIndex}";
                 bool expanded = _expandedSlots.Contains(slotKey);
-                bool next = EditorGUILayout.Foldout(
-                    expanded,
-                    $"Slot {slot.MaterialIndex}: {slot.MaterialName ?? "<null>"}",
-                    true);
+                bool next = EditorGUILayout.Foldout(expanded, $"Slot {slot.MaterialIndex}: {slot.MaterialName ?? "<null>"}", true);
                 RemoteInspectorFormatting.SetExpanded(_expandedSlots, slotKey, next);
                 if (!next)
                     continue;
@@ -90,10 +70,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
             }
         }
 
-        private void DrawSlotMetadata(
-            RemoteMaterialSlotDescriptor slot,
-            string slotKey,
-            out int scope)
+        private void DrawSlotMetadata(RemoteMaterialSlotDescriptor slot, string slotKey, out int scope)
         {
             EditorGUILayout.LabelField("Shader", slot.ShaderName ?? "<missing>");
             EditorGUILayout.LabelField("Render Queue", slot.RenderQueue.ToString());
@@ -106,22 +83,13 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
 
             if (scope == 2 || scope == 3)
             {
-                EditorGUILayout.HelpBox(
-                    scope == 2
-                        ? "Shared Material changes may affect multiple renderers."
-                        : "Global shader changes may affect multiple materials and shaders.",
-                    MessageType.Warning);
+                EditorGUILayout.HelpBox(scope == 2 ? "Shared Material changes may affect multiple renderers." : "Global shader changes may affect multiple materials and shaders.", MessageType.Warning);
             }
         }
 
-        private void DrawShaderProperties(
-            RemoteRuntimeSceneInspectorClient client,
-            long rendererId,
-            RemoteMaterialSlotDescriptor slot,
-            int scope)
+        private void DrawShaderProperties(RemoteRuntimeSceneInspectorClient client, long rendererId, RemoteMaterialSlotDescriptor slot, int scope)
         {
-            foreach (RemoteShaderPropertyView property in slot.Properties ??
-                     Array.Empty<RemoteShaderPropertyView>())
+            foreach (RemoteShaderPropertyView property in slot.Properties ?? Array.Empty<RemoteShaderPropertyView>())
             {
                 if (MatchesShaderSearch(property))
                     DrawShaderProperty(client, rendererId, slot, property, scope);
@@ -129,17 +97,11 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
 
             if (slot.PropertyLimitReached)
             {
-                EditorGUILayout.HelpBox(
-                    $"Showing a limited set of {slot.TotalPropertyCount} shader properties.",
-                    MessageType.Info);
+                EditorGUILayout.HelpBox($"Showing a limited set of {slot.TotalPropertyCount} shader properties.", MessageType.Info);
             }
         }
 
-        private static void DrawRestoreButton(
-            RemoteRuntimeSceneInspectorClient client,
-            long rendererId,
-            RemoteMaterialSlotDescriptor slot,
-            int scope)
+        private static void DrawRestoreButton(RemoteRuntimeSceneInspectorClient client, long rendererId, RemoteMaterialSlotDescriptor slot, int scope)
         {
             if (!GUILayout.Button("Restore Slot"))
                 return;
@@ -153,50 +115,27 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
             });
         }
 
-        private void DrawShaderProperty(
-            RemoteRuntimeSceneInspectorClient client,
-            long rendererId,
-            RemoteMaterialSlotDescriptor slot,
-            RemoteShaderPropertyView property,
-            int scope)
+        private void DrawShaderProperty(RemoteRuntimeSceneInspectorClient client, long rendererId, RemoteMaterialSlotDescriptor slot, RemoteShaderPropertyView property, int scope)
         {
-            string key =
-                $"shader:{rendererId}:{slot.MaterialIndex}:{property.PropertyId}:{scope}";
+            string key = $"shader:{rendererId}:{slot.MaterialIndex}:{property.PropertyId}:{scope}";
             EditorGUILayout.BeginHorizontal();
             GUILayout.Label(property.DisplayName ?? property.Name, GUILayout.Width(155f));
 
             if (property.ReadOnly)
             {
-                EditorGUILayout.SelectableLabel(
-                    property.Value ?? string.Empty,
-                    EditorStyles.textField,
-                    GUILayout.Height(EditorGUIUtility.singleLineHeight));
+                EditorGUILayout.SelectableLabel(property.Value ?? string.Empty, EditorStyles.textField, GUILayout.Height(EditorGUIUtility.singleLineHeight));
             }
             else
             {
-                DrawEditableShaderProperty(
-                    client,
-                    rendererId,
-                    slot,
-                    property,
-                    scope,
-                    key);
+                DrawEditableShaderProperty(client, rendererId, slot, property, scope, key);
             }
 
             DrawResetButton(client, rendererId, slot, property, scope);
             EditorGUILayout.EndHorizontal();
-            EditorGUILayout.LabelField(
-                $"{property.Name}  •  {property.ValueSource}",
-                EditorStyles.miniLabel);
+            EditorGUILayout.LabelField($"{property.Name}  •  {property.ValueSource}", EditorStyles.miniLabel);
         }
 
-        private void DrawEditableShaderProperty(
-            RemoteRuntimeSceneInspectorClient client,
-            long rendererId,
-            RemoteMaterialSlotDescriptor slot,
-            RemoteShaderPropertyView property,
-            int scope,
-            string key)
+        private void DrawEditableShaderProperty(RemoteRuntimeSceneInspectorClient client, long rendererId, RemoteMaterialSlotDescriptor slot, RemoteShaderPropertyView property, int scope, string key)
         {
             if (!_editValues.TryGetValue(key, out string value))
                 value = property.Value ?? string.Empty;
@@ -219,12 +158,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
             }
         }
 
-        private static void DrawResetButton(
-            RemoteRuntimeSceneInspectorClient client,
-            long rendererId,
-            RemoteMaterialSlotDescriptor slot,
-            RemoteShaderPropertyView property,
-            int scope)
+        private static void DrawResetButton(RemoteRuntimeSceneInspectorClient client, long rendererId, RemoteMaterialSlotDescriptor slot, RemoteShaderPropertyView property, int scope)
         {
             using (new EditorGUI.DisabledScope(!property.HasInspectorOverride))
             {
@@ -247,12 +181,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
             if (string.IsNullOrWhiteSpace(_shaderSearch))
                 return true;
 
-            return (property.Name?.IndexOf(
-                       _shaderSearch,
-                       StringComparison.OrdinalIgnoreCase) ?? -1) >= 0 ||
-                   (property.DisplayName?.IndexOf(
-                       _shaderSearch,
-                       StringComparison.OrdinalIgnoreCase) ?? -1) >= 0;
+            return (property.Name?.IndexOf(_shaderSearch, StringComparison.OrdinalIgnoreCase) ?? -1) >= 0 || (property.DisplayName?.IndexOf(_shaderSearch, StringComparison.OrdinalIgnoreCase) ?? -1) >= 0;
         }
     }
 }

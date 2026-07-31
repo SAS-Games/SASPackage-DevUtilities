@@ -12,8 +12,7 @@ namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector
             if (snapshot == null)
                 return new RemoteSceneInspectorHierarchyResponse();
 
-            IReadOnlyList<RuntimeHierarchyEntry> source =
-                snapshot.Entries ?? Array.Empty<RuntimeHierarchyEntry>();
+            IReadOnlyList<RuntimeHierarchyEntry> source = snapshot.Entries ?? Array.Empty<RuntimeHierarchyEntry>();
             var entries = new RemoteHierarchyEntry[source.Count];
             for (int i = 0; i < source.Count; i++)
             {
@@ -43,8 +42,7 @@ namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector
             if (details == null)
                 return null;
 
-            IReadOnlyList<RuntimeComponentDescriptor> sourceComponents =
-                details.Components ?? Array.Empty<RuntimeComponentDescriptor>();
+            IReadOnlyList<RuntimeComponentDescriptor> sourceComponents = details.Components ?? Array.Empty<RuntimeComponentDescriptor>();
             var components = new RemoteComponentDescriptor[sourceComponents.Count];
             for (int i = 0; i < sourceComponents.Count; i++)
                 components[i] = ToRemote(sourceComponents[i]);
@@ -63,8 +61,7 @@ namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector
 
         private static RemoteComponentDescriptor ToRemote(RuntimeComponentDescriptor component)
         {
-            IReadOnlyList<RuntimeMemberDescriptor> sourceMembers =
-                component.Members ?? Array.Empty<RuntimeMemberDescriptor>();
+            IReadOnlyList<RuntimeMemberDescriptor> sourceMembers = component.Members ?? Array.Empty<RuntimeMemberDescriptor>();
             var members = new RemoteMemberDescriptor[sourceMembers.Count];
             for (int i = 0; i < sourceMembers.Count; i++)
             {
@@ -97,14 +94,12 @@ namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector
             if (section == null)
                 return null;
 
-            IReadOnlyList<RuntimeRendererMaterialDescriptor> sourceRenderers =
-                section.Renderers ?? Array.Empty<RuntimeRendererMaterialDescriptor>();
+            IReadOnlyList<RuntimeRendererMaterialDescriptor> sourceRenderers = section.Renderers ?? Array.Empty<RuntimeRendererMaterialDescriptor>();
             var renderers = new RemoteRendererMaterialDescriptor[sourceRenderers.Count];
             for (int i = 0; i < sourceRenderers.Count; i++)
             {
                 RuntimeRendererMaterialDescriptor renderer = sourceRenderers[i];
-                IReadOnlyList<RuntimeMaterialSlotDescriptor> sourceSlots =
-                    renderer.MaterialSlots ?? Array.Empty<RuntimeMaterialSlotDescriptor>();
+                IReadOnlyList<RuntimeMaterialSlotDescriptor> sourceSlots = renderer.MaterialSlots ?? Array.Empty<RuntimeMaterialSlotDescriptor>();
                 var slots = new RemoteMaterialSlotDescriptor[sourceSlots.Count];
                 for (int slotIndex = 0; slotIndex < sourceSlots.Count; slotIndex++)
                     slots[slotIndex] = ToRemote(sourceSlots[slotIndex]);
@@ -127,8 +122,7 @@ namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector
 
         private static RemoteMaterialSlotDescriptor ToRemote(RuntimeMaterialSlotDescriptor slot)
         {
-            IReadOnlyList<RuntimeShaderPropertyView> sourceProperties =
-                slot.Properties ?? Array.Empty<RuntimeShaderPropertyView>();
+            IReadOnlyList<RuntimeShaderPropertyView> sourceProperties = slot.Properties ?? Array.Empty<RuntimeShaderPropertyView>();
             var properties = new RemoteShaderPropertyView[sourceProperties.Count];
             for (int i = 0; i < sourceProperties.Count; i++)
             {

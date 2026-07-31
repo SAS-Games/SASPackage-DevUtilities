@@ -13,8 +13,7 @@ namespace SAS.DevUtilities.Stats
     {
         private const double BytesPerGibibyte = 1073741824d;
 
-        [Header("Display")]
-        [SerializeField] private Text m_Display;
+        [Header("Display")] [SerializeField] private Text m_Display;
         private readonly StringBuilder _builder = new StringBuilder(512);
 
         /// <summary>

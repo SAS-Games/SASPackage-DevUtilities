@@ -46,39 +46,28 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
         private static RemoteMiniToolDescriptor[] Discover()
         {
             var descriptors = new Dictionary<string, RemoteMiniToolDescriptor>(StringComparer.OrdinalIgnoreCase);
-            foreach (RemoteMiniToolDescriptor descriptor in
-                     MiniToolRegistry.GetDescriptors())
+            foreach (RemoteMiniToolDescriptor descriptor in MiniToolRegistry.GetDescriptors())
             {
-                if (descriptor == null ||
-                    string.IsNullOrWhiteSpace(descriptor.Id))
+                if (descriptor == null || string.IsNullOrWhiteSpace(descriptor.Id))
                     continue;
                 descriptors[descriptor.Id.Trim()] = Clone(descriptor);
             }
 
-            var discoveredDescriptors =
-                new RemoteMiniToolDescriptor[descriptors.Count];
+            var discoveredDescriptors = new RemoteMiniToolDescriptor[descriptors.Count];
             descriptors.Values.CopyTo(discoveredDescriptors, 0);
-            Array.Sort(
-                discoveredDescriptors,
-                (left, right) => string.Compare(
-                    left.DisplayName ?? left.Id,
-                    right.DisplayName ?? right.Id,
-                    StringComparison.OrdinalIgnoreCase));
+            Array.Sort(discoveredDescriptors, (left, right) => string.Compare(left.DisplayName ?? left.Id, right.DisplayName ?? right.Id, StringComparison.OrdinalIgnoreCase));
             return discoveredDescriptors;
         }
 
-        private static RemoteMiniToolDescriptor Clone(
-            RemoteMiniToolDescriptor descriptor)
+        private static RemoteMiniToolDescriptor Clone(RemoteMiniToolDescriptor descriptor)
         {
             return new RemoteMiniToolDescriptor
             {
                 Id = descriptor.Id,
                 DisplayName = descriptor.DisplayName,
                 Description = descriptor.Description,
-                DefaultIntervalSeconds =
-                    descriptor.DefaultIntervalSeconds,
-                DefaultStreamIntervalSeconds =
-                    descriptor.DefaultStreamIntervalSeconds,
+                DefaultIntervalSeconds = descriptor.DefaultIntervalSeconds,
+                DefaultStreamIntervalSeconds = descriptor.DefaultStreamIntervalSeconds,
                 VisibleByDefault = descriptor.VisibleByDefault,
                 Capabilities = descriptor.Capabilities,
                 Command = descriptor.Command == null
@@ -86,8 +75,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
                     : new RemoteMiniToolCommandManifest
                     {
                         Name = descriptor.Command.Name,
-                        SuggestedRouting =
-                            descriptor.Command.SuggestedRouting
+                        SuggestedRouting = descriptor.Command.SuggestedRouting
                     }
             };
         }

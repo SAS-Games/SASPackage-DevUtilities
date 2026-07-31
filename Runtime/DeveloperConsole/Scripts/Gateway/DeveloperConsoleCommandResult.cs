@@ -2,10 +2,7 @@ namespace SAS.Utilities.DeveloperConsole
 {
     public sealed class DeveloperConsoleCommandResult
     {
-        public DeveloperConsoleCommandResult(
-            bool success,
-            bool closeRequested,
-            string message)
+        public DeveloperConsoleCommandResult(bool success, bool closeRequested, string message)
         {
             Success = success;
             CloseRequested = closeRequested;

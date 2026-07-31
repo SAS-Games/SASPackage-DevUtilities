@@ -55,7 +55,8 @@ namespace SAS.Utilities.DeveloperConsole
 
         protected override void Navigate(float direction)
         {
-            if (!gameObject.activeInHierarchy || _navigableItems.Count == 0) return;
+            if (!gameObject.activeInHierarchy || _navigableItems.Count == 0)
+                return;
 
 
             if (direction > 0)
@@ -115,8 +116,7 @@ namespace SAS.Utilities.DeveloperConsole
             label.text = baseCommand;
             var presetContainer = baseItem.transform.Find("PresetContainer").GetComponent<RectTransform>();
             presetContainer.gameObject.SetActive(false);
-            baseItem.GetComponentInChildren<Button>().onClick
-                .AddListener(() => OnCommandSelected(baseItem, label, baseCommand, presetContainer));
+            baseItem.GetComponentInChildren<Button>().onClick.AddListener(() => OnCommandSelected(baseItem, label, baseCommand, presetContainer));
             _activeCommandObjects.Add(baseItem);
             LayoutRebuilder.ForceRebuildLayoutImmediate(m_BaseCommandContainer);
         }
@@ -134,8 +134,7 @@ namespace SAS.Utilities.DeveloperConsole
             if (_currentlyExpanded != null)
             {
                 var suggestions = _developerConsoleUI.DeveloperConsole.GetCommandSuggestions(baseCommand);
-                suggestions = suggestions.Where(s => s != baseCommand)
-                    .ToList();
+                suggestions = suggestions.Where(s => s != baseCommand).ToList();
 
                 CreatePresetUI(label.renderedWidth, presetContainer, suggestions);
             }
@@ -161,8 +160,7 @@ namespace SAS.Utilities.DeveloperConsole
                 var presetItem = Instantiate(m_PresetTemplate, container);
                 presetItem.SetActive(true);
                 presetItem.GetComponentInChildren<TMP_Text>().text = suggestion;
-                presetItem.GetComponent<Button>().onClick
-                    .AddListener(() => _developerConsoleUI.ApplySuggestion(suggestion));
+                presetItem.GetComponent<Button>().onClick.AddListener(() => _developerConsoleUI.ApplySuggestion(suggestion));
             }
 
             LayoutRebuilder.ForceRebuildLayoutImmediate(container);

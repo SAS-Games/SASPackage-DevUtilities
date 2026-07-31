@@ -211,20 +211,14 @@ public static class InputLatencyProfilerMarker
         }
     }
 #else
-    [System.Runtime.CompilerServices.MethodImpl(
-        System.Runtime.CompilerServices.MethodImplOptions
-            .AggressiveInlining)]
-    public static Scope Measure(
-        InputAction.CallbackContext context,
-        string markerName = null)
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+    public static Scope Measure(InputAction.CallbackContext context, string markerName = null)
     {
         return default;
     }
 
     [System.Diagnostics.Conditional("ENABLE_DEBUG")]
-    public static void Record(
-        InputAction.CallbackContext context,
-        string markerName = null)
+    public static void Record(InputAction.CallbackContext context, string markerName = null)
     {
     }
 

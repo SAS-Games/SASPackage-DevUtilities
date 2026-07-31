@@ -43,13 +43,11 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools
                 }
 
                 _providers.Add(descriptor.Id, new ProviderState
-                    {
-                        Registration = registration,
-                        Interval = Mathf.Max(0.1f, descriptor.DefaultIntervalSeconds),
-                        StreamInterval = Mathf.Max(
-                            0.02f,
-                            descriptor.DefaultStreamIntervalSeconds)
-                    });
+                {
+                    Registration = registration,
+                    Interval = Mathf.Max(0.1f, descriptor.DefaultIntervalSeconds),
+                    StreamInterval = Mathf.Max(0.02f, descriptor.DefaultStreamIntervalSeconds)
+                });
             }
         }
 
@@ -88,33 +86,23 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools
                 if (now >= state.NextSampleTime)
                 {
                     state.NextSampleTime = now + state.Interval;
-                    RemoteMiniToolSample sample =
-                        state.Registration.Capture();
+                    RemoteMiniToolSample sample = state.Registration.Capture();
                     if (sample != null)
                     {
-                        _context.Sender.Send(
-                            RemoteMessageTypes.MiniToolSample,
-                            0,
-                            sample);
+                        _context.Sender.Send(RemoteMessageTypes.MiniToolSample, 0, sample);
                     }
                 }
 
-                if (!state.Registration.SupportsEventStream ||
-                    now < state.NextStreamTime)
+                if (!state.Registration.SupportsEventStream || now < state.NextStreamTime)
                 {
                     continue;
                 }
 
-                state.NextStreamTime =
-                    now + state.StreamInterval;
-                RemoteMiniToolStreamBatch batch =
-                    state.Registration.CaptureStream();
+                state.NextStreamTime = now + state.StreamInterval;
+                RemoteMiniToolStreamBatch batch = state.Registration.CaptureStream();
                 if (batch != null)
                 {
-                    _context.Sender.Send(
-                        RemoteMessageTypes.MiniToolStreamBatch,
-                        0,
-                        batch);
+                    _context.Sender.Send(RemoteMessageTypes.MiniToolStreamBatch, 0, batch);
                 }
             }
         }
@@ -180,12 +168,7 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools
             if (request.Subscribe && !state.Subscribed)
             {
                 state.Interval = Mathf.Max(0.1f, request.IntervalSeconds > 0f ? request.IntervalSeconds : state.Registration.Descriptor.DefaultIntervalSeconds);
-                state.StreamInterval = Mathf.Max(
-                    0.02f,
-                    request.StreamIntervalSeconds > 0f
-                        ? request.StreamIntervalSeconds
-                        : state.Registration.Descriptor
-                            .DefaultStreamIntervalSeconds);
+                state.StreamInterval = Mathf.Max(0.02f, request.StreamIntervalSeconds > 0f ? request.StreamIntervalSeconds : state.Registration.Descriptor.DefaultStreamIntervalSeconds);
                 state.NextSampleTime = 0d;
                 state.NextStreamTime = 0d;
                 state.Registration.Start();
@@ -202,99 +185,57 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools
 
         private void SendSubscriptionResult(long requestId, string toolId, bool success, bool subscribed, string error)
         {
-            _context.Sender.Send(RemoteMessageTypes.MiniToolSubscriptionResponse, requestId,
-                new RemoteMiniToolSubscriptionResponse
-                {
-                    ToolId = toolId,
-                    Success = success,
-                    Subscribed = subscribed,
-                    Error = error
-                });
+            _context.Sender.Send(RemoteMessageTypes.MiniToolSubscriptionResponse, requestId, new RemoteMiniToolSubscriptionResponse
+            {
+                ToolId = toolId,
+                Success = success,
+                Subscribed = subscribed,
+                Error = error
+            });
         }
 
         private void ExecuteAction(RemoteEnvelope envelope)
         {
             if (!_context.Settings.AllowMiniTools)
             {
-                SendActionResult(
-                    envelope.RequestId,
-                    string.Empty,
-                    string.Empty,
-                    false,
-                    "Remote mini-tools are disabled.");
+                SendActionResult(envelope.RequestId, string.Empty, string.Empty, false, "Remote mini-tools are disabled.");
                 return;
             }
 
-            if (!RemoteProtocolSerializer.TryDeserializePayload(
-                    envelope,
-                    out RemoteMiniToolActionRequest request,
-                    out string error))
+            if (!RemoteProtocolSerializer.TryDeserializePayload(envelope, out RemoteMiniToolActionRequest request, out string error))
             {
-                SendActionResult(
-                    envelope.RequestId,
-                    string.Empty,
-                    string.Empty,
-                    false,
-                    error);
+                SendActionResult(envelope.RequestId, string.Empty, string.Empty, false, error);
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(request.ToolId) ||
-                !_providers.TryGetValue(
-                    request.ToolId,
-                    out ProviderState state))
+            if (string.IsNullOrWhiteSpace(request.ToolId) || !_providers.TryGetValue(request.ToolId, out ProviderState state))
             {
-                SendActionResult(
-                    envelope.RequestId,
-                    request.ToolId,
-                    request.ActionId,
-                    false,
-                    "The requested mini-tool is not available.");
+                SendActionResult(envelope.RequestId, request.ToolId, request.ActionId, false, "The requested mini-tool is not available.");
                 return;
             }
 
             if (!state.Subscribed)
             {
-                SendActionResult(
-                    envelope.RequestId,
-                    request.ToolId,
-                    request.ActionId,
-                    false,
-                    "Start the mini-tool before using its actions.");
+                SendActionResult(envelope.RequestId, request.ToolId, request.ActionId, false, "Start the mini-tool before using its actions.");
                 return;
             }
 
-            bool success = state.Registration.TryExecuteAction(
-                request.ActionId,
-                out error);
+            bool success = state.Registration.TryExecuteAction(request.ActionId, out error);
             if (success)
                 state.NextSampleTime = 0d;
 
-            SendActionResult(
-                envelope.RequestId,
-                request.ToolId,
-                request.ActionId,
-                success,
-                error);
+            SendActionResult(envelope.RequestId, request.ToolId, request.ActionId, success, error);
         }
 
-        private void SendActionResult(
-            long requestId,
-            string toolId,
-            string actionId,
-            bool success,
-            string error)
+        private void SendActionResult(long requestId, string toolId, string actionId, bool success, string error)
         {
-            _context.Sender.Send(
-                RemoteMessageTypes.MiniToolActionResponse,
-                requestId,
-                new RemoteMiniToolActionResponse
-                {
-                    ToolId = toolId,
-                    ActionId = actionId,
-                    Success = success,
-                    Error = error
-                });
+            _context.Sender.Send(RemoteMessageTypes.MiniToolActionResponse, requestId, new RemoteMiniToolActionResponse
+            {
+                ToolId = toolId,
+                ActionId = actionId,
+                Success = success,
+                Error = error
+            });
         }
     }
 }

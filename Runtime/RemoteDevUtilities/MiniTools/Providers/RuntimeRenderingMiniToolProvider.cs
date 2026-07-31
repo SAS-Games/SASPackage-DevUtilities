@@ -6,8 +6,7 @@ using UnityEngine.Rendering;
 namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
 {
     [UnityEngine.Scripting.Preserve]
-    internal sealed class RuntimeRenderingMiniToolProvider :
-        MiniToolFieldDataProvider
+    internal sealed class RuntimeRenderingMiniToolProvider : MiniToolFieldDataProvider
     {
         public override RemoteMiniToolField[] CaptureFields()
         {
@@ -53,34 +52,13 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
 
             return new[]
             {
-                CreateField(
-                    "renderers",
-                    "Renderers",
-                    renderers.Length.ToString()),
-                CreateField(
-                    "activeRenderers",
-                    "Active Renderers",
-                    activeRenderers.ToString()),
-                CreateField(
-                    "visibleRenderers",
-                    "Visible Renderers",
-                    visibleRenderers.ToString()),
-                CreateField(
-                    "shadowCasters",
-                    "Shadow Casters",
-                    shadowCasters.ToString()),
-                CreateField(
-                    "materials",
-                    "Unique Materials",
-                    materials.Count.ToString()),
-                CreateField(
-                    "cameras",
-                    "Active Cameras",
-                    activeCameras.ToString()),
-                CreateField(
-                    "lights",
-                    "Active Lights",
-                    activeLights.ToString())
+                CreateField("renderers", "Renderers", renderers.Length.ToString()),
+                CreateField("activeRenderers", "Active Renderers", activeRenderers.ToString()),
+                CreateField("visibleRenderers", "Visible Renderers", visibleRenderers.ToString()),
+                CreateField("shadowCasters", "Shadow Casters", shadowCasters.ToString()),
+                CreateField("materials", "Unique Materials", materials.Count.ToString()),
+                CreateField("cameras", "Active Cameras", activeCameras.ToString()),
+                CreateField("lights", "Active Lights", activeLights.ToString())
             };
         }
     }

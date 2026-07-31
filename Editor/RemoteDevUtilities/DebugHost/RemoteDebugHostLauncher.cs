@@ -13,12 +13,9 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
     [InitializeOnLoad]
     internal static class RemoteDebugHostLauncher
     {
-        private const string SessionKey =
-            "RemoteDevUtilities.DebugHostRequested";
-        private const string PreviousScenesKey =
-            "RemoteDevUtilities.PreviousScenes";
-        private const string RestoreScenesKey =
-            "RemoteDevUtilities.RestoreScenes";
+        private const string SessionKey = "RemoteDevUtilities.DebugHostRequested";
+        private const string PreviousScenesKey = "RemoteDevUtilities.PreviousScenes";
+        private const string RestoreScenesKey = "RemoteDevUtilities.RestoreScenes";
         private static EditorRemoteCommandPresentationGateway _commands;
         private static EditorRemoteRuntimeSceneInspectorProxy _runtimeSceneInspector;
         private static RemoteMiniToolPrefabPresenter _miniTools;
@@ -42,8 +39,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
         }
 
-        internal static bool IsActive =>
-            _commands != null || SessionState.GetBool(SessionKey, false);
+        internal static bool IsActive => _commands != null || SessionState.GetBool(SessionKey, false);
 
         internal static void Launch()
         {
@@ -52,9 +48,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
             if (EditorApplication.isPlaying)
             {
                 SessionState.EraseBool(SessionKey);
-                Debug.LogWarning(
-                    "Exit the current Play Mode session before launching the isolated " +
-                    "Remote Dev Utilities Debug Host.");
+                Debug.LogWarning("Exit the current Play Mode session before launching the isolated " + "Remote Dev Utilities Debug Host.");
                 return;
             }
 
@@ -67,11 +61,9 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
             SaveCurrentSceneSetup();
             if (!RemoteDebugHostSceneLoader.TryCreate(out string error))
             {
-                Debug.LogWarning(
-                    error +
-                    " The Debug Host will continue with the available " +
-                    "temporary scene objects.");
+                Debug.LogWarning(error + " The Debug Host will continue with the available " + "temporary scene objects.");
             }
+
             EditorApplication.EnterPlaymode();
         }
 
@@ -92,8 +84,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
 
         private static void OnPlayModeStateChanged(PlayModeStateChange state)
         {
-            if (state == PlayModeStateChange.EnteredPlayMode &&
-                SessionState.GetBool(SessionKey, false))
+            if (state == PlayModeStateChange.EnteredPlayMode && SessionState.GetBool(SessionKey, false))
                 Install();
             else if (state == PlayModeStateChange.ExitingPlayMode)
             {
@@ -102,8 +93,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
                 SessionState.EraseBool(SessionKey);
                 Uninstall();
             }
-            else if (state == PlayModeStateChange.EnteredEditMode &&
-                     SessionState.GetBool(RestoreScenesKey, false))
+            else if (state == PlayModeStateChange.EnteredEditMode && SessionState.GetBool(RestoreScenesKey, false))
             {
                 RestorePreviousSceneSetup();
             }
@@ -120,15 +110,12 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
             _miniTools = new RemoteMiniToolPrefabPresenter(client);
             RemoteDebugHostSession.Install(_runtimeSceneInspector);
 
-            DeveloperConsoleBehaviour console =
-                UnityEngine.Object.FindFirstObjectByType<DeveloperConsoleBehaviour>(
-                    FindObjectsInactive.Include);
+            DeveloperConsoleBehaviour console = UnityEngine.Object.FindFirstObjectByType<DeveloperConsoleBehaviour>(FindObjectsInactive.Include);
             if (console == null)
             {
                 GameObject prefab = Resources.Load<GameObject>("ConsoleCommandsSystem");
                 if (prefab != null)
-                    console = UnityEngine.Object.Instantiate(prefab)
-                        .GetComponent<DeveloperConsoleBehaviour>();
+                    console = UnityEngine.Object.Instantiate(prefab).GetComponent<DeveloperConsoleBehaviour>();
             }
 
             if (console != null)
@@ -169,9 +156,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
                 };
             }
 
-            SessionState.SetString(
-                PreviousScenesKey,
-                JsonUtility.ToJson(new SceneSetupCollection { Scenes = records }));
+            SessionState.SetString(PreviousScenesKey, JsonUtility.ToJson(new SceneSetupCollection { Scenes = records }));
         }
 
         private static void RestorePreviousSceneSetup()

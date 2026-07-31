@@ -8,7 +8,7 @@ namespace SAS.BuildValidation
     public abstract class SceneBuildValidationBase : IBuildValidation
     {
         public abstract string Name { get; }
-        
+
         public BuildValidationResult Validate(BuildReport report)
         {
             BuildValidationResult result = BuildValidationResult.Create();
@@ -39,14 +39,11 @@ namespace SAS.BuildValidation
             {
                 if (hasLoadedScene)
                 {
-                    EditorSceneManager.RestoreSceneManagerSetup(
-                        originalSetup);
+                    EditorSceneManager.RestoreSceneManagerSetup(originalSetup);
                 }
                 else
                 {
-                    EditorSceneManager.NewScene(
-                        NewSceneSetup.EmptyScene,
-                        NewSceneMode.Single);
+                    EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
                 }
             }
 

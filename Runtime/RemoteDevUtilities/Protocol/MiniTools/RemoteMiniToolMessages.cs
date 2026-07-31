@@ -35,8 +35,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools
         public bool VisibleByDefault = true;
         public RemoteMiniToolCapabilities Capabilities;
         public RemoteMiniToolCommandManifest Command;
-        public RemoteMiniToolActionDescriptor[] Actions =
-            Array.Empty<RemoteMiniToolActionDescriptor>();
+        public RemoteMiniToolActionDescriptor[] Actions = Array.Empty<RemoteMiniToolActionDescriptor>();
     }
 
     /// <summary>
@@ -47,8 +46,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools
     public sealed class RemoteMiniToolCommandManifest
     {
         public string Name;
-        public RemoteCommandRouting SuggestedRouting =
-            RemoteCommandRouting.ControlEditorToolOnly;
+        public RemoteCommandRouting SuggestedRouting = RemoteCommandRouting.ControlEditorToolOnly;
     }
 
     [Serializable]
@@ -132,8 +130,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools
     /// array.
     /// </summary>
     [Serializable]
-    public sealed class RemoteMiniToolStreamPayload<TEvent>
-        where TEvent : SAS.DevUtilities.IMiniToolStreamEvent
+    public sealed class RemoteMiniToolStreamPayload<TEvent> where TEvent : SAS.DevUtilities.IMiniToolStreamEvent
     {
         public TEvent[] Events = Array.Empty<TEvent>();
     }

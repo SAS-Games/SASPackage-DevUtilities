@@ -27,21 +27,14 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
             _toolId = serializedObject.FindProperty("_toolId");
             _displayName = serializedObject.FindProperty("_displayName");
             _description = serializedObject.FindProperty("_description");
-            _updateInterval =
-                serializedObject.FindProperty("_updateInterval");
-            _providerScriptGuid =
-                serializedObject.FindProperty("_providerScriptGuid");
-            _providerTypeName =
-                serializedObject.FindProperty("_providerTypeName");
+            _updateInterval = serializedObject.FindProperty("_updateInterval");
+            _providerScriptGuid = serializedObject.FindProperty("_providerScriptGuid");
+            _providerTypeName = serializedObject.FindProperty("_providerTypeName");
             _command = serializedObject.FindProperty("_command");
-            _commandName =
-                serializedObject.FindProperty("_commandName");
-            _commandRouting =
-                serializedObject.FindProperty("_commandRouting");
-            _debugHostPrefabGuid =
-                serializedObject.FindProperty("_debugHostPrefabGuid");
-            _visibleByDefault =
-                serializedObject.FindProperty("_visibleByDefault");
+            _commandName = serializedObject.FindProperty("_commandName");
+            _commandRouting = serializedObject.FindProperty("_commandRouting");
+            _debugHostPrefabGuid = serializedObject.FindProperty("_debugHostPrefabGuid");
+            _visibleByDefault = serializedObject.FindProperty("_visibleByDefault");
         }
 
         public override void OnInspectorGUI()
@@ -51,47 +44,29 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
             EditorGUILayout.BeginHorizontal();
             using (new EditorGUI.DisabledScope(true))
             {
-                EditorGUILayout.TextField(
-                    new GUIContent(
-                        "Tool ID",
-                        "Generated once and shared automatically by every mini-tool consumer."),
-                    _toolId.stringValue);
+                EditorGUILayout.TextField(new GUIContent("Tool ID", "Generated once and shared automatically by every mini-tool consumer."), _toolId.stringValue);
             }
-            if (GUILayout.Button(
-                    "Regenerate",
-                    EditorStyles.miniButton,
-                    GUILayout.Width(76f)) &&
-                EditorUtility.DisplayDialog(
-                    "Regenerate Mini-Tool ID?",
-                    "Existing project overrides and older builds will no longer identify this as the same tool.",
-                    "Regenerate",
-                    "Cancel"))
+
+            if (GUILayout.Button("Regenerate", EditorStyles.miniButton, GUILayout.Width(76f)) && EditorUtility.DisplayDialog("Regenerate Mini-Tool ID?", "Existing project overrides and older builds will no longer identify this as the same tool.", "Regenerate", "Cancel"))
             {
-                _toolId.stringValue =
-                    $"mini-tool.{Guid.NewGuid():N}";
+                _toolId.stringValue = $"mini-tool.{Guid.NewGuid():N}";
             }
+
             EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.PropertyField(_displayName);
             EditorGUILayout.PropertyField(_description);
-            EditorGUILayout.PropertyField(
-                _updateInterval,
-                new GUIContent("Update Interval"));
+            EditorGUILayout.PropertyField(_updateInterval, new GUIContent("Update Interval"));
             DrawProvider();
             EditorGUILayout.Space(4f);
             DrawCommand();
-            using (new EditorGUI.DisabledScope(
-                       _command.objectReferenceValue == null))
+            using (new EditorGUI.DisabledScope(_command.objectReferenceValue == null))
             {
-                EditorGUILayout.PropertyField(
-                    _commandRouting,
-                    new GUIContent("When Command Runs"));
+                EditorGUILayout.PropertyField(_commandRouting, new GUIContent("When Command Runs"));
             }
 
             DrawDebugHostPrefab();
-            EditorGUILayout.PropertyField(
-                _visibleByDefault,
-                new GUIContent("Visible by Default"));
+            EditorGUILayout.PropertyField(_visibleByDefault, new GUIContent("Visible by Default"));
 
             if (serializedObject.ApplyModifiedProperties())
             {
@@ -99,8 +74,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
                 MiniToolRegistry.Invalidate();
             }
 
-            MiniToolDefinition definition =
-                (MiniToolDefinition)target;
+            MiniToolDefinition definition = (MiniToolDefinition)target;
             if (!definition.TryValidate(out string error))
             {
                 EditorGUILayout.HelpBox(error, MessageType.Error);
@@ -109,41 +83,23 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
 
             var presentationErrors = new List<string>();
             var presentationWarnings = new List<string>();
-            MiniToolRegistrationValidator.Validate(
-                definition,
-                string.Empty,
-                presentationErrors,
-                presentationWarnings);
+            MiniToolRegistrationValidator.Validate(definition, string.Empty, presentationErrors, presentationWarnings);
             foreach (string presentationError in presentationErrors)
             {
-                EditorGUILayout.HelpBox(
-                    presentationError,
-                    MessageType.Error);
+                EditorGUILayout.HelpBox(presentationError, MessageType.Error);
             }
+
             foreach (string presentationWarning in presentationWarnings)
             {
-                EditorGUILayout.HelpBox(
-                    presentationWarning,
-                    MessageType.Warning);
+                EditorGUILayout.HelpBox(presentationWarning, MessageType.Warning);
             }
         }
 
         private void DrawProvider()
         {
-            MonoScript currentScript = FindProviderScript(
-                _providerScriptGuid.stringValue,
-                _providerTypeName.stringValue);
+            MonoScript currentScript = FindProviderScript(_providerScriptGuid.stringValue, _providerTypeName.stringValue);
             EditorGUI.BeginChangeCheck();
-            MonoScript selectedScript =
-                (MonoScript)EditorGUILayout.ObjectField(
-                    new GUIContent(
-                        "Data Provider",
-                        $"A concrete {nameof(IMiniToolDataProvider)} implementation. " +
-                        $"Native Workspace fields ({nameof(IMiniToolFieldProvider)}) " +
-                        "and typed Debug Host snapshots are optional capabilities."),
-                    currentScript,
-                    typeof(MonoScript),
-                    false);
+            MonoScript selectedScript = (MonoScript)EditorGUILayout.ObjectField(new GUIContent("Data Provider", $"A concrete {nameof(IMiniToolDataProvider)} implementation. " + $"Native Workspace fields ({nameof(IMiniToolFieldProvider)}) " + "and typed Debug Host snapshots are optional capabilities."), currentScript, typeof(MonoScript), false);
             if (!EditorGUI.EndChangeCheck())
                 return;
 
@@ -155,51 +111,31 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
             }
 
             Type type = selectedScript.GetClass();
-            if (type == null ||
-                !typeof(IMiniToolDataProvider).IsAssignableFrom(type))
+            if (type == null || !typeof(IMiniToolDataProvider).IsAssignableFrom(type))
             {
-                EditorUtility.DisplayDialog(
-                    "Invalid Data Provider",
-                    $"Select a script implementing {nameof(IMiniToolDataProvider)}.",
-                    "OK");
+                EditorUtility.DisplayDialog("Invalid Data Provider", $"Select a script implementing {nameof(IMiniToolDataProvider)}.", "OK");
                 return;
             }
 
-            string scriptPath =
-                AssetDatabase.GetAssetPath(selectedScript);
-            string scriptGuid =
-                AssetDatabase.AssetPathToGUID(scriptPath);
+            string scriptPath = AssetDatabase.GetAssetPath(selectedScript);
+            string scriptGuid = AssetDatabase.AssetPathToGUID(scriptPath);
             if (string.IsNullOrWhiteSpace(scriptGuid))
             {
-                EditorUtility.DisplayDialog(
-                    "Invalid Data Provider",
-                    "The selected provider script does not have a valid asset GUID.",
-                    "OK");
+                EditorUtility.DisplayDialog("Invalid Data Provider", "The selected provider script does not have a valid asset GUID.", "OK");
                 return;
             }
 
             _providerScriptGuid.stringValue = scriptGuid;
-            _providerTypeName.stringValue =
-                $"{type.FullName}, {type.Assembly.GetName().Name}";
+            _providerTypeName.stringValue = $"{type.FullName}, {type.Assembly.GetName().Name}";
         }
 
         private void DrawDebugHostPrefab()
         {
-            string path = AssetDatabase.GUIDToAssetPath(
-                _debugHostPrefabGuid.stringValue);
-            GameObject current = string.IsNullOrWhiteSpace(path)
-                ? null
-                : AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            string path = AssetDatabase.GUIDToAssetPath(_debugHostPrefabGuid.stringValue);
+            GameObject current = string.IsNullOrWhiteSpace(path) ? null : AssetDatabase.LoadAssetAtPath<GameObject>(path);
 
             EditorGUI.BeginChangeCheck();
-            GameObject selected =
-                (GameObject)EditorGUILayout.ObjectField(
-                    new GUIContent(
-                        "Debug Host Prefab",
-                        "Optional Editor presentation. Its GUID is stored so the prefab is not included in Player builds."),
-                    current,
-                    typeof(GameObject),
-                    false);
+            GameObject selected = (GameObject)EditorGUILayout.ObjectField(new GUIContent("Debug Host Prefab", "Optional Editor presentation. Its GUID is stored so the prefab is not included in Player builds."), current, typeof(GameObject), false);
             if (!EditorGUI.EndChangeCheck())
                 return;
 
@@ -210,86 +146,57 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
             }
 
             string selectedPath = AssetDatabase.GetAssetPath(selected);
-            if (!selectedPath.EndsWith(
-                    ".prefab",
-                    StringComparison.OrdinalIgnoreCase))
+            if (!selectedPath.EndsWith(".prefab", StringComparison.OrdinalIgnoreCase))
             {
-                EditorUtility.DisplayDialog(
-                    "Invalid Debug Host Prefab",
-                    "Select a prefab asset.",
-                    "OK");
+                EditorUtility.DisplayDialog("Invalid Debug Host Prefab", "Select a prefab asset.", "OK");
                 return;
             }
 
-            _debugHostPrefabGuid.stringValue =
-                AssetDatabase.AssetPathToGUID(selectedPath);
+            _debugHostPrefabGuid.stringValue = AssetDatabase.AssetPathToGUID(selectedPath);
         }
 
         private void DrawCommand()
         {
             EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(
-                _command,
-                new GUIContent(
-                    "Command",
-                    "Optional command asset that starts or stops this Editor tool."));
+            EditorGUILayout.PropertyField(_command, new GUIContent("Command", "Optional command asset that starts or stops this Editor tool."));
             bool commandChanged = EditorGUI.EndChangeCheck();
-            if (commandChanged &&
-                _command.objectReferenceValue == null)
+            if (commandChanged && _command.objectReferenceValue == null)
             {
                 _commandName.stringValue = string.Empty;
             }
 
-            var command =
-                _command.objectReferenceValue as ConsoleCommand;
+            var command = _command.objectReferenceValue as ConsoleCommand;
             if (command == null)
                 return;
 
             List<string> actions = GetCommandActions(command);
             if (actions.Count == 0)
             {
-                EditorGUILayout.HelpBox(
-                    "The selected command does not expose an executable action.",
-                    MessageType.Error);
+                EditorGUILayout.HelpBox("The selected command does not expose an executable action.", MessageType.Error);
                 return;
             }
+
             if (commandChanged)
                 _commandName.stringValue = actions[0];
 
-            string current = string.IsNullOrWhiteSpace(
-                _commandName.stringValue)
-                ? command.Name
-                : _commandName.stringValue;
-            int currentIndex = actions.FindIndex(
-                action => string.Equals(
-                    action,
-                    current,
-                    StringComparison.OrdinalIgnoreCase));
+            string current = string.IsNullOrWhiteSpace(_commandName.stringValue) ? command.Name : _commandName.stringValue;
+            int currentIndex = actions.FindIndex(action => string.Equals(action, current, StringComparison.OrdinalIgnoreCase));
             if (currentIndex < 0)
             {
                 actions.Insert(0, current);
                 currentIndex = 0;
             }
 
-            int selectedIndex = EditorGUILayout.Popup(
-                new GUIContent(
-                    "Command Action",
-                    "Select the root command or one of its declared subcommands."),
-                currentIndex,
-                actions.ToArray());
+            int selectedIndex = EditorGUILayout.Popup(new GUIContent("Command Action", "Select the root command or one of its declared subcommands."), currentIndex, actions.ToArray());
             _commandName.stringValue = actions[selectedIndex];
         }
 
-        private static List<string> GetCommandActions(
-            ConsoleCommand command)
+        private static List<string> GetCommandActions(ConsoleCommand command)
         {
             var actions = new List<string>();
             var serializedCommand = new SerializedObject(command);
-            SerializedProperty subCommands =
-                serializedCommand.FindProperty("m_SubCommands");
-            if (subCommands == null ||
-                !subCommands.isArray ||
-                subCommands.arraySize == 0)
+            SerializedProperty subCommands = serializedCommand.FindProperty("m_SubCommands");
+            if (subCommands == null || !subCommands.isArray || subCommands.arraySize == 0)
             {
                 if (!string.IsNullOrWhiteSpace(command.Name))
                     actions.Add(command.Name);
@@ -298,10 +205,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
 
             for (int i = 0; i < subCommands.arraySize; i++)
             {
-                SerializedProperty entry =
-                    subCommands.GetArrayElementAtIndex(i);
-                string subCommand =
-                    entry.FindPropertyRelative("Name")?.stringValue;
+                SerializedProperty entry = subCommands.GetArrayElementAtIndex(i);
+                string subCommand = entry.FindPropertyRelative("Name")?.stringValue;
                 if (string.IsNullOrWhiteSpace(subCommand))
                     continue;
 
@@ -313,31 +218,21 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
             return actions;
         }
 
-        private static MonoScript FindProviderScript(
-            string scriptGuid,
-            string typeName)
+        private static MonoScript FindProviderScript(string scriptGuid, string typeName)
         {
             if (!string.IsNullOrWhiteSpace(scriptGuid))
             {
-                string scriptPath =
-                    AssetDatabase.GUIDToAssetPath(scriptGuid);
-                MonoScript script =
-                    string.IsNullOrWhiteSpace(scriptPath)
-                        ? null
-                        : AssetDatabase.LoadAssetAtPath<MonoScript>(
-                            scriptPath);
+                string scriptPath = AssetDatabase.GUIDToAssetPath(scriptGuid);
+                MonoScript script = string.IsNullOrWhiteSpace(scriptPath) ? null : AssetDatabase.LoadAssetAtPath<MonoScript>(scriptPath);
                 if (script != null)
                     return script;
             }
 
-            Type type = string.IsNullOrWhiteSpace(typeName)
-                ? null
-                : Type.GetType(typeName, false);
+            Type type = string.IsNullOrWhiteSpace(typeName) ? null : Type.GetType(typeName, false);
             if (type == null)
                 return null;
 
-            foreach (MonoScript script in
-                     MonoImporter.GetAllRuntimeMonoScripts())
+            foreach (MonoScript script in MonoImporter.GetAllRuntimeMonoScripts())
             {
                 if (script != null && script.GetClass() == type)
                     return script;

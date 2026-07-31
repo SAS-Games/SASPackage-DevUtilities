@@ -100,8 +100,7 @@ namespace SAS.Utilities.RuntimeSceneInspector
                 if (!_reportedMissingCharacters.Add(missingCharacterKey))
                     continue;
 
-                Debug.LogWarning(
-                    $"[Runtime Scene Inspector] Font '{font.name}' does not contain character '{PrintableCharacter(character)}' U+{(int)character:X4}. Example text: \"{text}\"");
+                Debug.LogWarning($"[Runtime Scene Inspector] Font '{font.name}' does not contain character '{PrintableCharacter(character)}' U+{(int)character:X4}. Example text: \"{text}\"");
             }
         }
 
