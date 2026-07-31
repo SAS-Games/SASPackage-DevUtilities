@@ -18,21 +18,14 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost.MiniTools
         private readonly GameObject _instance;
         private readonly Text _legacyText;
         private readonly TMP_Text _tmpText;
-        private readonly IRemoteMiniToolSnapshotView[] _snapshotViews =
-            Array.Empty<IRemoteMiniToolSnapshotView>();
-        private readonly IRemoteMiniToolStreamView[] _streamViews =
-            Array.Empty<IRemoteMiniToolStreamView>();
-        private readonly IRemoteMiniToolPresentation[] _customPresentations =
-            Array.Empty<IRemoteMiniToolPresentation>();
-        private readonly MiniToolActionRelay[] _actionRelays =
-            Array.Empty<MiniToolActionRelay>();
+        private readonly IRemoteMiniToolSnapshotView[] _snapshotViews = Array.Empty<IRemoteMiniToolSnapshotView>();
+        private readonly IRemoteMiniToolStreamView[] _streamViews = Array.Empty<IRemoteMiniToolStreamView>();
+        private readonly IRemoteMiniToolPresentation[] _customPresentations = Array.Empty<IRemoteMiniToolPresentation>();
+        private readonly MiniToolActionRelay[] _actionRelays = Array.Empty<MiniToolActionRelay>();
         private readonly Action<string> _actionRequested;
         public string FailureReason { get; }
 
-        public RemoteMiniToolPrefabView(
-            RemoteMiniToolPrefabDefinition definition,
-            int layoutIndex,
-            Action<string> actionRequested)
+        public RemoteMiniToolPrefabView(RemoteMiniToolPrefabDefinition definition, int layoutIndex, Action<string> actionRequested)
         {
             _actionRequested = actionRequested;
             if (string.IsNullOrWhiteSpace(definition.AssetPath))
@@ -60,24 +53,15 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost.MiniTools
             InitializeCanvas(_instance, layoutIndex);
             _legacyText = _instance.GetComponentInChildren<Text>(true);
             _tmpText = _instance.GetComponentInChildren<TMP_Text>(true);
-            _snapshotViews =
-                RemoteMiniToolSnapshotViewFactory.Find(_instance);
-            _streamViews =
-                RemoteMiniToolStreamViewFactory.Find(_instance);
+            _snapshotViews = RemoteMiniToolSnapshotViewFactory.Find(_instance);
+            _streamViews = RemoteMiniToolStreamViewFactory.Find(_instance);
             _customPresentations = FindCustomPresentations(_instance);
-            _actionRelays =
-                _instance.GetComponentsInChildren<MiniToolActionRelay>(true);
+            _actionRelays = _instance.GetComponentsInChildren<MiniToolActionRelay>(true);
             foreach (MiniToolActionRelay relay in _actionRelays)
                 relay.ActionRequested += OnActionRequested;
-            if (_legacyText == null &&
-                _tmpText == null &&
-                _snapshotViews.Length == 0 &&
-                _streamViews.Length == 0 &&
-                _customPresentations.Length == 0)
+            if (_legacyText == null && _tmpText == null && _snapshotViews.Length == 0 && _streamViews.Length == 0 && _customPresentations.Length == 0)
             {
-                FailureReason =
-                    $"Prefab '{definition.AssetPath}' does not contain a supported Text component " +
-                    $"or mini-tool view implementation.";
+                FailureReason = $"Prefab '{definition.AssetPath}' does not contain a supported Text component or mini-tool view implementation.";
                 return;
             }
 
@@ -89,13 +73,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost.MiniTools
             _instance.SetActive(true);
         }
 
-        public bool IsValid =>
-            _instance != null &&
-            (_legacyText != null ||
-             _tmpText != null ||
-             _snapshotViews.Length > 0 ||
-             _streamViews.Length > 0 ||
-             _customPresentations.Length > 0);
+        public bool IsValid => _instance != null && (_legacyText != null || _tmpText != null || _snapshotViews.Length > 0 || _streamViews.Length > 0 || _customPresentations.Length > 0);
 
         public void Update(RemoteMiniToolDescriptor descriptor, RemoteMiniToolSample sample)
         {
@@ -125,8 +103,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost.MiniTools
 
             if (_customPresentations.Length > 0)
             {
-                foreach (IRemoteMiniToolPresentation presentation in
-                         _customPresentations)
+                foreach (IRemoteMiniToolPresentation presentation in _customPresentations)
                 {
                     try
                     {
@@ -177,14 +154,12 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost.MiniTools
             _actionRequested?.Invoke(actionId);
         }
 
-        public void ApplyStream(
-            RemoteMiniToolStreamBatch batch)
+        public void ApplyStream(RemoteMiniToolStreamBatch batch)
         {
             if (!IsValid || batch == null)
                 return;
 
-            foreach (IRemoteMiniToolStreamView streamView in
-                     _streamViews)
+            foreach (IRemoteMiniToolStreamView streamView in _streamViews)
             {
                 try
                 {
@@ -200,32 +175,19 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost.MiniTools
 
         private static void DisableLocalDataFlow(GameObject instance)
         {
-            foreach (MonoBehaviour behaviour in
-                     instance.GetComponentsInChildren<MonoBehaviour>(true))
+            foreach (MonoBehaviour behaviour in instance.GetComponentsInChildren<MonoBehaviour>(true))
             {
-                if (RemoteMiniToolSnapshotViewFactory.IsSnapshotProvider(behaviour) ||
-                    behaviour is IMiniToolLocalController)
+                if (RemoteMiniToolSnapshotViewFactory.IsSnapshotProvider(behaviour) || behaviour is IMiniToolLocalController)
                 {
                     behaviour.enabled = false;
                 }
             }
-
-            // Legacy mini-tools have not adopted IMiniToolSnapshotProvider yet.
-            Disable<ParticleStats>(instance);
         }
 
-        private static void Disable<T>(GameObject instance) where T : Behaviour
-        {
-            foreach (T behaviour in instance.GetComponentsInChildren<T>(true))
-                behaviour.enabled = false;
-        }
-
-        private static IRemoteMiniToolPresentation[] FindCustomPresentations(
-            GameObject instance)
+        private static IRemoteMiniToolPresentation[] FindCustomPresentations(GameObject instance)
         {
             var presentations = new List<IRemoteMiniToolPresentation>();
-            foreach (MonoBehaviour behaviour in
-                     instance.GetComponentsInChildren<MonoBehaviour>(true))
+            foreach (MonoBehaviour behaviour in instance.GetComponentsInChildren<MonoBehaviour>(true))
             {
                 if (behaviour is IRemoteMiniToolPresentation presentation)
                     presentations.Add(presentation);
@@ -236,26 +198,14 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost.MiniTools
 
         private static GameObject CreateGenericView(string toolId)
         {
-            var root = new GameObject(
-                $"[Remote Mini Tool] {toolId}",
-                typeof(RectTransform),
-                typeof(Canvas),
-                typeof(CanvasScaler),
-                typeof(GraphicRaycaster));
-            var panelObject = new GameObject(
-                "Panel",
-                typeof(RectTransform),
-                typeof(Image));
+            var root = new GameObject($"[Remote Mini Tool] {toolId}", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
+            var panelObject = new GameObject("Panel", typeof(RectTransform), typeof(Image));
             panelObject.transform.SetParent(root.transform, false);
             var panel = (RectTransform)panelObject.transform;
             panel.sizeDelta = new Vector2(430f, 150f);
-            panelObject.GetComponent<Image>().color =
-                new Color(0.06f, 0.07f, 0.09f, 0.9f);
+            panelObject.GetComponent<Image>().color = new Color(0.06f, 0.07f, 0.09f, 0.9f);
 
-            var textObject = new GameObject(
-                "Fields",
-                typeof(RectTransform),
-                typeof(Text));
+            var textObject = new GameObject("Fields", typeof(RectTransform), typeof(Text));
             textObject.transform.SetParent(panel, false);
             var textTransform = (RectTransform)textObject.transform;
             textTransform.anchorMin = Vector2.zero;
@@ -264,8 +214,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost.MiniTools
             textTransform.offsetMax = new Vector2(-10f, -8f);
 
             Text text = textObject.GetComponent<Text>();
-            text.font = Resources.GetBuiltinResource<Font>(
-                "LegacyRuntime.ttf");
+            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             text.fontSize = 14;
             text.alignment = TextAnchor.UpperLeft;
             text.color = Color.white;
@@ -289,11 +238,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost.MiniTools
 
         private void ApplyLayout(int layoutIndex)
         {
-            RectTransform text = _legacyText != null
-                ? _legacyText.rectTransform
-                : _tmpText != null
-                    ? _tmpText.rectTransform
-                    : null;
+            RectTransform text = _legacyText != null ? _legacyText.rectTransform : _tmpText != null ? _tmpText.rectTransform : null;
             if (text == null)
                 return;
 
@@ -304,9 +249,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost.MiniTools
             display.anchorMin = anchor;
             display.anchorMax = anchor;
             display.pivot = anchor;
-            display.anchoredPosition = new Vector2(
-                rightColumn ? -16f : 16f,
-                -16f - row * 150f);
+            display.anchoredPosition = new Vector2(rightColumn ? -16f : 16f, -16f - row * 150f);
         }
     }
 }

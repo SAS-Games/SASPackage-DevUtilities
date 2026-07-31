@@ -37,7 +37,7 @@ RectTransform:
   m_AnchorMin: {x: 1, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
   m_AnchoredPosition: {x: -165, y: -310}
-  m_SizeDelta: {x: 300, y: 120}
+  m_SizeDelta: {x: 300, y: 180}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4458009698218427333
 CanvasRenderer:
@@ -102,7 +102,10 @@ GameObject:
   - component: {fileID: 5181882616318872658}
   - component: {fileID: 5015909938340262309}
   - component: {fileID: 3702855553771978791}
+  - component: {fileID: 5552698153094060425}
+  - component: {fileID: 871208304301085244}
   - component: {fileID: 9000000000000000001}
+  - component: {fileID: 3184357493047588450}
   m_Layer: 5
   m_Name: ParticleStats
   m_TagString: Untagged
@@ -110,19 +113,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &9000000000000000001
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4840794096766531456}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c48bbf7c6d8e45d68d6bbaa724517562, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
-  m_PresentationRoot: {fileID: 0}
 --- !u!224 &7428326002735701155
 RectTransform:
   m_ObjectHideFlags: 0
@@ -219,7 +209,58 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Display: {fileID: 7919385023625728094}
+--- !u!114 &5552698153094060425
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4840794096766531456}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e52b48d0a6c84b47b6a7a6319f14dc02, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DevUtilities::SAS.DevUtilities.ParticleStatsSnapshotProvider
   m_UpdateInterval: 1
+--- !u!114 &871208304301085244
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4840794096766531456}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f7d3a4cefe2418fbc110e7b8cbf8b57, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DevUtilities::SAS.DevUtilities.ParticleStatsLocalController
+  m_SnapshotProvider: {fileID: 5552698153094060425}
+  m_View: {fileID: 3702855553771978791}
+--- !u!114 &9000000000000000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4840794096766531456}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c48bbf7c6d8e45d68d6bbaa724517562, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_PresentationRoot: {fileID: 0}
+--- !u!114 &3184357493047588450
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4840794096766531456}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9dbc13e29b18761468ba1550e11b2cfe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DevUtilities::PersistentObject
 --- !u!1 &7232403671296343171
 GameObject:
   m_ObjectHideFlags: 0
@@ -298,4 +339,4 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: FPS
+  m_Text: 

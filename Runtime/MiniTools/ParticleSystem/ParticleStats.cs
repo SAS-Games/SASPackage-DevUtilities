@@ -1,82 +1,51 @@
 using System.Text;
-using Unity.Profiling;
+using SAS.DevUtilities;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class ParticleStats : MonoBehaviour
+/// <summary>
+/// View-only particle statistics renderer shared by the Player and Debug
+/// Host.
+/// </summary>
+[DisallowMultipleComponent]
+[AddComponentMenu("Dev Utilities/ParticleStats/View")]
+public sealed class ParticleStats : MonoBehaviour, IMiniToolSnapshotView<ParticleStatsSnapshot>
 {
     [SerializeField] private Text m_Display;
-    [SerializeField] private float m_UpdateInterval = 1f;
 
-    private readonly StringBuilder _sb = new StringBuilder(256);
+    private readonly StringBuilder _builder = new(256);
 
-    private ParticleSystem[] _particles;
-    private ProfilerRecorder _psRecorder;
-
-    private float _timer;
-    private int _activeAlive, _disabled;
-
-    private void OnEnable()
+    public void ApplySnapshot(in ParticleStatsSnapshot snapshot)
     {
-        _psRecorder = ProfilerRecorder.StartNew(ProfilerCategory.Particles,"ParticleSystem.Update");
-        _particles = FindObjectsByType<ParticleSystem>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-    }
+        if (m_Display == null)
+            return;
 
-    private void OnDisable()
-    {
-        _psRecorder.Dispose();
-    }
+        _builder.Clear();
+        _builder.AppendLine(
+                "<color=#00FFFF><b>PARTICLES</b></color>")
+            .AppendLine("<color=#00FF00>Systems:</color>")
+            .Append("  Total: ")
+            .Append(snapshot.TotalSystems)
+            .AppendLine()
+            .Append("  Active: ")
+            .Append(snapshot.ActiveSystems)
+            .AppendLine()
+            .Append("  Alive: ")
+            .Append(snapshot.AliveSystems)
+            .AppendLine()
+            .AppendLine("<color=#FF4444>Disabled:</color>")
+            .Append("  Count: ")
+            .Append(snapshot.DisabledSystems)
+            .AppendLine()
+            .Append("<color=#00FFFF>Live Particles:</color> ")
+            .Append(snapshot.LiveParticles)
+            .AppendLine();
 
-    private void Update()
-    {
-        _timer -= Time.deltaTime;
-        if (_timer > 0) return;
-        _timer = m_UpdateInterval;
-
-        UpdateParticleStats();
-        UpdateDisplay();
-    }
-
-    private void UpdateParticleStats()
-    {
-        _activeAlive = 0;
-        _disabled = 0;
-
-        foreach (var ps in _particles)
+        if (snapshot.HasCpuTiming)
         {
-            if (!ps) 
-                continue;
-
-            bool isEnabled = ps.gameObject.activeInHierarchy;
-
-            if (isEnabled)
-            {
-                if (ps.IsAlive(false))
-                    _activeAlive++;
-            }
-            else
-                _disabled++;
-        }
-    }
-
-    private void UpdateDisplay()
-    {
-        _sb.Length = 0;
-
-        _sb.AppendLine("<color=#00FFFF><b>PARTICLES</b></color>");
-
-        _sb.AppendLine("<color=#00FF00>Active:</color>");
-        _sb.AppendFormat("  Count: {0}\n", _activeAlive);
-
-        _sb.AppendLine("<color=#FF4444>Disabled:</color>");
-        _sb.AppendFormat("  Count: {0}\n", _disabled);
-
-        if (_psRecorder.Valid && _psRecorder.IsRunning)
-        {
-            float ms = _psRecorder.LastValue * 1e-6f;
-            _sb.AppendFormat("<color=#FFA500>CPU:</color> {0:F3} ms\n", ms);
+            _builder.Append("<color=#FFA500>CPU:</color> ").Append(snapshot.CpuTimeMs.ToString("F3")).AppendLine(" ms");
         }
 
-        m_Display.text = _sb.ToString();
+        m_Display.text = _builder.ToString();
     }
 }

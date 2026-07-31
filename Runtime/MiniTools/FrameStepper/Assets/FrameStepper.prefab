@@ -549,6 +549,7 @@ GameObject:
   - component: {fileID: 9100000000000000002}
   - component: {fileID: 9100000000000000003}
   - component: {fileID: 9000000000000000001}
+  - component: {fileID: -2686389453937119699}
   m_Layer: 5
   m_Name: FrameStepper
   m_TagString: Untagged
@@ -708,6 +709,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_PresentationRoot: {fileID: 0}
+--- !u!114 &-2686389453937119699
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5084720377053247914}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9dbc13e29b18761468ba1550e11b2cfe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DevUtilities::PersistentObject
 --- !u!1 &6159759340089623081
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using SAS.DevUtilities;
 using SAS.Utilities.Presentation;
 using UnityEngine;
 
@@ -29,12 +30,7 @@ namespace SAS.Utilities.DeveloperConsole
             {
                 if (BoolUtil.TryParse(args[0], out var isVisible))
                 {
-                    if (_particleStatsInstance == null)
-                    {
-                        _particleStatsInstance = Instantiate(m_ParticleStatsPrefab);
-                        _particleStatsInstance.name = "ParticleStatsUI";
-                        _presentation = _particleStatsInstance.GetComponent<DevUtilityPresentation>();
-                    }
+                    EnsureStatsInstance();
 
                     if (_presentation == null)
                         return false;
@@ -49,21 +45,30 @@ namespace SAS.Utilities.DeveloperConsole
 
         private bool Refresh(string[] args)
         {
-            if (_particleStatsInstance == null)
-            {
-                _particleStatsInstance = Instantiate(m_ParticleStatsPrefab);
-                _particleStatsInstance.name = "ParticleStatsUI";
-                _presentation = _particleStatsInstance.GetComponent<DevUtilityPresentation>();
-            }
+            EnsureStatsInstance();
 
             if (_presentation == null)
                 return false;
 
-            _presentation.SetRequestedVisible(false);
+            ParticleStatsSnapshotProvider provider = _particleStatsInstance.GetComponent<ParticleStatsSnapshotProvider>();
+            if (provider == null)
+                return false;
+
             _presentation.SetRequestedVisible(true);
+            provider.Refresh();
             Debug.Log("Particle Stats UI Refreshed.");
 
             return true;
+        }
+
+        private void EnsureStatsInstance()
+        {
+            if (_particleStatsInstance != null)
+                return;
+
+            _particleStatsInstance = Instantiate(m_ParticleStatsPrefab);
+            _particleStatsInstance.name = "ParticleStatsUI";
+            _presentation = _particleStatsInstance.GetComponent<DevUtilityPresentation>();
         }
 
         private bool CullOffscreen(string[] args)
@@ -142,8 +147,7 @@ namespace SAS.Utilities.DeveloperConsole
             {
                 if (BoolUtil.TryParse(args[0], out var turnOn))
                 {
-                    ParticleSystem[] systems =
-                        FindObjectsByType<ParticleSystem>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+                    ParticleSystem[] systems = FindObjectsByType<ParticleSystem>(FindObjectsInactive.Include, FindObjectsSortMode.None);
 
                     int affected = 0;
 
