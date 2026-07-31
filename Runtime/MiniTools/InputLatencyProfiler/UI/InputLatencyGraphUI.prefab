@@ -74,7 +74,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 65c6faa1dcac71244913210c64e32648, type: 3}
   m_Name:
   m_EditorClassIdentifier: DevUtilities::InputLatencyLocalController
-  m_VisibilityRoot: {fileID: 6207950565407678706}
+  m_Presentation: {fileID: 9000000000000000001}
   m_EnableControllerClose: 0
   m_SnapshotProvider: {fileID: 9000000000000000002}
   m_View: {fileID: 9000000000000000003}

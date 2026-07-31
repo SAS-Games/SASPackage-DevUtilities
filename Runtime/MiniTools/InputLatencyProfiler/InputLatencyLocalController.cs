@@ -1,5 +1,6 @@
 using System;
 using SAS.DevUtilities;
+using SAS.Utilities.Presentation;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -60,7 +61,7 @@ internal sealed class InputSystemInputLatencyProfilerCloseInput : IInputLatencyP
 [RequireComponent(typeof(InputLatencySnapshotProvider), typeof(InputLatencyView))]
 public sealed class InputLatencyLocalController : MonoBehaviour, IMiniToolLocalController
 {
-    [SerializeField] private GameObject m_VisibilityRoot;
+    [SerializeField] private DevUtilityPresentation m_Presentation;
 
     [SerializeField, Tooltip("Allow gamepad B / button East to close the overlay. Disable this " + "when gameplay owns the controller.")]
     private bool m_EnableControllerClose;
@@ -125,12 +126,7 @@ public sealed class InputLatencyLocalController : MonoBehaviour, IMiniToolLocalC
 
     public void Close()
     {
-        GameObject visibilityRoot =
-            m_VisibilityRoot != null
-                ? m_VisibilityRoot
-                : gameObject;
-        if (visibilityRoot.activeSelf)
-            visibilityRoot.SetActive(false);
+        m_Presentation?.SetRequestedVisible(false);
     }
 
     private void ApplySnapshot(InputLatencySnapshot snapshot)
@@ -151,6 +147,8 @@ public sealed class InputLatencyLocalController : MonoBehaviour, IMiniToolLocalC
             m_SnapshotProvider = GetComponent<InputLatencySnapshotProvider>();
         if (m_View == null)
             m_View = GetComponent<InputLatencyView>();
+        if (m_Presentation == null)
+            m_Presentation = GetComponentInParent<DevUtilityPresentation>(true);
     }
 
 #if UNITY_EDITOR

@@ -1,4 +1,5 @@
 using UnityEngine;
+using SAS.Utilities.Presentation;
 
 namespace SAS.Utilities.DeveloperConsole.InputVisualizers
 {
@@ -12,7 +13,10 @@ namespace SAS.Utilities.DeveloperConsole.InputVisualizers
         [SerializeField] private GameObject m_gamepadVisualizerPrefab;
         [SerializeField] private GameObject m_MouseVisualizerPrefab;
 
-        private GameObject _gamepadVisualizerInstance, _mouseVisualizerInstance;
+        private GameObject _gamepadVisualizerInstance;
+        private GameObject _mouseVisualizerInstance;
+        private DevUtilityPresentation _gamepadPresentation;
+        private DevUtilityPresentation _mousePresentation;
 
         protected bool ShowGamepadVisualizer(string[] args)
         {
@@ -25,6 +29,7 @@ namespace SAS.Utilities.DeveloperConsole.InputVisualizers
             bool isSuccessfullyToggled = ToggleVisualizer(shouldToggleParam: args[0],
                 prefab: m_gamepadVisualizerPrefab,
                 instance: ref _gamepadVisualizerInstance,
+                presentation: ref _gamepadPresentation,
                 isActivated: out bool isActivated);
 
             if (!isSuccessfullyToggled)
@@ -51,6 +56,7 @@ namespace SAS.Utilities.DeveloperConsole.InputVisualizers
             bool isSuccessfullyToggled = ToggleVisualizer(shouldToggleParam: args[0],
                 prefab: m_MouseVisualizerPrefab,
                 instance: ref _mouseVisualizerInstance,
+                presentation: ref _mousePresentation,
                 isActivated: out bool isActivated);
 
             if (!isSuccessfullyToggled)
@@ -66,7 +72,7 @@ namespace SAS.Utilities.DeveloperConsole.InputVisualizers
             return true;
         }
 
-        protected bool ToggleVisualizer(string shouldToggleParam, GameObject prefab, ref GameObject instance, out bool isActivated)
+        protected bool ToggleVisualizer(string shouldToggleParam, GameObject prefab, ref GameObject instance, ref DevUtilityPresentation presentation, out bool isActivated)
         {
             if (!BoolUtil.TryParse(shouldToggleParam, out isActivated))
             {
@@ -77,16 +83,20 @@ namespace SAS.Utilities.DeveloperConsole.InputVisualizers
             if (instance == null)
             {
                 instance = Instantiate(prefab);
+                presentation = instance.GetComponent<DevUtilityPresentation>();
             }
-            instance.SetActive(isActivated);
+
+            if (presentation == null)
+                return false;
+
+            presentation.SetRequestedVisible(isActivated);
 
             return true;
         }
 
         protected bool AnchorVisualizer(GameObject target, string positionParam)
         {
-            InputVisualizerHandler visualizerHandler =
-                target.GetComponent<InputVisualizerHandler>();
+            InputVisualizerHandler visualizerHandler = target.GetComponent<InputVisualizerHandler>();
 
             if (visualizerHandler == null)
             {
@@ -95,9 +105,7 @@ namespace SAS.Utilities.DeveloperConsole.InputVisualizers
             }
 
             if (string.IsNullOrEmpty(positionParam))
-            {
                 return false;
-            }
 
             positionParam = positionParam.Trim().ToUpper();
 

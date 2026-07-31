@@ -34,7 +34,12 @@ namespace SAS.Utilities.Presentation
                 DevUtilityPresentationRegistry.Unregister(this);
         }
 
-        public void SetVisible(bool visible)
+        /// <summary>
+        /// Records whether the owning tool wants its UI displayed. The actual
+        /// GameObject remains hidden while a presentation policy suppresses
+        /// local debug UI.
+        /// </summary>
+        public void SetRequestedVisible(bool visible)
         {
             EnsureInitialized();
             _requestedVisible = visible;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using SAS.Utilities.DeveloperConsole;
+using SAS.Utilities.Presentation;
 using SAS.Utilities.RemoteDevUtilities.MiniTools;
 using SAS.Utilities.RemoteDevUtilities.Protocol.Commands;
 using UnityEditor;
@@ -24,13 +25,11 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
 
         private string _toolName = "New Mini Tool";
         private MonoScript _existingProvider;
-        private MiniToolSetupTarget _setupTarget =
-            MiniToolSetupTarget.DebugHost;
+        private MiniToolSetupTarget _setupTarget = MiniToolSetupTarget.DebugHost;
         private bool _generateProvider = true;
         private ConsoleCommand _command;
         private string _commandAction = string.Empty;
-        private RemoteCommandRouting _routing =
-            RemoteCommandRouting.ControlEditorToolOnly;
+        private RemoteCommandRouting _routing = RemoteCommandRouting.ControlEditorToolOnly;
         private GameObject _debugHostPrefab;
         private GameObject _snapshotContractPrefab;
         private Type[] _snapshotTypes = Array.Empty<Type>();
@@ -54,18 +53,11 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
 
         private void OnEnable()
         {
-            if (_debugHostPrefab == null &&
-                Selection.activeObject is GameObject selectedPrefab &&
-                IsPrefabAsset(selectedPrefab))
+            if (_debugHostPrefab == null && Selection.activeObject is GameObject selectedPrefab && IsPrefabAsset(selectedPrefab))
             {
                 _debugHostPrefab = selectedPrefab;
-                if (string.Equals(
-                        _toolName,
-                        "New Mini Tool",
-                        StringComparison.Ordinal))
-                {
+                if (string.Equals(_toolName, "New Mini Tool", StringComparison.Ordinal))
                     _toolName = selectedPrefab.name;
-                }
             }
 
             RefreshSnapshotTypes();
@@ -80,26 +72,17 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
             EditorGUILayout.Space(8f);
 
             _toolName = EditorGUILayout.TextField("Tool Name", _toolName);
-            _setupTarget =
-                (MiniToolSetupTarget)EditorGUILayout.EnumPopup(
-                    "Setup For",
-                    _setupTarget);
+            _setupTarget = (MiniToolSetupTarget)EditorGUILayout.EnumPopup("Setup For", _setupTarget);
             DrawProviderSetup();
 
-            _updateInterval = EditorGUILayout.FloatField(
-                "Update Interval",
-                _updateInterval);
+            _updateInterval = EditorGUILayout.FloatField("Update Interval", _updateInterval);
             DrawCommandSetup();
-            _visibleByDefault = EditorGUILayout.Toggle(
-                "Visible by Default",
-                _visibleByDefault);
+            _visibleByDefault = EditorGUILayout.Toggle("Visible by Default", _visibleByDefault);
 
             EditorGUILayout.Space(10f);
             using (new EditorGUI.DisabledScope(!CanCreate()))
             {
-                if (GUILayout.Button(
-                        "Create Mini Tool",
-                        GUILayout.Height(28f)))
+                if (GUILayout.Button("Create Mini Tool", GUILayout.Height(28f)))
                 {
                     CreateMiniTool();
                 }
@@ -108,40 +91,21 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
 
         private void DrawProviderSetup()
         {
-            bool debugHost =
-                _setupTarget == MiniToolSetupTarget.DebugHost;
-            string generateLabel = debugHost
-                ? "Generate Matching Snapshot Provider"
-                : "Generate Native Workspace Field Provider";
-            _generateProvider = EditorGUILayout.ToggleLeft(
-                generateLabel,
-                _generateProvider);
+            bool debugHost = _setupTarget == MiniToolSetupTarget.DebugHost;
+            string generateLabel = debugHost ? "Generate Matching Snapshot Provider" : "Generate Native Workspace Field Provider";
+            _generateProvider = EditorGUILayout.ToggleLeft(generateLabel, _generateProvider);
             using (new EditorGUI.DisabledScope(_generateProvider))
             {
-                _existingProvider =
-                    (MonoScript)EditorGUILayout.ObjectField(
-                        "Existing Data Provider",
-                        _existingProvider,
-                        typeof(MonoScript),
-                        false);
+                _existingProvider = (MonoScript)EditorGUILayout.ObjectField("Existing Data Provider", _existingProvider, typeof(MonoScript), false);
             }
 
             if (debugHost)
             {
-                EditorGUILayout.HelpBox(
-                    "The Debug Host reuses this prefab UI. A component on the prefab must implement IMiniToolSnapshotView<TSnapshot>.",
-                    MessageType.Info);
+                EditorGUILayout.HelpBox("The Debug Host reuses this prefab UI. A component on the prefab must implement IMiniToolSnapshotView<TSnapshot>.", MessageType.Info);
                 DrawDebugHostSnapshotSetup();
             }
             else
-            {
-                _debugHostPrefab =
-                    (GameObject)EditorGUILayout.ObjectField(
-                        "Optional Debug Host Prefab",
-                        _debugHostPrefab,
-                        typeof(GameObject),
-                        false);
-            }
+                _debugHostPrefab = (GameObject)EditorGUILayout.ObjectField("Optional Debug Host Prefab", _debugHostPrefab, typeof(GameObject), false);
         }
 
         private void DrawDebugHostSnapshotSetup()
@@ -150,28 +114,25 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
                 RefreshSnapshotTypes();
 
             EditorGUI.BeginChangeCheck();
-            _debugHostPrefab =
-                (GameObject)EditorGUILayout.ObjectField(
-                    "Debug Host Prefab",
-                    _debugHostPrefab,
-                    typeof(GameObject),
-                    false);
+            _debugHostPrefab = (GameObject)EditorGUILayout.ObjectField("Debug Host Prefab", _debugHostPrefab, typeof(GameObject), false);
             if (EditorGUI.EndChangeCheck())
                 RefreshSnapshotTypes();
 
             if (_debugHostPrefab == null)
             {
-                EditorGUILayout.HelpBox(
-                    "Assign the existing mini-tool prefab.",
-                    MessageType.Warning);
+                EditorGUILayout.HelpBox("Assign the existing mini-tool prefab.", MessageType.Warning);
                 return;
             }
 
             if (_snapshotTypes.Length == 0)
             {
-                EditorGUILayout.HelpBox(
-                    "No IMiniToolSnapshotView<TSnapshot> component was found on the prefab or its children.",
-                    MessageType.Error);
+                EditorGUILayout.HelpBox("No IMiniToolSnapshotView<TSnapshot> component was found on the prefab or its children.", MessageType.Error);
+                return;
+            }
+
+            if (_debugHostPrefab.GetComponent<DevUtilityPresentation>() == null)
+            {
+                EditorGUILayout.HelpBox("Add DevUtilityPresentation to the prefab root. It preserves the tool's requested visibility when build UI is suppressed by a remote connection.", MessageType.Error);
                 return;
             }
 
@@ -180,84 +141,48 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
                 var options = new string[_snapshotTypes.Length];
                 for (int i = 0; i < _snapshotTypes.Length; i++)
                 {
-                    options[i] =
-                        _snapshotTypes[i].FullName ??
-                        _snapshotTypes[i].Name;
+                    options[i] = _snapshotTypes[i].FullName ?? _snapshotTypes[i].Name;
                 }
 
-                _snapshotTypeIndex = EditorGUILayout.Popup(
-                    "Snapshot Contract",
-                    Mathf.Clamp(
-                        _snapshotTypeIndex,
-                        0,
-                        _snapshotTypes.Length - 1),
-                    options);
-                EditorGUILayout.HelpBox(
-                    "The generated provider compiles immediately but returns no data until TryGetSnapshot is connected to the Player's collector.",
-                    MessageType.Info);
+                _snapshotTypeIndex = EditorGUILayout.Popup("Snapshot Contract", Mathf.Clamp(_snapshotTypeIndex, 0, _snapshotTypes.Length - 1), options);
+                EditorGUILayout.HelpBox("The generated provider compiles immediately but returns no data until TryGetSnapshot is connected to the Player's collector.", MessageType.Info);
                 return;
             }
 
             Type providerType = _existingProvider?.GetClass();
-            if (IsProvider(providerType) &&
-                !MiniToolSnapshotContractDiscovery
-                    .HasCompatibleSnapshot(
-                        providerType,
-                        _snapshotTypes))
+            if (IsProvider(providerType) && !MiniToolSnapshotContractDiscovery.HasCompatibleSnapshot(providerType, _snapshotTypes))
             {
-                EditorGUILayout.HelpBox(
-                    "The selected provider does not expose a snapshot consumed by this prefab.",
-                    MessageType.Error);
+                EditorGUILayout.HelpBox("The selected provider does not expose a snapshot consumed by this prefab.", MessageType.Error);
             }
         }
 
         private void DrawCommandSetup()
         {
             EditorGUI.BeginChangeCheck();
-            _command =
-                (ConsoleCommand)EditorGUILayout.ObjectField(
-                    "Command",
-                    _command,
-                    typeof(ConsoleCommand),
-                    false);
+            _command = (ConsoleCommand)EditorGUILayout.ObjectField("Command", _command, typeof(ConsoleCommand), false);
             if (EditorGUI.EndChangeCheck())
                 _commandAction = string.Empty;
 
             List<string> actions = GetCommandActions(_command);
             if (actions.Count > 0)
             {
-                int selectedIndex = actions.FindIndex(
-                    action => string.Equals(
-                        action,
-                        _commandAction,
-                        StringComparison.OrdinalIgnoreCase));
+                int selectedIndex = actions.FindIndex(action => string.Equals(action, _commandAction, StringComparison.OrdinalIgnoreCase));
                 if (selectedIndex < 0)
                     selectedIndex = 0;
-                selectedIndex = EditorGUILayout.Popup(
-                    "Command Action",
-                    selectedIndex,
-                    actions.ToArray());
+                selectedIndex = EditorGUILayout.Popup("Command Action", selectedIndex, actions.ToArray());
                 _commandAction = actions[selectedIndex];
             }
             else
-            {
                 _commandAction = string.Empty;
-            }
 
             using (new EditorGUI.DisabledScope(_command == null))
             {
-                _routing =
-                    (RemoteCommandRouting)EditorGUILayout.EnumPopup(
-                        "When Command Runs",
-                        _routing);
+                _routing = (RemoteCommandRouting)EditorGUILayout.EnumPopup("When Command Runs", _routing);
             }
 
-            if (_setupTarget == MiniToolSetupTarget.DebugHost &&
-                _command == null)
+            if (_setupTarget == MiniToolSetupTarget.DebugHost && _command == null)
             {
-                EditorGUILayout.HelpBox(
-                    "Assign the On/Off command used to subscribe and open this tool from the Debug Host console.",
-                    MessageType.Warning);
+                EditorGUILayout.HelpBox("Assign the On/Off command used to subscribe and open this tool from the Debug Host console.", MessageType.Warning);
             }
         }
 
@@ -267,29 +192,16 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
                 return false;
 
             Type providerType = _existingProvider?.GetClass();
-            if (_setupTarget ==
-                MiniToolSetupTarget.NativeWorkspaceFields)
-            {
-                return _generateProvider ||
-                       IsProvider(providerType);
-            }
+            if (_setupTarget == MiniToolSetupTarget.NativeWorkspaceFields)
+                return _generateProvider || IsProvider(providerType);
 
-            if (!IsPrefabAsset(_debugHostPrefab) ||
-                _snapshotTypes.Length == 0 ||
-                _command == null ||
-                string.IsNullOrWhiteSpace(_commandAction))
-            {
+            if (!IsPrefabAsset(_debugHostPrefab) || _snapshotTypes.Length == 0 || _debugHostPrefab.GetComponent<DevUtilityPresentation>() == null || _command == null || string.IsNullOrWhiteSpace(_commandAction))
                 return false;
-            }
 
             if (_generateProvider)
                 return GetSelectedSnapshotType() != null;
 
-            return IsProvider(providerType) &&
-                   MiniToolSnapshotContractDiscovery
-                       .HasCompatibleSnapshot(
-                           providerType,
-                           _snapshotTypes);
+            return IsProvider(providerType) && MiniToolSnapshotContractDiscovery.HasCompatibleSnapshot(providerType, _snapshotTypes);
         }
 
         private void CreateMiniTool()
@@ -309,36 +221,22 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
             {
                 string scriptPath = AssetDatabase.GenerateUniqueAssetPath($"{folder}/{classStem}DataProvider.cs");
                 string className = ToIdentifier(Path.GetFileNameWithoutExtension(scriptPath));
-                string source =
-                    _setupTarget == MiniToolSetupTarget.DebugHost
-                        ? MiniToolProviderTemplateGenerator
-                            .CreateSnapshotProvider(
-                                className,
-                                GetSelectedSnapshotType())
-                        : MiniToolProviderTemplateGenerator
-                            .CreateFieldProvider(className);
-                File.WriteAllText(
-                    ToAbsolutePath(scriptPath),
-                    source,
-                    new UTF8Encoding(false));
+                string source = _setupTarget == MiniToolSetupTarget.DebugHost ? MiniToolProviderTemplateGenerator.CreateSnapshotProvider(className, GetSelectedSnapshotType()) : MiniToolProviderTemplateGenerator.CreateFieldProvider(className);
+                File.WriteAllText(ToAbsolutePath(scriptPath), source, new UTF8Encoding(false));
                 AssetDatabase.ImportAsset(scriptPath);
-                providerScriptGuid =
-                    AssetDatabase.AssetPathToGUID(scriptPath);
+                providerScriptGuid = AssetDatabase.AssetPathToGUID(scriptPath);
                 string assemblyName = CompilationPipeline.GetAssemblyNameFromScriptPath(scriptPath);
                 if (string.IsNullOrWhiteSpace(assemblyName))
                     assemblyName = "Assembly-CSharp";
                 else
-                    assemblyName =
-                        Path.GetFileNameWithoutExtension(assemblyName);
+                    assemblyName = Path.GetFileNameWithoutExtension(assemblyName);
                 providerTypeName = $"{className}, {assemblyName}";
             }
             else
             {
                 Type providerType = _existingProvider.GetClass();
                 providerTypeName = $"{providerType.FullName}, {providerType.Assembly.GetName().Name}";
-                providerScriptGuid =
-                    AssetDatabase.AssetPathToGUID(
-                        AssetDatabase.GetAssetPath(_existingProvider));
+                providerScriptGuid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(_existingProvider));
             }
 
             var definition = CreateInstance<MiniToolDefinition>();
@@ -353,12 +251,10 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
             serialized.FindProperty("_toolId").stringValue = $"custom.{slug}.{suffix}";
             serialized.FindProperty("_displayName").stringValue = _toolName.Trim();
             serialized.FindProperty("_updateInterval").floatValue = Mathf.Max(0.1f, _updateInterval);
-            serialized.FindProperty("_providerScriptGuid").stringValue =
-                providerScriptGuid;
+            serialized.FindProperty("_providerScriptGuid").stringValue = providerScriptGuid;
             serialized.FindProperty("_providerTypeName").stringValue = providerTypeName;
             serialized.FindProperty("_command").objectReferenceValue = _command;
-            serialized.FindProperty("_commandName").stringValue =
-                _commandAction;
+            serialized.FindProperty("_commandName").stringValue = _commandAction;
             serialized.FindProperty("_commandRouting").enumValueIndex = (int)_routing;
             serialized.FindProperty("_visibleByDefault").boolValue = _visibleByDefault;
             if (_debugHostPrefab != null)
@@ -379,25 +275,18 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
 
         private static bool IsProvider(Type type)
         {
-            return type != null &&
-                   type.IsClass &&
-                   !type.IsAbstract &&
-                   typeof(IMiniToolDataProvider).IsAssignableFrom(type);
+            return type != null && type.IsClass && !type.IsAbstract && typeof(IMiniToolDataProvider).IsAssignableFrom(type);
         }
 
-        private static List<string> GetCommandActions(
-            ConsoleCommand command)
+        private static List<string> GetCommandActions(ConsoleCommand command)
         {
             var actions = new List<string>();
             if (command == null)
                 return actions;
 
             var serializedCommand = new SerializedObject(command);
-            SerializedProperty subCommands =
-                serializedCommand.FindProperty("m_SubCommands");
-            if (subCommands == null ||
-                !subCommands.isArray ||
-                subCommands.arraySize == 0)
+            SerializedProperty subCommands = serializedCommand.FindProperty("m_SubCommands");
+            if (subCommands == null || !subCommands.isArray || subCommands.arraySize == 0)
             {
                 if (!string.IsNullOrWhiteSpace(command.Name))
                     actions.Add(command.Name);
@@ -406,15 +295,12 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
 
             for (int i = 0; i < subCommands.arraySize; i++)
             {
-                SerializedProperty entry =
-                    subCommands.GetArrayElementAtIndex(i);
-                string subCommand =
-                    entry.FindPropertyRelative("Name")?.stringValue;
+                SerializedProperty entry = subCommands.GetArrayElementAtIndex(i);
+                string subCommand = entry.FindPropertyRelative("Name")?.stringValue;
                 if (string.IsNullOrWhiteSpace(subCommand))
                     continue;
 
-                string action =
-                    $"{command.Name}.{subCommand}";
+                string action = $"{command.Name}.{subCommand}";
                 if (!actions.Contains(action))
                     actions.Add(action);
             }
@@ -491,30 +377,20 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
         private void RefreshSnapshotTypes()
         {
             Type selected = GetSelectedSnapshotType();
-            _snapshotTypes =
-                MiniToolSnapshotContractDiscovery.Find(
-                    _debugHostPrefab);
+            _snapshotTypes = MiniToolSnapshotContractDiscovery.Find(
+                _debugHostPrefab);
             _snapshotContractPrefab = _debugHostPrefab;
-            _snapshotTypeIndex = selected == null
-                ? 0
-                : Array.IndexOf(_snapshotTypes, selected);
+            _snapshotTypeIndex = selected == null ? 0 : Array.IndexOf(_snapshotTypes, selected);
             if (_snapshotTypeIndex < 0)
                 _snapshotTypeIndex = 0;
         }
 
         private Type GetSelectedSnapshotType()
         {
-            if (_snapshotTypes == null ||
-                _snapshotTypes.Length == 0)
-            {
+            if (_snapshotTypes == null || _snapshotTypes.Length == 0)
                 return null;
-            }
 
-            return _snapshotTypes[
-                Mathf.Clamp(
-                    _snapshotTypeIndex,
-                    0,
-                    _snapshotTypes.Length - 1)];
+            return _snapshotTypes[Mathf.Clamp(_snapshotTypeIndex, 0, _snapshotTypes.Length - 1)];
         }
 
         private static bool IsPrefabAsset(GameObject prefab)
@@ -523,10 +399,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
                 return false;
 
             string path = AssetDatabase.GetAssetPath(prefab);
-            return !string.IsNullOrWhiteSpace(path) &&
-                   path.EndsWith(
-                       ".prefab",
-                       StringComparison.OrdinalIgnoreCase);
+            return !string.IsNullOrWhiteSpace(path) && path.EndsWith(".prefab", StringComparison.OrdinalIgnoreCase);
         }
     }
 }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using SAS.Utilities.Presentation;
 using UnityEngine;
 
 namespace SAS.Utilities.DeveloperConsole
@@ -15,6 +16,7 @@ namespace SAS.Utilities.DeveloperConsole
 
         [SerializeField] private GameObject m_ParticleStatsPrefab;
         private GameObject _particleStatsInstance;
+        private DevUtilityPresentation _presentation;
         private readonly List<ParticleBackupState> _backupStates = new();
         private bool _isCulled = false;
 
@@ -31,9 +33,13 @@ namespace SAS.Utilities.DeveloperConsole
                     {
                         _particleStatsInstance = Instantiate(m_ParticleStatsPrefab);
                         _particleStatsInstance.name = "ParticleStatsUI";
+                        _presentation = _particleStatsInstance.GetComponent<DevUtilityPresentation>();
                     }
 
-                    Presentation.DevUtilityUiVisibility.SetVisible(_particleStatsInstance, isVisible);
+                    if (_presentation == null)
+                        return false;
+
+                    _presentation.SetRequestedVisible(isVisible);
                     return true;
                 }
             }
@@ -47,10 +53,14 @@ namespace SAS.Utilities.DeveloperConsole
             {
                 _particleStatsInstance = Instantiate(m_ParticleStatsPrefab);
                 _particleStatsInstance.name = "ParticleStatsUI";
+                _presentation = _particleStatsInstance.GetComponent<DevUtilityPresentation>();
             }
 
-            Presentation.DevUtilityUiVisibility.SetVisible(_particleStatsInstance, false);
-            Presentation.DevUtilityUiVisibility.SetVisible(_particleStatsInstance, true);
+            if (_presentation == null)
+                return false;
+
+            _presentation.SetRequestedVisible(false);
+            _presentation.SetRequestedVisible(true);
             Debug.Log("Particle Stats UI Refreshed.");
 
             return true;

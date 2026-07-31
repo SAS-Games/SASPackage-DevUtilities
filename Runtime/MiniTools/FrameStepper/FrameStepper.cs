@@ -1,5 +1,4 @@
 using SAS.DevUtilities;
-using SAS.Utilities.Presentation;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -73,11 +72,6 @@ public sealed class FrameStepper : MonoBehaviour, IMiniToolSnapshotView<FrameSte
             m_Play.SetActive(!_isPaused);
         if (m_FrameStep != null)
             m_FrameStep.interactable = _isPaused;
-    }
-
-    public void Show(bool visible)
-    {
-        DevUtilityUiVisibility.SetVisible(gameObject, visible);
     }
 
     private void OnRunningChanged(bool _)

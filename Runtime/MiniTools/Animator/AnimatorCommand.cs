@@ -1,4 +1,5 @@
 using SAS.DevUtilities;
+using SAS.Utilities.Presentation;
 using UnityEngine;
 
 namespace SAS.Utilities.DeveloperConsole
@@ -8,6 +9,7 @@ namespace SAS.Utilities.DeveloperConsole
     {
         [SerializeField] private GameObject m_AnimatorStatsPrefab;
         private GameObject _statsInstance;
+        private DevUtilityPresentation _presentation;
 
         public override string HelpText => "";
 
@@ -17,7 +19,10 @@ namespace SAS.Utilities.DeveloperConsole
                 return false;
 
             EnsureStatsInstance();
-            Presentation.DevUtilityUiVisibility.SetVisible(_statsInstance, isVisible);
+            if (_presentation == null)
+                return false;
+
+            _presentation.SetRequestedVisible(isVisible);
             return true;
         }
 
@@ -65,7 +70,10 @@ namespace SAS.Utilities.DeveloperConsole
                 return false;
 
             provider.Refresh();
-            Presentation.DevUtilityUiVisibility.SetVisible(_statsInstance, true);
+            if (_presentation == null)
+                return false;
+
+            _presentation.SetRequestedVisible(true);
             Debug.Log("Animator Stats UI Refreshed.");
             return true;
         }
@@ -75,8 +83,9 @@ namespace SAS.Utilities.DeveloperConsole
             if (_statsInstance != null)
                 return;
 
-            _statsInstance = Object.Instantiate(m_AnimatorStatsPrefab);
+            _statsInstance = Instantiate(m_AnimatorStatsPrefab);
             _statsInstance.name = "AnimatorStatsUI";
+            _presentation = _statsInstance.GetComponent<DevUtilityPresentation>();
         }
     }
 }

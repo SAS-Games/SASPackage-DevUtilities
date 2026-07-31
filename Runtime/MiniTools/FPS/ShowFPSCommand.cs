@@ -1,3 +1,4 @@
+using SAS.Utilities.Presentation;
 using UnityEngine;
 
 namespace SAS.Utilities.DeveloperConsole
@@ -7,6 +8,7 @@ namespace SAS.Utilities.DeveloperConsole
     {
         [SerializeField] private GameObject m_FpsPrefab;
         private GameObject _fps;
+        private DevUtilityPresentation _presentation;
 
         public override string HelpText => "Stats commands:\n" +
                                            "  Stats.FPS <On|Off> [anchor] [horizontal-padding] [vertical-padding]\n" +
@@ -52,7 +54,11 @@ namespace SAS.Utilities.DeveloperConsole
 
                 _fps = Instantiate(m_FpsPrefab);
                 _fps.name = "FPSCanvas";
+                _presentation = _fps.GetComponent<DevUtilityPresentation>();
             }
+
+            if (_presentation == null)
+                return false;
 
             if (hasAlignment)
             {
@@ -62,7 +68,7 @@ namespace SAS.Utilities.DeveloperConsole
                 fpsRect.AlignToScreen(anchor, new Vector2Int(paddingX, paddingY));
             }
 
-            Presentation.DevUtilityUiVisibility.SetVisible(_fps, isVisible);
+            _presentation.SetRequestedVisible(isVisible);
             return true;
 #endif
         }
@@ -85,10 +91,7 @@ namespace SAS.Utilities.DeveloperConsole
         protected static bool TryParseTargetFrameRate(string[] args, out int targetFrameRate)
         {
             targetFrameRate = 0;
-            return args != null &&
-                   args.Length == 1 &&
-                   int.TryParse(args[0], out targetFrameRate) &&
-                   (targetFrameRate == -1 || targetFrameRate > 0);
+            return args != null && args.Length == 1 && int.TryParse(args[0], out targetFrameRate) && (targetFrameRate == -1 || targetFrameRate > 0);
         }
 
         private static bool TryGetDisplayRect(GameObject root, out RectTransform displayRect)

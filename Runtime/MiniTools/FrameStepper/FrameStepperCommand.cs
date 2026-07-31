@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using SAS.Utilities.Presentation;
 
 namespace SAS.Utilities.DeveloperConsole
 {
@@ -7,6 +8,7 @@ namespace SAS.Utilities.DeveloperConsole
     {
         [SerializeField] private FrameStepper m_FrameStepperPrefab;
         private FrameStepper _frameStepper;
+        private DevUtilityPresentation _presentation;
 
         public override string HelpText => "Usage: FrameStepper <On|Off>\n" +
                                            "Show or hide the Frame Stepper UI at runtime.";
@@ -21,9 +23,13 @@ namespace SAS.Utilities.DeveloperConsole
                     {
                         _frameStepper = Instantiate(m_FrameStepperPrefab);
                         _frameStepper.name = "FrameStepper";
+                        _presentation = _frameStepper.GetComponent<DevUtilityPresentation>();
                     }
 
-                    _frameStepper.Show(isVisible);
+                    if (_presentation == null)
+                        return false;
+
+                    _presentation.SetRequestedVisible(isVisible);
                     return true;
                 }
             }

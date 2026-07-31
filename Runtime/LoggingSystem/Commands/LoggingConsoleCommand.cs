@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using SAS.Utilities.Presentation;
 using UnityEngine;
 
 namespace SAS.Utilities.DeveloperConsole
@@ -11,6 +12,7 @@ namespace SAS.Utilities.DeveloperConsole
         [SerializeField] private GameObject m_OnScreenLogPrefab;
         public override string HelpText => m_HelpText;
         private GameObject _onScreenLog;
+        private DevUtilityPresentation _presentation;
 
         private bool LogLevel(string[] args)
         {
@@ -42,13 +44,23 @@ namespace SAS.Utilities.DeveloperConsole
                 {
                     _onScreenLog = Instantiate(m_OnScreenLogPrefab);
                     _onScreenLog.name = "OnScreenLog";
+                    _presentation = _onScreenLog.GetComponent<DevUtilityPresentation>();
                 }
-                Presentation.DevUtilityUiVisibility.SetVisible(_onScreenLog, true);
+
+                if (_presentation == null)
+                    return false;
+
+                _presentation.SetRequestedVisible(true);
             }
             else if (args[0].Equals("Off", StringComparison.OrdinalIgnoreCase))
             {
                 if (_onScreenLog != null)
-                    Presentation.DevUtilityUiVisibility.SetVisible(_onScreenLog, false);
+                {
+                    if (_presentation == null)
+                        return false;
+
+                    _presentation.SetRequestedVisible(false);
+                }
             }
             else
                 return false;
@@ -61,10 +73,7 @@ namespace SAS.Utilities.DeveloperConsole
             if (args.Length < 1)
                 return false;
 
-            var tags = args[0].Split('|')
-                .Select(t => t.Trim())
-                .Where(t => !string.IsNullOrEmpty(t))
-                .ToArray();
+            var tags = args[0].Split('|').Select(t => t.Trim()).Where(t => !string.IsNullOrEmpty(t)).ToArray();
 
             if (tags.Length == 0)
                 return false;

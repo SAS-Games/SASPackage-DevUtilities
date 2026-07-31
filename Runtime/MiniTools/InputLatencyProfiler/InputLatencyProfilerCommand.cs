@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
+using SAS.Utilities.Presentation;
 
 #if ENABLE_DEBUG
 
@@ -10,10 +11,10 @@ namespace SAS.Utilities.DeveloperConsole
     {
         [SerializeField] private GameObject m_InputLatencyProfilerPrefab;
         private GameObject _inputLatencyProfiler;
+        private DevUtilityPresentation _presentation;
         private InputSettings.UpdateMode _previousUpdateMode;
         private bool _hasPreviousUpdateMode;
-        public override string HelpText =>
-            "Usage: InputLatencyProfiler <Overlay|InputUpdateMode>. The open overlay can be closed with Escape, or controller B when enabled.";
+        public override string HelpText => "Usage: InputLatencyProfiler <Overlay|InputUpdateMode>. The open overlay can be closed with Escape, or controller B when enabled.";
         
 
         private bool InputLatencyProfiler(string[] args)
@@ -26,9 +27,13 @@ namespace SAS.Utilities.DeveloperConsole
                     {
                         _inputLatencyProfiler = Instantiate(m_InputLatencyProfilerPrefab);
                         _inputLatencyProfiler.name = "InputLatencyProfiler";
+                        _presentation = _inputLatencyProfiler.GetComponent<DevUtilityPresentation>();
                     }
 
-                    Presentation.DevUtilityUiVisibility.SetVisible(_inputLatencyProfiler, isVisible);
+                    if (_presentation == null)
+                        return false;
+
+                    _presentation.SetRequestedVisible(isVisible);
                     return true;
                 }
             }

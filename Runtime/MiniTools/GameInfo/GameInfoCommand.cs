@@ -1,3 +1,4 @@
+using SAS.Utilities.Presentation;
 using UnityEngine;
 
 namespace SAS.Utilities.DeveloperConsole
@@ -9,6 +10,7 @@ namespace SAS.Utilities.DeveloperConsole
         [SerializeField] private GameObject m_InfoPrefab;
 
         private GameObject _infoObj;
+        private DevUtilityPresentation _presentation;
         public override string HelpText => m_HelpText;
 
         public override bool Process(DeveloperConsoleBehaviour developerConsole, string command, string[] args = null)
@@ -18,9 +20,15 @@ namespace SAS.Utilities.DeveloperConsole
                 if (BoolUtil.TryParse(args[0], out var isVisible))
                 {
                     if (_infoObj == null)
+                    {
                         _infoObj = Instantiate(m_InfoPrefab);
+                        _presentation = _infoObj.GetComponent<DevUtilityPresentation>();
+                    }
 
-                    Presentation.DevUtilityUiVisibility.SetVisible(_infoObj, isVisible);
+                    if (_presentation == null)
+                        return false;
+
+                    _presentation.SetRequestedVisible(isVisible);
                     return true;
                 }
             }

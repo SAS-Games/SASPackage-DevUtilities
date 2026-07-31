@@ -923,6 +923,7 @@ GameObject:
   - component: {fileID: 5430831075476541851}
   - component: {fileID: 336633202614836418}
   - component: {fileID: 5430831075476541850}
+  - component: {fileID: 9000000000000000001}
   m_Layer: 0
   m_Name: GamepadVisualizer
   m_TagString: Untagged
@@ -1293,3 +1294,16 @@ MonoBehaviour:
   m_ControlPath: <Gamepad>/buttonEast
   m_ControlIndex: 0
   m_UseCurrentDevice: 0
+--- !u!114 &9000000000000000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5430831075476541849}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c48bbf7c6d8e45d68d6bbaa724517562, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  m_PresentationRoot: {fileID: 0}
