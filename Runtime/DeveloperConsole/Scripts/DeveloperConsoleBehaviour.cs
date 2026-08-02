@@ -5,6 +5,7 @@ using TMPro;
 using SAS.Utilities.Presentation;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using static UnityEngine.InputSystem.InputAction;
 
@@ -171,6 +172,17 @@ namespace SAS.Utilities.DeveloperConsole
         private void OnDestroy()
         {
             SetDeveloperConsole(null, false);
+            if (_inputActions != null)
+            {
+                _inputActions.Developer.ToggleConsole.performed -= Toggle;
+                _inputActions.Developer.Submit.performed -= OnSubmit;
+                _inputActions.Developer.HighlightInput.canceled -= FocusInput;
+                _inputActions.Developer.HistoryNavigationUp.performed -= GetNextCommandHistory;
+                _inputActions.Developer.HistoryNavigationDown.performed -= GetPrevCommandHistory;
+                _inputActions.Dispose();
+                _inputActions = null;
+            }
+
             if (Instance == this)
                 Instance = null;
         }
@@ -189,8 +201,6 @@ namespace SAS.Utilities.DeveloperConsole
             DevUtilityPresentationRegistry.SuppressionChanged -= OnPresentationSuppressionChanged;
             DevUtilityPresentationRegistry.SuppressionChanged += OnPresentationSuppressionChanged;
             OnPresentationSuppressionChanged();
-            if (DevUtilityPresentationRegistry.CanShowLocalUi)
-                _inputActions?.Developer.Enable();
         }
 
         private void OnDisable()
@@ -212,11 +222,17 @@ namespace SAS.Utilities.DeveloperConsole
         private void ApplyConsoleVisibility()
         {
             if (m_UiCanvas == null)
+            {
+                RefreshInputActionState();
                 return;
+            }
 
             bool visible = _consoleVisibilityRequested && DevUtilityPresentationRegistry.CanShowLocalUi;
             if (m_UiCanvas.activeSelf == visible)
+            {
+                RefreshInputActionState();
                 return;
+            }
 
             if (!visible)
             {
@@ -251,6 +267,7 @@ namespace SAS.Utilities.DeveloperConsole
             }
 
             DisplayHelpText("");
+            RefreshInputActionState();
         }
 
         private IEnumerator FocusInputFieldNextFrame()
@@ -449,10 +466,10 @@ namespace SAS.Utilities.DeveloperConsole
 
         private void OnSubmit(CallbackContext context)
         {
-            if (!context.performed)
+            if (!context.performed || !CanAcceptConsoleInput())
                 return;
 
-            if (m_InputField != null && m_InputField.isFocused)
+            if (m_InputField != null && m_InputField.isFocused && m_SubmitButton != null)
             {
                 m_SubmitButton.onClick.Invoke();
             }
@@ -460,7 +477,7 @@ namespace SAS.Utilities.DeveloperConsole
 
         private void FocusInput(CallbackContext context)
         {
-            if (!context.performed)
+            if (!context.performed || !CanAcceptConsoleInput())
                 return;
 
             if (m_InputField != null && m_UiCanvas != null && m_UiCanvas.activeInHierarchy)
@@ -473,18 +490,63 @@ namespace SAS.Utilities.DeveloperConsole
 
         private void GetNextCommandHistory(CallbackContext context)
         {
-            SetCommand(_developerConsole.CommandHistory.GetNext());
+            if (!context.performed || !CanAcceptConsoleInput())
+                return;
+
+            SetCommand(DeveloperConsole.CommandHistory.GetNext());
         }
 
         private void GetPrevCommandHistory(CallbackContext context)
         {
-            SetCommand(_developerConsole.CommandHistory.GetPrevious());
+            if (!context.performed || !CanAcceptConsoleInput())
+                return;
+
+            SetCommand(DeveloperConsole.CommandHistory.GetPrevious());
         }
 
         private void SetCommand(string command)
         {
+            if (!CanAcceptConsoleInput() || m_InputField == null)
+                return;
+
             m_InputField.SetDelayedText(command);
             StartCoroutine(SelectGameObjectNextFrame());
+        }
+
+        private bool CanAcceptConsoleInput()
+        {
+            return isActiveAndEnabled &&
+                   DevUtilityPresentationRegistry.CanShowLocalUi &&
+                   m_UiCanvas != null &&
+                   m_UiCanvas.activeInHierarchy;
+        }
+
+        private void RefreshInputActionState()
+        {
+            if (_inputActions == null)
+                return;
+
+            bool canToggle = isActiveAndEnabled && DevUtilityPresentationRegistry.CanShowLocalUi;
+            bool canInteract = canToggle && m_UiCanvas != null && m_UiCanvas.activeInHierarchy;
+
+            SetActionEnabled(_inputActions.Developer.ToggleConsole, canToggle);
+            SetActionEnabled(_inputActions.Developer.Submit, canInteract);
+            SetActionEnabled(_inputActions.Developer.HighlightInput, canInteract);
+            SetActionEnabled(_inputActions.Developer.HistoryNavigationUp, canInteract);
+            SetActionEnabled(_inputActions.Developer.HistoryNavigationDown, canInteract);
+        }
+
+        private static void SetActionEnabled(InputAction action, bool enabled)
+        {
+            if (enabled)
+            {
+                if (!action.enabled)
+                    action.Enable();
+            }
+            else if (action.enabled)
+            {
+                action.Disable();
+            }
         }
 
         private void ExecuteCommandsFromCommandLine()
@@ -554,15 +616,6 @@ namespace SAS.Utilities.DeveloperConsole
 
         private void OnPresentationSuppressionChanged()
         {
-            if (DevUtilityPresentationRegistry.CanShowLocalUi)
-            {
-                if (isActiveAndEnabled)
-                    _inputActions?.Developer.Enable();
-                ApplyConsoleVisibility();
-                return;
-            }
-
-            _inputActions?.Developer.Disable();
             ApplyConsoleVisibility();
         }
     }
