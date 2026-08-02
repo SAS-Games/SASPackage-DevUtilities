@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
 {
-    internal sealed class MiniToolCreationWindow : EditorWindow
+    internal sealed class MiniToolRegistrationWindow : EditorWindow
     {
         private enum MiniToolSetupTarget
         {
@@ -35,8 +35,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
         private float _updateInterval = 1f;
         private bool _visibleByDefault = true;
 
-        [MenuItem("Assets/Create/Dev Utilities/Mini Tool Setup...", priority = 120)]
-        [MenuItem("Tools/Dev Utilities/Create Mini Tool...", priority = 120)]
+        [MenuItem("Assets/Create/Dev Utilities/Mini Tool Registration...", priority = 120)]
+        [MenuItem("Tools/Dev Utilities/Register Mini Tool...", priority = 120)]
         private static void OpenFromMenu()
         {
             OpenWindow();
@@ -44,7 +44,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
 
         internal static void OpenWindow()
         {
-            var window = GetWindow<MiniToolCreationWindow>(true, "Create Mini Tool", true);
+            var window = GetWindow<MiniToolRegistrationWindow>(true, "Register Mini Tool", true);
             window.minSize = new Vector2(500f, 410f);
             window.Show();
         }
@@ -63,8 +63,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
 
         private void OnGUI()
         {
-            EditorGUILayout.LabelField("Mini Tool Setup", EditorStyles.boldLabel);
-            EditorGUILayout.LabelField("Creates one definition shared by the Player, Debug Host, optional Native Workspace presentation, and command routing.", EditorStyles.wordWrappedLabel);
+            EditorGUILayout.LabelField("Mini Tool Registration", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Registers one definition shared by the Player, Debug Host, optional Native Workspace presentation, and command routing.", EditorStyles.wordWrappedLabel);
             EditorGUILayout.Space(8f);
 
             _toolName = EditorGUILayout.TextField("Tool Name", _toolName);
@@ -76,11 +76,11 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
             _visibleByDefault = EditorGUILayout.Toggle("Visible by Default", _visibleByDefault);
 
             EditorGUILayout.Space(10f);
-            using (new EditorGUI.DisabledScope(!CanCreate()))
+            using (new EditorGUI.DisabledScope(!CanRegister()))
             {
-                if (GUILayout.Button("Create Mini Tool", GUILayout.Height(28f)))
+                if (GUILayout.Button("Register Mini Tool", GUILayout.Height(28f)))
                 {
-                    CreateMiniTool();
+                    RegisterMiniTool();
                 }
             }
         }
@@ -182,7 +182,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
             }
         }
 
-        private bool CanCreate()
+        private bool CanRegister()
         {
             if (string.IsNullOrWhiteSpace(_toolName))
                 return false;
@@ -200,7 +200,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
             return IsProvider(providerType) && MiniToolSnapshotContractDiscovery.HasCompatibleSnapshot(providerType, _snapshotTypes);
         }
 
-        private void CreateMiniTool()
+        private void RegisterMiniTool()
         {
             string folder = GetSelectedFolder();
             if (IsEditorOnlyPath(folder))

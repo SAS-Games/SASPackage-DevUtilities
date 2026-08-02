@@ -1,4 +1,5 @@
 using System;
+using SAS.DevUtilities;
 using SAS.Utilities.RemoteDevUtilities.Protocol.Commands;
 
 namespace SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools
@@ -99,14 +100,14 @@ namespace SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools
         public int Frame;
 
         /// <summary>
-        /// Assembly-qualified name of the <see cref="SAS.DevUtilities.IMiniToolSnapshot"/>
+        /// Assembly-qualified name of the <see cref="IMiniToolSnapshot"/>
         /// carried by <see cref="SnapshotJson"/>. Empty for field-only providers.
         /// </summary>
         public string SnapshotTypeName;
 
         /// <summary>
         /// Serialized mini-tool snapshot consumed by the matching
-        /// <see cref="SAS.DevUtilities.IMiniToolSnapshotView{TSnapshot}"/> on the Debug Host prefab.
+        /// <see cref="IMiniToolSnapshotView{TSnapshot}"/> on the Debug Host prefab.
         /// </summary>
         public string SnapshotJson;
 

@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using SAS.Utilities.RemoteDevUtilities.Editor.Configuration;
 using UnityEditor;
 using UnityEngine;
 
@@ -16,10 +17,9 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
         private const string LegacySettingsPath = "ProjectSettings/RemoteDevUtilitiesMiniTools.asset";
         private const string SettingsPath = "ProjectSettings/RemoteDevUtilitiesSettings.asset";
 
-        private const string LegacyTypeIdentity = "DevUtilities.RemoteDevUtilities.Editor::" + "SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration." + "RemoteMiniToolVisibilitySettings";
-
-        private const string UnifiedMiniToolTypeIdentity = "DevUtilities.RemoteDevUtilities.Editor::" + "SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration." + "RemoteMiniToolSettings";
-        private const string CurrentTypeIdentity = "DevUtilities.RemoteDevUtilities.Editor::" + "SAS.Utilities.RemoteDevUtilities.Editor.Configuration." + "RemoteDevUtilitiesProjectSettings";
+        private const string TypeIdentityPrefix = "m_EditorClassIdentifier: ";
+        private const string LegacyVisibilityTypeName = "RemoteMiniToolVisibilitySettings";
+        private const string LegacyUnifiedTypeName = "RemoteMiniToolSettings";
 
         static RemoteMiniToolSettingsMigration()
         {
@@ -47,22 +47,9 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
                     return;
 
                 string serialized = File.ReadAllText(path);
-                string current = "m_EditorClassIdentifier: " + CurrentTypeIdentity;
-                foreach (string previousIdentity in new[]
-                         {
-                             LegacyTypeIdentity,
-                             UnifiedMiniToolTypeIdentity
-                         })
-                {
-                    string previous = "m_EditorClassIdentifier: " + previousIdentity;
-                    if (serialized.IndexOf(previous, StringComparison.Ordinal) < 0)
-                    {
-                        continue;
-                    }
-
-                    serialized = serialized.Replace(previous, current);
-                    changed = true;
-                }
+                string currentIdentity = GetTypeIdentity(typeof(RemoteDevUtilitiesProjectSettings));
+                serialized = ReplaceLegacyTypeIdentity(serialized, LegacyVisibilityTypeName, currentIdentity, ref changed);
+                serialized = ReplaceLegacyTypeIdentity(serialized, LegacyUnifiedTypeName, currentIdentity, ref changed);
 
                 if (!changed)
                     return;
@@ -74,6 +61,44 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
             {
                 Debug.LogWarning("[Remote Dev Utilities] Could not migrate the " + $"project settings: {exception.Message}");
             }
+        }
+
+        private static string ReplaceLegacyTypeIdentity(string serialized, string legacyTypeName, string currentIdentity, ref bool changed)
+        {
+            int searchIndex = 0;
+            while (searchIndex < serialized.Length)
+            {
+                int prefixIndex = serialized.IndexOf(TypeIdentityPrefix, searchIndex, StringComparison.Ordinal);
+                if (prefixIndex < 0)
+                    break;
+
+                int identityStart = prefixIndex + TypeIdentityPrefix.Length;
+                int lineEnd = serialized.IndexOf('\n', identityStart);
+                if (lineEnd < 0)
+                    lineEnd = serialized.Length;
+
+                int identityEnd = lineEnd;
+                if (identityEnd > identityStart && serialized[identityEnd - 1] == '\r')
+                    identityEnd--;
+
+                string identity = serialized.Substring(identityStart, identityEnd - identityStart);
+                if (!identity.EndsWith("." + legacyTypeName, StringComparison.Ordinal))
+                {
+                    searchIndex = lineEnd + 1;
+                    continue;
+                }
+
+                serialized = serialized.Substring(0, identityStart) + currentIdentity + serialized.Substring(identityEnd);
+                changed = true;
+                searchIndex = identityStart + currentIdentity.Length;
+            }
+
+            return serialized;
+        }
+
+        private static string GetTypeIdentity(Type type)
+        {
+            return $"{type.Assembly.GetName().Name}::{type.FullName}";
         }
     }
 }

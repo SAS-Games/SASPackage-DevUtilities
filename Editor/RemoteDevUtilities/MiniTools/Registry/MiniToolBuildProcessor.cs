@@ -1,4 +1,3 @@
-#if ENABLE_DEBUG
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -38,6 +37,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
         {
             RestorePreloadedAssets();
 
+#if ENABLE_DEBUG
             UnityEngine.Object[] previous =
                 PlayerSettings.GetPreloadedAssets();
             WriteBackup(previous);
@@ -64,6 +64,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
                 RestorePreloadedAssets();
                 throw;
             }
+#endif
         }
 
         public void OnPostprocessBuild(BuildReport report)
@@ -200,4 +201,3 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
         }
     }
 }
-#endif

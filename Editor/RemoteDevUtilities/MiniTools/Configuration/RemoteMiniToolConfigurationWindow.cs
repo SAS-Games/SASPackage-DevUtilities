@@ -115,8 +115,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
                 UnsubscribeHiddenTools(settings);
             }
 
-            if (GUILayout.Button("Create Mini Tool", GUILayout.Width(120f)))
-                MiniToolCreationWindow.OpenWindow();
+            if (GUILayout.Button("Register Mini Tool", GUILayout.Width(130f)))
+                MiniToolRegistrationWindow.OpenWindow();
             GUILayout.FlexibleSpace();
             EditorGUILayout.EndHorizontal();
         }
