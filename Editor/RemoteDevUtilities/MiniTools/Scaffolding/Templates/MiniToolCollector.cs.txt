@@ -1,0 +1,17 @@
+using UnityEngine;
+
+namespace {{NAMESPACE}}
+{
+    internal static class {{TOOL_NAME}}Collector
+    {
+        internal static {{TOOL_NAME}}Snapshot Capture()
+        {
+            return new {{TOOL_NAME}}Snapshot
+            {
+                Status = "Running",
+                Frame = Time.frameCount,
+                ElapsedSeconds = Time.unscaledTime
+            };
+        }
+    }
+}

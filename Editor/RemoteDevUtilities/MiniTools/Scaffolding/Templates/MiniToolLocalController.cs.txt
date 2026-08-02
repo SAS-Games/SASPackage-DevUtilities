@@ -1,0 +1,56 @@
+using {{CONTRACT_NAMESPACE}};
+using UnityEngine;
+
+namespace {{NAMESPACE}}
+{
+    [DisallowMultipleComponent]
+    [RequireComponent(typeof({{TOOL_NAME}}SnapshotProvider), typeof({{TOOL_NAME}}View))]
+    public sealed class {{TOOL_NAME}}LocalController : MonoBehaviour, IMiniToolLocalController
+    {
+        [SerializeField] private {{TOOL_NAME}}SnapshotProvider m_SnapshotProvider;
+        [SerializeField] private {{TOOL_NAME}}View m_View;
+
+        private void Awake()
+        {
+            ResolveDependencies();
+        }
+
+        private void OnEnable()
+        {
+            ResolveDependencies();
+            if (m_SnapshotProvider == null || m_View == null)
+                return;
+
+            m_SnapshotProvider.SnapshotChanged += ApplySnapshot;
+            if (m_SnapshotProvider.TryGetSnapshot(out {{TOOL_NAME}}Snapshot snapshot))
+                ApplySnapshot(snapshot);
+        }
+
+        private void OnDisable()
+        {
+            if (m_SnapshotProvider != null)
+                m_SnapshotProvider.SnapshotChanged -= ApplySnapshot;
+        }
+
+        private void ApplySnapshot({{TOOL_NAME}}Snapshot snapshot)
+        {
+            if (m_View != null)
+                m_View.ApplySnapshot(in snapshot);
+        }
+
+        private void ResolveDependencies()
+        {
+            if (m_SnapshotProvider == null)
+                m_SnapshotProvider = GetComponent<{{TOOL_NAME}}SnapshotProvider>();
+            if (m_View == null)
+                m_View = GetComponent<{{TOOL_NAME}}View>();
+        }
+
+#if UNITY_EDITOR
+        private void Reset()
+        {
+            ResolveDependencies();
+        }
+#endif
+    }
+}

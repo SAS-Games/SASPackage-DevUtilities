@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using SAS.Utilities.DeveloperConsole;
 using SAS.Utilities.Presentation;
+using SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Scaffolding;
 using SAS.Utilities.RemoteDevUtilities.MiniTools;
 using SAS.Utilities.RemoteDevUtilities.Protocol.Commands;
 using UnityEditor;
@@ -14,6 +15,12 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
 {
     internal sealed class MiniToolRegistrationWindow : EditorWindow
     {
+        private enum MiniToolWorkflow
+        {
+            CreateNew,
+            RegisterExisting
+        }
+
         private enum MiniToolSetupTarget
         {
             [InspectorName("Debug Host (Shared Prefab UI)")] DebugHost,
@@ -34,18 +41,32 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
         private int _snapshotTypeIndex;
         private float _updateInterval = 1f;
         private bool _visibleByDefault = true;
+        [SerializeField] private MiniToolWorkflow _workflow = MiniToolWorkflow.CreateNew;
+        [SerializeField] private MiniToolScaffoldForm _scaffoldForm = new();
 
-        [MenuItem("Assets/Create/Dev Utilities/Mini Tool Registration...", priority = 120)]
-        [MenuItem("Tools/Dev Utilities/Register Mini Tool...", priority = 120)]
-        private static void OpenFromMenu()
+        [MenuItem("Assets/Create/Dev Utilities/Mini Tool...", priority = 120)]
+        [MenuItem("Tools/Dev Utilities/Create Mini Tool...", priority = 120)]
+        private static void OpenCreateFromMenu()
         {
-            OpenWindow();
+            OpenWindow(MiniToolWorkflow.CreateNew);
+        }
+
+        [MenuItem("Tools/Dev Utilities/Register Existing Mini Tool...", priority = 121)]
+        private static void OpenRegistrationFromMenu()
+        {
+            OpenWindow(MiniToolWorkflow.RegisterExisting);
         }
 
         internal static void OpenWindow()
         {
-            var window = GetWindow<MiniToolRegistrationWindow>(true, "Register Mini Tool", true);
-            window.minSize = new Vector2(500f, 410f);
+            OpenWindow(MiniToolWorkflow.CreateNew);
+        }
+
+        private static void OpenWindow(MiniToolWorkflow workflow)
+        {
+            var window = GetWindow<MiniToolRegistrationWindow>(true, "Mini Tool Setup", true);
+            window._workflow = workflow;
+            window.minSize = new Vector2(520f, 500f);
             window.Show();
         }
 
@@ -58,11 +79,22 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
                     _toolName = selectedPrefab.name;
             }
 
+            _scaffoldForm ??= new MiniToolScaffoldForm();
+            _scaffoldForm.InitializeFromSelection();
             RefreshSnapshotTypes();
         }
 
         private void OnGUI()
         {
+            _workflow = (MiniToolWorkflow)GUILayout.Toolbar((int)_workflow, new[] { "Create New Mini Tool", "Register Existing Mini Tool" });
+            EditorGUILayout.Space(10f);
+            if (_workflow == MiniToolWorkflow.CreateNew)
+            {
+                if (_scaffoldForm.Draw())
+                    Close();
+                return;
+            }
+
             EditorGUILayout.LabelField("Mini Tool Registration", EditorStyles.boldLabel);
             EditorGUILayout.LabelField("Registers one definition shared by the Player, Debug Host, optional Native Workspace presentation, and command routing.", EditorStyles.wordWrappedLabel);
             EditorGUILayout.Space(8f);

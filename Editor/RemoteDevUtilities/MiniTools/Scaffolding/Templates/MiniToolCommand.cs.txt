@@ -1,0 +1,37 @@
+using {{CONSOLE_NAMESPACE}};
+using {{PRESENTATION_NAMESPACE}};
+using UnityEngine;
+
+namespace {{NAMESPACE}}
+{
+    public sealed class {{TOOL_NAME}}Command : ConsoleCommand
+    {
+        [SerializeField] private GameObject m_Prefab;
+
+        private GameObject _instance;
+        private DevUtilityPresentation _presentation;
+
+        public override string HelpText => "Usage: {{TOOL_NAME}} [On/Off].";
+
+        public override bool Process(DeveloperConsoleBehaviour developerConsole, string command, string[] args = null)
+        {
+            if (args == null || args.Length == 0 || !BoolUtil.TryParse(args[0], out bool isVisible))
+                return false;
+
+            if (_instance == null)
+            {
+                if (!isVisible || m_Prefab == null)
+                    return !isVisible;
+
+                _instance = Instantiate(m_Prefab);
+                _presentation = _instance.GetComponent<DevUtilityPresentation>();
+            }
+
+            if (_presentation == null)
+                return false;
+
+            _presentation.SetRequestedVisible(isVisible);
+            return true;
+        }
+    }
+}

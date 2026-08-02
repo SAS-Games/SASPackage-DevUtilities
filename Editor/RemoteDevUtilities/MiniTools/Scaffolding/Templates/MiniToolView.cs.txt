@@ -1,0 +1,28 @@
+using {{CONTRACT_NAMESPACE}};
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace {{NAMESPACE}}
+{
+    [DisallowMultipleComponent]
+    public sealed class {{TOOL_NAME}}View : MonoBehaviour, IMiniToolSnapshotView<{{TOOL_NAME}}Snapshot>
+    {
+        [SerializeField] private Text m_Display;
+
+        public void ApplySnapshot(in {{TOOL_NAME}}Snapshot snapshot)
+        {
+            if (m_Display == null)
+                return;
+
+            m_Display.text = $"<b>{{TOOL_NAME}}</b>\nStatus: {snapshot.Status}\nFrame: {snapshot.Frame}\nElapsed: {snapshot.ElapsedSeconds:F2} s";
+        }
+
+#if UNITY_EDITOR
+        private void Reset()
+        {
+            if (m_Display == null)
+                m_Display = GetComponentInChildren<Text>(true);
+        }
+#endif
+    }
+}

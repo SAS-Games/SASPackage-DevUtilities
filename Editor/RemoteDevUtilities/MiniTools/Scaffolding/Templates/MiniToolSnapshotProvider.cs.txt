@@ -1,0 +1,43 @@
+using {{CONTRACT_NAMESPACE}};
+using UnityEngine;
+
+namespace {{NAMESPACE}}
+{
+    [DisallowMultipleComponent]
+    public sealed class {{TOOL_NAME}}SnapshotProvider : MiniToolSnapshotProviderBehaviour<{{TOOL_NAME}}Snapshot>
+    {
+        private const float MinimumUpdateInterval = 0.1f;
+
+        [SerializeField, Min(MinimumUpdateInterval)] private float m_UpdateInterval = {{UPDATE_INTERVAL}}f;
+
+        private float _nextUpdateTime;
+
+        private void OnEnable()
+        {
+            ClearSnapshot();
+            Refresh();
+        }
+
+        private void Update()
+        {
+            if (Time.unscaledTime < _nextUpdateTime)
+                return;
+
+            Refresh();
+        }
+
+        public void Refresh()
+        {
+            {{TOOL_NAME}}Snapshot snapshot = {{TOOL_NAME}}Collector.Capture();
+            PublishSnapshot(in snapshot);
+            _nextUpdateTime = Time.unscaledTime + Mathf.Max(MinimumUpdateInterval, m_UpdateInterval);
+        }
+
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            m_UpdateInterval = Mathf.Max(MinimumUpdateInterval, m_UpdateInterval);
+        }
+#endif
+    }
+}

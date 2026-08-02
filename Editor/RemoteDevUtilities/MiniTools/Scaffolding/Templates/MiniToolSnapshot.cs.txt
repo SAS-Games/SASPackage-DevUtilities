@@ -1,0 +1,13 @@
+using System;
+using {{CONTRACT_NAMESPACE}};
+
+namespace {{NAMESPACE}}
+{
+    [Serializable]
+    public struct {{TOOL_NAME}}Snapshot : IMiniToolSnapshot
+    {
+        public string Status;
+        public int Frame;
+        public float ElapsedSeconds;
+    }
+}

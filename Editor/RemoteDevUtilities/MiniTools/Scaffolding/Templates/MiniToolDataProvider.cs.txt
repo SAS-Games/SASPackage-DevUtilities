@@ -1,0 +1,15 @@
+using {{REMOTE_PROVIDER_NAMESPACE}};
+using UnityEngine.Scripting;
+
+namespace {{NAMESPACE}}
+{
+    [Preserve]
+    public sealed class {{TOOL_NAME}}DataProvider : MiniToolDataProvider<{{TOOL_NAME}}Snapshot>
+    {
+        public override bool TryGetSnapshot(out {{TOOL_NAME}}Snapshot snapshot)
+        {
+            snapshot = {{TOOL_NAME}}Collector.Capture();
+            return true;
+        }
+    }
+}
