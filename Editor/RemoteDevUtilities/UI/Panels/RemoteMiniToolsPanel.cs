@@ -64,10 +64,11 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField(descriptor.DisplayName, EditorStyles.boldLabel);
-            bool subscribed = client.IsSubscribed(descriptor.Id);
-            if (GUILayout.Button(subscribed ? "Stop" : "Start", subscribed ? EditorStyles.miniButtonLeft : EditorStyles.miniButton, GUILayout.Width(58f)))
+            bool requested = client.IsSubscriptionRequested(descriptor.Id, RemoteMiniToolSubscriptionOwner.NativeWorkspace);
+            if (GUILayout.Button(requested ? "Stop" : "Start", requested ? EditorStyles.miniButtonLeft : EditorStyles.miniButton, GUILayout.Width(58f)))
             {
-                client.SetSubscription(descriptor.Id, !subscribed, descriptor.DefaultIntervalSeconds);
+                RemoteMiniToolDataChannels dataChannels = (descriptor.Capabilities & RemoteMiniToolCapabilities.NativeWorkspaceFields) != 0 ? RemoteMiniToolDataChannels.NativeWorkspaceFields : RemoteMiniToolDataChannels.None;
+                client.SetSubscription(descriptor.Id, RemoteMiniToolSubscriptionOwner.NativeWorkspace, !requested, descriptor.DefaultIntervalSeconds, dataChannels);
             }
 
             EditorGUILayout.EndHorizontal();
@@ -75,9 +76,9 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
             if (!string.IsNullOrWhiteSpace(descriptor.Description))
                 EditorGUILayout.LabelField(descriptor.Description, EditorStyles.wordWrappedMiniLabel);
 
-            DrawActions(client, descriptor, subscribed);
+            DrawActions(client, descriptor, requested && client.IsSubscribed(descriptor.Id));
 
-            if (client.Samples.TryGetValue(descriptor.Id, out RemoteMiniToolSample sample))
+            if (requested && client.Samples.TryGetValue(descriptor.Id, out RemoteMiniToolSample sample))
             {
                 EditorGUILayout.Space(3f);
                 RemoteMiniToolField[] fields = sample.Fields ?? Array.Empty<RemoteMiniToolField>();
@@ -90,7 +91,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
                 EditorGUILayout.LabelField($"Target frame {sample.Frame}", EditorStyles.centeredGreyMiniLabel);
             }
             else
-                EditorGUILayout.LabelField(subscribed ? "Waiting for a target sample…" : "Not subscribed", EditorStyles.centeredGreyMiniLabel);
+                EditorGUILayout.LabelField(requested ? "Waiting for a target sample…" : "Not subscribed", EditorStyles.centeredGreyMiniLabel);
 
             EditorGUILayout.EndVertical();
         }

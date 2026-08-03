@@ -1,5 +1,6 @@
 using System;
 using SAS.Utilities.RemoteDevUtilities.Editor.Client;
+using SAS.Utilities.RemoteDevUtilities.Editor.MiniTools;
 using SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration;
 using SAS.Utilities.RemoteDevUtilities.Protocol.Commands;
 using SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools;
@@ -88,7 +89,20 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
             if (visible)
                 settings.SetVisible(binding.MiniToolId, true);
 
-            _client.MiniTools.SetSubscription(binding.MiniToolId, visible, descriptor.DefaultIntervalSeconds);
+            RemoteMiniToolDataChannels dataChannels = GetDebugHostDataChannels(descriptor);
+            _client.MiniTools.SetSubscription(binding.MiniToolId, RemoteMiniToolSubscriptionOwner.DebugHost, visible, descriptor.DefaultIntervalSeconds, dataChannels);
+        }
+
+        private static RemoteMiniToolDataChannels GetDebugHostDataChannels(RemoteMiniToolDescriptor descriptor)
+        {
+            RemoteMiniToolDataChannels channels = RemoteMiniToolDataChannels.None;
+            if ((descriptor.Capabilities & RemoteMiniToolCapabilities.TypedDebugHostSnapshot) != 0)
+                channels |= RemoteMiniToolDataChannels.TypedSnapshot;
+            else if ((descriptor.Capabilities & RemoteMiniToolCapabilities.NativeWorkspaceFields) != 0)
+                channels |= RemoteMiniToolDataChannels.NativeWorkspaceFields;
+            if ((descriptor.Capabilities & RemoteMiniToolCapabilities.EventStream) != 0)
+                channels |= RemoteMiniToolDataChannels.EventStream;
+            return channels;
         }
 
         private void Complete(bool success, string message)

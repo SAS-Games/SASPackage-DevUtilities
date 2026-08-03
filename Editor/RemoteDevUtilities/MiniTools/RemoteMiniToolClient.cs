@@ -7,8 +7,21 @@ using SAS.Utilities.RemoteDevUtilities.Protocol.Serialization;
 
 namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools
 {
+    internal enum RemoteMiniToolSubscriptionOwner
+    {
+        NativeWorkspace,
+        DebugHost
+    }
+
     internal sealed class RemoteMiniToolClient : IRemoteEditorFeatureClient
     {
+        private sealed class SubscriptionDemand
+        {
+            public RemoteMiniToolDataChannels DataChannels;
+            public float IntervalSeconds;
+            public float StreamIntervalSeconds;
+        }
+
         private static readonly string[] SupportedMessages =
         {
             RemoteMessageTypes.MiniToolCatalogResponse,
@@ -23,6 +36,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools
         private readonly Dictionary<string, RemoteMiniToolSample> _samples = new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, Queue<RemoteMiniToolStreamBatch>> _streamBatches = new(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> _subscriptions = new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, Dictionary<RemoteMiniToolSubscriptionOwner, SubscriptionDemand>> _subscriptionDemands = new(StringComparer.OrdinalIgnoreCase);
 
         public RemoteMiniToolClient(IRemoteEditorSession session)
         {
@@ -40,6 +54,11 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools
         }
 
         public bool IsSubscribed(string toolId) => !string.IsNullOrWhiteSpace(toolId) && _subscriptions.Contains(toolId);
+
+        public bool IsSubscriptionRequested(string toolId, RemoteMiniToolSubscriptionOwner owner)
+        {
+            return !string.IsNullOrWhiteSpace(toolId) && _subscriptionDemands.TryGetValue(toolId, out Dictionary<RemoteMiniToolSubscriptionOwner, SubscriptionDemand> demands) && demands.ContainsKey(owner);
+        }
 
         public bool TryGetTool(string toolId, out RemoteMiniToolDescriptor descriptor)
         {
@@ -59,21 +78,82 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools
             return false;
         }
 
-        public void SetSubscription(string toolId, bool subscribe, float intervalSeconds)
+        public void SetSubscription(string toolId, RemoteMiniToolSubscriptionOwner owner, bool subscribe, float intervalSeconds, RemoteMiniToolDataChannels dataChannels)
         {
             float streamIntervalSeconds = 0f;
             if (TryGetTool(toolId, out RemoteMiniToolDescriptor descriptor))
-            {
                 streamIntervalSeconds = descriptor.DefaultStreamIntervalSeconds;
+
+            if (!_subscriptionDemands.TryGetValue(toolId, out Dictionary<RemoteMiniToolSubscriptionOwner, SubscriptionDemand> demands))
+            {
+                demands = new Dictionary<RemoteMiniToolSubscriptionOwner, SubscriptionDemand>();
+                _subscriptionDemands.Add(toolId, demands);
             }
+
+            if (subscribe)
+            {
+                demands[owner] = new SubscriptionDemand
+                {
+                    DataChannels = dataChannels,
+                    IntervalSeconds = intervalSeconds,
+                    StreamIntervalSeconds = streamIntervalSeconds
+                };
+            }
+            else
+            {
+                demands.Remove(owner);
+                if (demands.Count == 0)
+                    _subscriptionDemands.Remove(toolId);
+            }
+
+            SendAggregatedSubscription(toolId);
+        }
+
+        public void ClearSubscriptions(string toolId)
+        {
+            if (string.IsNullOrWhiteSpace(toolId))
+                return;
+
+            _subscriptionDemands.Remove(toolId);
+            SendAggregatedSubscription(toolId);
+        }
+
+        private void SendAggregatedSubscription(string toolId)
+        {
+            RemoteMiniToolDataChannels channels = RemoteMiniToolDataChannels.None;
+            float intervalSeconds = 0f;
+            float streamIntervalSeconds = 0f;
+            bool subscribe = _subscriptionDemands.TryGetValue(toolId, out Dictionary<RemoteMiniToolSubscriptionOwner, SubscriptionDemand> demands) && demands.Count > 0;
+            if (subscribe)
+            {
+                foreach (SubscriptionDemand demand in demands.Values)
+                {
+                    channels |= demand.DataChannels;
+                    intervalSeconds = MinimumPositive(intervalSeconds, demand.IntervalSeconds);
+                    streamIntervalSeconds = MinimumPositive(streamIntervalSeconds, demand.StreamIntervalSeconds);
+                }
+            }
+
+            if ((channels & RemoteMiniToolDataChannels.EventStream) == 0)
+                _streamBatches.Remove(toolId);
+            if ((channels & (RemoteMiniToolDataChannels.NativeWorkspaceFields | RemoteMiniToolDataChannels.TypedSnapshot)) == 0)
+                _samples.Remove(toolId);
 
             _session.Send(RemoteMessageTypes.MiniToolSubscriptionRequest, new RemoteMiniToolSubscriptionRequest
             {
                 ToolId = toolId,
                 Subscribe = subscribe,
+                DataChannels = channels,
                 IntervalSeconds = intervalSeconds,
                 StreamIntervalSeconds = streamIntervalSeconds
             });
+        }
+
+        private static float MinimumPositive(float current, float candidate)
+        {
+            if (candidate <= 0f)
+                return current;
+            return current <= 0f ? candidate : Math.Min(current, candidate);
         }
 
         public void ExecuteAction(string toolId, string actionId)
@@ -135,6 +215,10 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools
                                 _streamBatches.Remove(subscription.ToolId);
                             }
                         }
+                        else
+                        {
+                            _subscriptionDemands.Remove(subscription.ToolId);
+                        }
 
                         Error = subscription.Success ? null : subscription.Error;
                     }
@@ -189,6 +273,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools
             _samples.Clear();
             _streamBatches.Clear();
             _subscriptions.Clear();
+            _subscriptionDemands.Clear();
             Error = null;
         }
     }

@@ -4,7 +4,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Protocol
 {
     public static class RemoteProtocolConstants
     {
-        public const int Version = 2;
+        public const int Version = 1;
         public const string PackageVersion = "1.5.0";
         public const int MaximumMessageBytes = 8 * 1024 * 1024;
         public const int DefaultTcpPort = 56000;

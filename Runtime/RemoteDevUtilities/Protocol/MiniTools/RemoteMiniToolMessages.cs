@@ -14,6 +14,15 @@ namespace SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools
         Actions = 1 << 3
     }
 
+    [Flags]
+    public enum RemoteMiniToolDataChannels
+    {
+        None = 0,
+        NativeWorkspaceFields = 1 << 0,
+        TypedSnapshot = 1 << 1,
+        EventStream = 1 << 2
+    }
+
     [Serializable]
     public sealed class RemoteMiniToolCatalogRequest
     {
@@ -55,6 +64,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools
     {
         public string ToolId;
         public bool Subscribe;
+        public RemoteMiniToolDataChannels DataChannels;
         public float IntervalSeconds;
         public float StreamIntervalSeconds;
     }
@@ -65,6 +75,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools
         public string ToolId;
         public bool Success;
         public bool Subscribed;
+        public RemoteMiniToolDataChannels DataChannels;
         public string Error;
     }
 

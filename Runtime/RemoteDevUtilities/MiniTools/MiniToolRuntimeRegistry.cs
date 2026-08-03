@@ -74,7 +74,7 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools
             }
         }
 
-        internal RemoteMiniToolSample Capture()
+        internal RemoteMiniToolSample Capture(RemoteMiniToolDataChannels dataChannels)
         {
             var sample = new RemoteMiniToolSample
             {
@@ -83,15 +83,15 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools
                 Frame = Time.frameCount
             };
 
-            // Capture typed snapshot before fields. A field provider may close and
-            // reset its sampling interval while producing Native Workspace data.
-            if (_snapshotCapture != null && _snapshotCapture.TryCapture(out string snapshotTypeName, out string snapshotJson))
+            if ((dataChannels & RemoteMiniToolDataChannels.TypedSnapshot) != 0 && _snapshotCapture != null && _snapshotCapture.TryCapture(out string snapshotTypeName, out string snapshotJson))
             {
                 sample.SnapshotTypeName = snapshotTypeName;
                 sample.SnapshotJson = snapshotJson;
             }
 
-            sample.Fields = _fieldProvider?.CaptureFields() ?? Array.Empty<RemoteMiniToolField>();
+            if ((dataChannels & RemoteMiniToolDataChannels.NativeWorkspaceFields) != 0)
+                sample.Fields = _fieldProvider?.CaptureFields() ?? Array.Empty<RemoteMiniToolField>();
+
             return sample;
         }
 

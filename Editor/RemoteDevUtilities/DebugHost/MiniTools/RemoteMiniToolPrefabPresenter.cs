@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using SAS.Utilities.RemoteDevUtilities.Editor.Client;
+using SAS.Utilities.RemoteDevUtilities.Editor.MiniTools;
 using SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration;
 using SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry;
 using SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools;
@@ -58,7 +59,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost.MiniTools
             for (int i = 0; i < activeDefinitions.Length; i++)
             {
                 RemoteMiniToolPrefabDefinition definition = activeDefinitions[i];
-                bool subscribed = _client.MiniTools.IsSubscribed(definition.ToolId);
+                bool subscribed = _client.MiniTools.IsSubscriptionRequested(definition.ToolId, RemoteMiniToolSubscriptionOwner.DebugHost);
                 if (!subscribed)
                 {
                     if (_views.TryGetValue(definition.ToolId, out RemoteMiniToolPrefabView oldView))
@@ -119,7 +120,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost.MiniTools
             var staleToolIds = new List<string>();
             foreach (KeyValuePair<string, RemoteMiniToolPrefabView> entry in _views)
             {
-                if (!activeToolIds.Contains(entry.Key) || !_client.MiniTools.IsSubscribed(entry.Key))
+                if (!activeToolIds.Contains(entry.Key) || !_client.MiniTools.IsSubscriptionRequested(entry.Key, RemoteMiniToolSubscriptionOwner.DebugHost))
                     staleToolIds.Add(entry.Key);
             }
 

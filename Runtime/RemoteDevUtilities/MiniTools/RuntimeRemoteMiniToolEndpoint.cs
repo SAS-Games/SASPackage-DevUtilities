@@ -14,6 +14,7 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools
         {
             public MiniToolProviderRegistration Registration;
             public bool Subscribed;
+            public RemoteMiniToolDataChannels DataChannels;
             public float Interval;
             public double NextSampleTime;
             public float StreamInterval;
@@ -83,27 +84,21 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools
                     continue;
 
                 state.Registration.Tick();
-                if (now >= state.NextSampleTime)
+                if (RequiresSample(state.DataChannels) && now >= state.NextSampleTime)
                 {
                     state.NextSampleTime = now + state.Interval;
-                    RemoteMiniToolSample sample = state.Registration.Capture();
+                    RemoteMiniToolSample sample = state.Registration.Capture(state.DataChannels);
                     if (sample != null)
-                    {
                         _context.Sender.Send(RemoteMessageTypes.MiniToolSample, 0, sample);
-                    }
                 }
 
-                if (!state.Registration.SupportsEventStream || now < state.NextStreamTime)
-                {
+                if ((state.DataChannels & RemoteMiniToolDataChannels.EventStream) == 0 || !state.Registration.SupportsEventStream || now < state.NextStreamTime)
                     continue;
-                }
 
                 state.NextStreamTime = now + state.StreamInterval;
                 RemoteMiniToolStreamBatch batch = state.Registration.CaptureStream();
                 if (batch != null)
-                {
                     _context.Sender.Send(RemoteMessageTypes.MiniToolStreamBatch, 0, batch);
-                }
             }
         }
 
@@ -131,6 +126,7 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools
                     continue;
                 state.Registration.Stop();
                 state.Subscribed = false;
+                state.DataChannels = RemoteMiniToolDataChannels.None;
                 state.NextSampleTime = 0d;
                 state.NextStreamTime = 0d;
             }
@@ -149,49 +145,81 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools
         {
             if (!_context.Settings.AllowMiniTools)
             {
-                SendSubscriptionResult(envelope.RequestId, string.Empty, false, false, "Remote mini-tools are disabled.");
+                SendSubscriptionResult(envelope.RequestId, string.Empty, false, false, RemoteMiniToolDataChannels.None, "Remote mini-tools are disabled.");
                 return;
             }
 
             if (!RemoteProtocolSerializer.TryDeserializePayload(envelope, out RemoteMiniToolSubscriptionRequest request, out string error))
             {
-                SendSubscriptionResult(envelope.RequestId, string.Empty, false, false, error);
+                SendSubscriptionResult(envelope.RequestId, string.Empty, false, false, RemoteMiniToolDataChannels.None, error);
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(request.ToolId) || !_providers.TryGetValue(request.ToolId, out ProviderState state))
             {
-                SendSubscriptionResult(envelope.RequestId, request.ToolId, false, false, "The requested mini-tool is not available.");
+                SendSubscriptionResult(envelope.RequestId, request.ToolId, false, false, RemoteMiniToolDataChannels.None, "The requested mini-tool is not available.");
                 return;
             }
 
-            if (request.Subscribe && !state.Subscribed)
+            if (request.Subscribe)
             {
+                RemoteMiniToolDataChannels supportedChannels = GetSupportedDataChannels(state.Registration.Descriptor);
+                RemoteMiniToolDataChannels unsupportedChannels = request.DataChannels & ~supportedChannels;
+                if (unsupportedChannels != RemoteMiniToolDataChannels.None)
+                {
+                    SendSubscriptionResult(envelope.RequestId, request.ToolId, false, state.Subscribed, state.DataChannels, $"The requested data channels '{unsupportedChannels}' are not supported.");
+                    return;
+                }
+
+                if (!state.Subscribed)
+                {
+                    state.Registration.Start();
+                    state.Subscribed = true;
+                }
+
+                state.DataChannels = request.DataChannels;
                 state.Interval = Mathf.Max(0.1f, request.IntervalSeconds > 0f ? request.IntervalSeconds : state.Registration.Descriptor.DefaultIntervalSeconds);
                 state.StreamInterval = Mathf.Max(0.02f, request.StreamIntervalSeconds > 0f ? request.StreamIntervalSeconds : state.Registration.Descriptor.DefaultStreamIntervalSeconds);
                 state.NextSampleTime = 0d;
                 state.NextStreamTime = 0d;
-                state.Registration.Start();
-                state.Subscribed = true;
             }
-            else if (!request.Subscribe && state.Subscribed)
+            else if (state.Subscribed)
             {
                 state.Registration.Stop();
                 state.Subscribed = false;
+                state.DataChannels = RemoteMiniToolDataChannels.None;
             }
 
-            SendSubscriptionResult(envelope.RequestId, request.ToolId, true, state.Subscribed, string.Empty);
+            SendSubscriptionResult(envelope.RequestId, request.ToolId, true, state.Subscribed, state.DataChannels, string.Empty);
         }
 
-        private void SendSubscriptionResult(long requestId, string toolId, bool success, bool subscribed, string error)
+        private void SendSubscriptionResult(long requestId, string toolId, bool success, bool subscribed, RemoteMiniToolDataChannels dataChannels, string error)
         {
             _context.Sender.Send(RemoteMessageTypes.MiniToolSubscriptionResponse, requestId, new RemoteMiniToolSubscriptionResponse
             {
                 ToolId = toolId,
                 Success = success,
                 Subscribed = subscribed,
+                DataChannels = dataChannels,
                 Error = error
             });
+        }
+
+        private static bool RequiresSample(RemoteMiniToolDataChannels dataChannels)
+        {
+            return (dataChannels & (RemoteMiniToolDataChannels.NativeWorkspaceFields | RemoteMiniToolDataChannels.TypedSnapshot)) != 0;
+        }
+
+        private static RemoteMiniToolDataChannels GetSupportedDataChannels(RemoteMiniToolDescriptor descriptor)
+        {
+            RemoteMiniToolDataChannels channels = RemoteMiniToolDataChannels.None;
+            if ((descriptor.Capabilities & RemoteMiniToolCapabilities.NativeWorkspaceFields) != 0)
+                channels |= RemoteMiniToolDataChannels.NativeWorkspaceFields;
+            if ((descriptor.Capabilities & RemoteMiniToolCapabilities.TypedDebugHostSnapshot) != 0)
+                channels |= RemoteMiniToolDataChannels.TypedSnapshot;
+            if ((descriptor.Capabilities & RemoteMiniToolCapabilities.EventStream) != 0)
+                channels |= RemoteMiniToolDataChannels.EventStream;
+            return channels;
         }
 
         private void ExecuteAction(RemoteEnvelope envelope)

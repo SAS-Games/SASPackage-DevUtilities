@@ -486,8 +486,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
 
         private void Unsubscribe(string toolId)
         {
-            if (_client?.MiniTools.IsSubscribed(toolId) == true)
-                _client.MiniTools.SetSubscription(toolId, false, 0f);
+            _client?.MiniTools.ClearSubscriptions(toolId);
         }
 
         private void TryAttachClient()
