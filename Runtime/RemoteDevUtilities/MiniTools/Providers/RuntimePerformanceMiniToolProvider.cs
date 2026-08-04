@@ -13,10 +13,10 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
     {
         private const double BytesPerMebibyte = 1024d * 1024d;
 
-        private double _elapsed;
-        private int _frames;
-
         private readonly FrameTiming[] _frameTimings = new FrameTiming[1];
+
+        private PerformanceSampleCursor _statsCursor;
+        private PerformanceSampleCursor _fpsCursor;
 
         private StatsSnapshot _pendingStatsSnapshot;
         private bool _hasPendingStatsSnapshot;
@@ -35,15 +35,9 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
 
         public override void Tick()
         {
-            float deltaTime = Time.unscaledDeltaTime;
-            if (deltaTime <= 0f || float.IsNaN(deltaTime) || float.IsInfinity(deltaTime))
-            {
-                return;
-            }
-
-            FrameTimingManager.CaptureFrameTimings();
-            _elapsed += deltaTime;
-            _frames++;
+            _hasPendingStatsSnapshot = false;
+            _hasPendingFpsSnapshot = false;
+            PerformanceSnapshotSource.Tick(PerformanceOverlaySelection.UseDetailedStats);
         }
 
         bool IRemoteMiniToolSnapshotCapture.TryCapture(out string snapshotTypeName, out string snapshotJson)
@@ -88,7 +82,6 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
                 CreateField("monoHeap", "Mono Heap", ToMebibytes(Profiler.GetMonoHeapSizeLong()).ToString("F2"), "MiB")
             };
 
-            ResetSample();
             return fields.ToArray();
         }
 
@@ -100,10 +93,9 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
                 return true;
             }
 
-            if (!StatsSnapshotCollector.TryCapture(_elapsed, _frames, _frameTimings, out snapshot))
-            {
+            snapshot = default;
+            if (!PerformanceSnapshotSource.TryConsume(ref _statsCursor, out double elapsedSeconds, out int frames) || !StatsSnapshotCollector.TryCapture(elapsedSeconds, frames, _frameTimings, out snapshot))
                 return false;
-            }
 
             _pendingStatsSnapshot = snapshot;
             _hasPendingStatsSnapshot = true;
@@ -118,10 +110,9 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
                 return true;
             }
 
-            if (!FPSSnapshotCollector.TryCapture(_elapsed, _frames, FPSSnapshotCollector.DefaultFallbackTargetFrameRate, out snapshot))
-            {
+            snapshot = default;
+            if (!PerformanceSnapshotSource.TryConsume(ref _fpsCursor, out double elapsedSeconds, out int frames) || !FPSSnapshotCollector.TryCapture(elapsedSeconds, frames, FPSSnapshotCollector.DefaultFallbackTargetFrameRate, out snapshot))
                 return false;
-            }
 
             _pendingFpsSnapshot = snapshot;
             _hasPendingFpsSnapshot = true;
@@ -135,8 +126,8 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
 
         private void ResetSample()
         {
-            _elapsed = 0d;
-            _frames = 0;
+            _statsCursor = PerformanceSnapshotSource.CreateCursor();
+            _fpsCursor = PerformanceSnapshotSource.CreateCursor();
             _pendingStatsSnapshot = default;
             _hasPendingStatsSnapshot = false;
             _pendingFpsSnapshot = default;

@@ -85,17 +85,11 @@ namespace SAS.Utilities.DeveloperConsole.InputVisualizers
             if (m_Visualization == Mode.None)
                 return;
 
-            if (s_EnabledInstances == null)
-                s_EnabledInstances = new List<InputControlVisualizer>();
-            if (s_EnabledInstances.Count == 0)
+            if (m_LocalInputEnabled)
             {
-                InputSystem.onDeviceChange += OnDeviceChange;
-                InputSystem.onEvent += OnEvent;
+                RegisterForInput();
+                ResolveControl();
             }
-
-            s_EnabledInstances.Add(this);
-
-            ResolveControl();
 
             base.OnEnable();
         }
@@ -105,16 +99,7 @@ namespace SAS.Utilities.DeveloperConsole.InputVisualizers
             if (m_Visualization == Mode.None)
                 return;
 
-            if (s_EnabledInstances != null)
-            {
-                s_EnabledInstances.Remove(this);
-                if (s_EnabledInstances.Count == 0)
-                {
-                    InputSystem.onDeviceChange -= OnDeviceChange;
-                    InputSystem.onEvent -= OnEvent;
-                }
-            }
-
+            UnregisterFromInput();
             m_Control = null;
 
             base.OnDisable();
@@ -149,8 +134,98 @@ namespace SAS.Utilities.DeveloperConsole.InputVisualizers
         private bool m_UseCurrentDevice;
 
         [NonSerialized] private InputControl m_Control;
+        [NonSerialized] private bool m_LocalInputEnabled = true;
+        [NonSerialized] private bool m_IsRegistered;
 
         private static List<InputControlVisualizer> s_EnabledInstances;
+
+        internal void SetLocalInputEnabled(bool enabled)
+        {
+            m_LocalInputEnabled = enabled;
+            if (!isActiveAndEnabled || m_Visualization == Mode.None)
+                return;
+
+            if (enabled)
+            {
+                RegisterForInput();
+                ResolveControl();
+            }
+            else
+            {
+                UnregisterFromInput();
+                m_Control = null;
+            }
+        }
+
+        internal void ApplyRemoteValue(in InputVisualizerControlValue value, double time)
+        {
+            if (m_Visualization != Mode.Value || !string.Equals(m_ControlPath, value.ControlPath, StringComparison.Ordinal))
+                return;
+
+            switch (value.ValueKind)
+            {
+                case InputVisualizerValueKind.Scalar:
+                    if (!(m_Visualizer is VisualizationHelpers.ScalarVisualizer<float>))
+                    {
+                        m_Visualizer = new VisualizationHelpers.ScalarVisualizer<float>(m_HistorySamples)
+                        {
+                            limitMin = 0f,
+                            limitMax = 1f
+                        };
+                    }
+                    m_Visualizer.AddSample(value.HasValue ? value.ScalarValue : 0f, time);
+                    break;
+                case InputVisualizerValueKind.Vector2:
+                    if (!(m_Visualizer is VisualizationHelpers.Vector2Visualizer))
+                        m_Visualizer = new VisualizationHelpers.Vector2Visualizer(m_HistorySamples);
+                    m_Visualizer.AddSample(value.HasValue ? value.Vector2Value : Vector2.zero, time);
+                    break;
+            }
+        }
+
+        internal void ApplyRemoteDeviceName(string deviceName)
+        {
+            if (m_Visualization != Mode.DeviceCurrent)
+                return;
+
+            if (!(m_Visualizer is VisualizationHelpers.CurrentDeviceVisualizer visualizer))
+            {
+                visualizer = new VisualizationHelpers.CurrentDeviceVisualizer();
+                m_Visualizer = visualizer;
+            }
+            visualizer.SetRemoteDeviceName(deviceName);
+        }
+
+        private void RegisterForInput()
+        {
+            if (m_IsRegistered)
+                return;
+
+            if (s_EnabledInstances == null)
+                s_EnabledInstances = new List<InputControlVisualizer>();
+            if (s_EnabledInstances.Count == 0)
+            {
+                InputSystem.onDeviceChange += OnDeviceChange;
+                InputSystem.onEvent += OnEvent;
+            }
+
+            s_EnabledInstances.Add(this);
+            m_IsRegistered = true;
+        }
+
+        private void UnregisterFromInput()
+        {
+            if (!m_IsRegistered)
+                return;
+
+            s_EnabledInstances?.Remove(this);
+            m_IsRegistered = false;
+            if (s_EnabledInstances == null || s_EnabledInstances.Count != 0)
+                return;
+
+            InputSystem.onDeviceChange -= OnDeviceChange;
+            InputSystem.onEvent -= OnEvent;
+        }
 
         private static InputControl ResolveCurrentControl(InputControlList<InputControl> candidates)
         {
@@ -187,6 +262,9 @@ namespace SAS.Utilities.DeveloperConsole.InputVisualizers
 
         void Update()
         {
+            if (!m_LocalInputEnabled)
+                return;
+
             // There is currently no callback when current device changes so we will reattempt to resolve control
             if (m_UseCurrentDevice)
             {

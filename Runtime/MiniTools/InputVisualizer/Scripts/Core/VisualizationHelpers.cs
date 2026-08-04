@@ -146,18 +146,20 @@ namespace SAS.Utilities.DeveloperConsole.InputVisualizers
         public class CurrentDeviceVisualizer : Visualizer
         {
             private InputDevice m_CurrentDevice = null;
+            private string m_RemoteDeviceName;
 
             public override void OnDraw(Rect rect)
             {
                 // For now, only draw the current value.
                 DrawRectangle(rect, new Color(1, 1, 1, 0.1f));
 
-                var name = m_CurrentDevice != null ? m_CurrentDevice.name : "null";
+                var name = m_RemoteDeviceName ?? (m_CurrentDevice != null ? m_CurrentDevice.name : "null");
                 DrawText(name, new Vector2(rect.xMin + 4, (rect.yMin + rect.yMax) / 2.0f), ValueTextStyle);
             }
 
             public override void AddSample(object value, double time)
             {
+                m_RemoteDeviceName = null;
                 var device = (InputDevice)value;
                 if (device is Gamepad)
                     m_CurrentDevice = Gamepad.current;
@@ -169,6 +171,12 @@ namespace SAS.Utilities.DeveloperConsole.InputVisualizers
                     m_CurrentDevice = Pointer.current;
                 else
                     throw new ArgumentException($"Expected device type that implements .current, but got '{device.name}' (deviceId: {device.deviceId}) instead ");
+            }
+
+            internal void SetRemoteDeviceName(string deviceName)
+            {
+                m_CurrentDevice = null;
+                m_RemoteDeviceName = string.IsNullOrWhiteSpace(deviceName) ? "null" : deviceName;
             }
         }
 
