@@ -13,8 +13,7 @@ namespace SAS.DevUtilities.Stats
 
         [SerializeField, Min(MinimumUpdateInterval)] private float m_UpdateInterval = 0.5f;
 
-        private double _elapsedSeconds;
-        private int _frames;
+        private PerformanceSampleCursor _sampleCursor;
 
         private readonly FrameTiming[] _frameTimings = new FrameTiming[1];
 
@@ -41,40 +40,27 @@ namespace SAS.DevUtilities.Stats
 #if !ENABLE_DEBUG
             return;
 #else
-            float deltaTime = Time.unscaledDeltaTime;
-            if (!IsValidDeltaTime(deltaTime))
-                return;
-
-            FrameTimingManager.CaptureFrameTimings();
-            _elapsedSeconds += deltaTime;
-            _frames++;
+            PerformanceSnapshotSource.Tick(true);
 
             double updateInterval = Mathf.Max(MinimumUpdateInterval, m_UpdateInterval);
-            if (_elapsedSeconds < updateInterval)
+            if (PerformanceSnapshotSource.GetElapsedSeconds(in _sampleCursor) < updateInterval)
                 return;
 
             Refresh();
-            ResetSample();
 #endif
         }
 
         public void Refresh()
         {
-            if (!StatsSnapshotCollector.TryCapture(_elapsedSeconds, _frames, _frameTimings, out StatsSnapshot snapshot))
+            if (!PerformanceSnapshotSource.TryConsume(ref _sampleCursor, out double elapsedSeconds, out int frames) || !StatsSnapshotCollector.TryCapture(elapsedSeconds, frames, _frameTimings, out StatsSnapshot snapshot))
                 return;
 
             PublishSnapshot(in snapshot);
         }
 
-        private static bool IsValidDeltaTime(float deltaTime)
-        {
-            return deltaTime > 0f && !float.IsNaN(deltaTime) && !float.IsInfinity(deltaTime);
-        }
-
         private void ResetSample()
         {
-            _elapsedSeconds = 0d;
-            _frames = 0;
+            _sampleCursor = PerformanceSnapshotSource.CreateCursor();
         }
 
 #if UNITY_EDITOR

@@ -17,8 +17,7 @@ namespace SAS.DevUtilities
         [SerializeField, Min(1)]
         private int m_TargetFrameRate = FPSSnapshotCollector.DefaultFallbackTargetFrameRate;
 
-        private double _elapsedSeconds;
-        private int _frames;
+        private PerformanceSampleCursor _sampleCursor;
 
         private void Awake()
         {
@@ -36,39 +35,27 @@ namespace SAS.DevUtilities
 #if !ENABLE_DEBUG
             return;
 #else
-            float deltaTime = Time.unscaledDeltaTime;
-            if (!IsValidDeltaTime(deltaTime))
-                return;
-
-            _elapsedSeconds += deltaTime;
-            _frames++;
+            PerformanceSnapshotSource.Tick(false);
 
             double updateInterval = Mathf.Max(MinimumUpdateInterval, m_UpdateInterval);
-            if (_elapsedSeconds < updateInterval)
+            if (PerformanceSnapshotSource.GetElapsedSeconds(in _sampleCursor) < updateInterval)
                 return;
 
             Refresh();
-            ResetSample();
 #endif
         }
 
         public void Refresh()
         {
-            if (!FPSSnapshotCollector.TryCapture(_elapsedSeconds, _frames, m_TargetFrameRate, out FPSSnapshot snapshot))
+            if (!PerformanceSnapshotSource.TryConsume(ref _sampleCursor, out double elapsedSeconds, out int frames) || !FPSSnapshotCollector.TryCapture(elapsedSeconds, frames, m_TargetFrameRate, out FPSSnapshot snapshot))
                 return;
 
             PublishSnapshot(in snapshot);
         }
 
-        private static bool IsValidDeltaTime(float deltaTime)
-        {
-            return deltaTime > 0f && !float.IsNaN(deltaTime) && !float.IsInfinity(deltaTime);
-        }
-
         private void ResetSample()
         {
-            _elapsedSeconds = 0d;
-            _frames = 0;
+            _sampleCursor = PerformanceSnapshotSource.CreateCursor();
         }
 
 #if UNITY_EDITOR
