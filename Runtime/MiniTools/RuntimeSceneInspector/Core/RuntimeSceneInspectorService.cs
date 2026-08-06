@@ -254,8 +254,8 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
         {
             var result = new List<RuntimeMemberDescriptor>();
             var memberIds = new HashSet<string>(StringComparer.Ordinal);
-            IRuntimeComponentDrawer componentDrawer = _componentDrawers.Resolve(component.GetType());
-            if (componentDrawer != null)
+            IReadOnlyList<IRuntimeComponentDrawer> componentDrawers = _componentDrawers.Resolve(component.GetType());
+            foreach (IRuntimeComponentDrawer componentDrawer in componentDrawers)
             {
                 IReadOnlyList<RuntimeMemberDescriptor> drawerMembers = componentDrawer.BuildInspector(component);
                 if (drawerMembers != null)
@@ -266,16 +266,6 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                             result.Add(member);
                     }
                 }
-            }
-
-            if (component is Transform transform)
-            {
-                AddSynthetic(result, "localPosition", typeof(Vector3), transform.localPosition);
-                AddSynthetic(result, "localEulerAngles", typeof(Vector3), transform.localEulerAngles);
-                AddSynthetic(result, "localScale", typeof(Vector3), transform.localScale);
-                memberIds.Add("localPosition");
-                memberIds.Add("localEulerAngles");
-                memberIds.Add("localScale");
             }
 
             foreach (FieldInfo field in GetInspectableFields(component.GetType()))
@@ -313,34 +303,13 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             return result;
         }
 
-        private void AddSynthetic(List<RuntimeMemberDescriptor> list, string name, Type type, object value) =>
-            list.Add(new RuntimeMemberDescriptor
-            {
-                Name = name, DisplayName = Nicify(name), TypeName = type.FullName,
-                Value = _drawers.Resolve(type).Format(value, type)
-            });
-
         private RuntimeCommandResult SetMember(Component component, string name, string text)
         {
-            IRuntimeComponentDrawer componentDrawer = _componentDrawers.Resolve(component.GetType());
-            if (componentDrawer is IRuntimeEditableComponentDrawer editableDrawer && editableDrawer.TrySetValue(component, name, text, out RuntimeCommandResult drawerResult))
+            IReadOnlyList<IRuntimeComponentDrawer> componentDrawers = _componentDrawers.Resolve(component.GetType());
+            foreach (IRuntimeComponentDrawer componentDrawer in componentDrawers)
             {
-                return drawerResult ?? RuntimeCommandResult.Fail("The member could not be changed.");
-            }
-
-            if (component is Transform transform)
-            {
-                if (!_drawers.Resolve(typeof(Vector3)).TryParse(text, typeof(Vector3), out object parsed, out string parseError))
-                    return RuntimeCommandResult.Fail(parseError);
-                if (name == "localPosition")
-                    transform.localPosition = (Vector3)parsed;
-                else if (name == "localEulerAngles")
-                    transform.localEulerAngles = (Vector3)parsed;
-                else if (name == "localScale")
-                    transform.localScale = (Vector3)parsed;
-                else
-                    return RuntimeCommandResult.Fail("Unknown Transform member.");
-                return RuntimeCommandResult.Ok();
+                if (componentDrawer is IRuntimeEditableComponentDrawer editableDrawer && editableDrawer.TrySetValue(component, name, text, out RuntimeCommandResult drawerResult))
+                    return drawerResult ?? RuntimeCommandResult.Fail("The member could not be changed.");
             }
 
             FieldInfo field = GetInspectableFields(component.GetType()).FirstOrDefault(item => item.Name == name);
@@ -410,12 +379,6 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                 return true;
             }
 
-            if (component is Collider2D c2)
-            {
-                enabled = c2.enabled;
-                return true;
-            }
-
             enabled = false;
             return false;
         }
@@ -428,8 +391,6 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                 r.enabled = value;
             else if (component is Collider c)
                 c.enabled = value;
-            else if (component is Collider2D c2)
-                c2.enabled = value;
             else
                 return false;
             return true;

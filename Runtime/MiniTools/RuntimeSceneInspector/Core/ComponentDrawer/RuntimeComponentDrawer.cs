@@ -18,20 +18,48 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
     internal sealed class RuntimeComponentDrawerRegistry
     {
         private readonly List<IRuntimeComponentDrawer> _drawers = new();
+        private readonly Dictionary<Type, IRuntimeComponentDrawer[]> _resolvedDrawers = new();
 
         public RuntimeComponentDrawerRegistry(RuntimeValueDrawerRegistry valueDrawers)
         {
             if (valueDrawers == null)
                 throw new ArgumentNullException(nameof(valueDrawers));
+            _drawers.Add(new RuntimeRectTransformComponentDrawer(valueDrawers));
+            _drawers.Add(new RuntimeCharacterControllerComponentDrawer(valueDrawers));
+            _drawers.Add(new RuntimeTransformComponentDrawer(valueDrawers));
             _drawers.Add(new RuntimeRigidbodyComponentDrawer(valueDrawers));
             _drawers.Add(new RuntimeRigidbody2DComponentDrawer(valueDrawers));
             _drawers.Add(new RuntimeColliderComponentDrawer(valueDrawers));
             _drawers.Add(new RuntimeCollider2DComponentDrawer(valueDrawers));
+            _drawers.Add(new RuntimeCameraComponentDrawer(valueDrawers));
+            _drawers.Add(new RuntimeRendererComponentDrawer(valueDrawers));
             _drawers.Add(new RuntimeLightComponentDrawer(valueDrawers));
             _drawers.Add(new RuntimeAnimatorComponentDrawer(valueDrawers));
+            _drawers.Add(new RuntimeAudioSourceComponentDrawer(valueDrawers));
+            _drawers.Add(new RuntimeParticleSystemComponentDrawer(valueDrawers));
+            _drawers.Add(new RuntimeCanvasComponentDrawer(valueDrawers));
+            _drawers.Add(new RuntimeCanvasGroupComponentDrawer(valueDrawers));
+            _drawers.Add(new RuntimeVolumeComponentDrawer(valueDrawers));
         }
 
-        public IRuntimeComponentDrawer Resolve(Type componentType) => componentType == null ? null : _drawers.Find(drawer => drawer.CanDraw(componentType));
+        public IReadOnlyList<IRuntimeComponentDrawer> Resolve(Type componentType)
+        {
+            if (componentType == null)
+                return Array.Empty<IRuntimeComponentDrawer>();
+            if (_resolvedDrawers.TryGetValue(componentType, out IRuntimeComponentDrawer[] resolved))
+                return resolved;
+
+            var matches = new List<IRuntimeComponentDrawer>();
+            foreach (IRuntimeComponentDrawer drawer in _drawers)
+            {
+                if (drawer.CanDraw(componentType))
+                    matches.Add(drawer);
+            }
+
+            resolved = matches.ToArray();
+            _resolvedDrawers.Add(componentType, resolved);
+            return resolved;
+        }
     }
 
     /// <summary>
