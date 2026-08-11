@@ -254,6 +254,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
         {
             var result = new List<RuntimeMemberDescriptor>();
             var memberIds = new HashSet<string>(StringComparer.Ordinal);
+            var memberDisplayNames = new HashSet<string>(StringComparer.Ordinal);
             IReadOnlyList<IRuntimeComponentDrawer> componentDrawers = _componentDrawers.Resolve(component.GetType());
             foreach (IRuntimeComponentDrawer componentDrawer in componentDrawers)
             {
@@ -263,13 +264,20 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                     foreach (RuntimeMemberDescriptor member in drawerMembers)
                     {
                         if (member != null && memberIds.Add(member.Name))
+                        {
                             result.Add(member);
+                            if (!string.IsNullOrEmpty(member.DisplayName))
+                                memberDisplayNames.Add(member.DisplayName);
+                        }
                     }
                 }
             }
 
             foreach (FieldInfo field in GetInspectableFields(component.GetType()))
             {
+                string displayName = Nicify(field.Name);
+                if (memberDisplayNames.Contains(displayName))
+                    continue;
                 if (!memberIds.Add(field.Name))
                     continue;
                 IRuntimeValueDrawer drawer = _drawers.Resolve(field.FieldType);
@@ -279,7 +287,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                     object value = field.GetValue(component);
                     result.Add(new RuntimeMemberDescriptor
                     {
-                        Name = field.Name, DisplayName = Nicify(field.Name), TypeName = field.FieldType.FullName,
+                        Name = field.Name, DisplayName = displayName, TypeName = field.FieldType.FullName,
                         Value = drawer?.Format(value, field.FieldType) ?? value?.ToString() ?? "null",
                         ReadOnly = readOnly
                     });

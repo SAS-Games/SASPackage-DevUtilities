@@ -33,6 +33,8 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             _drawers.Add(new RuntimeCollider2DComponentDrawer(valueDrawers));
             _drawers.Add(new RuntimeCameraComponentDrawer(valueDrawers));
             _drawers.Add(new RuntimeRendererComponentDrawer(valueDrawers));
+            _drawers.Add(new RuntimeSpriteRendererComponentDrawer(valueDrawers));
+            _drawers.Add(new RuntimeSortingGroupComponentDrawer(valueDrawers));
             _drawers.Add(new RuntimeLightComponentDrawer(valueDrawers));
             _drawers.Add(new RuntimeAnimatorComponentDrawer(valueDrawers));
             _drawers.Add(new RuntimeAudioSourceComponentDrawer(valueDrawers));
