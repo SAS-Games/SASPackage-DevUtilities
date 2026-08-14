@@ -49,13 +49,6 @@ namespace SAS.Utilities.RuntimeSceneInspector
             _resolver = resolver;
         }
 
-        internal bool TryPick(Vector2 screenPosition, out RuntimeObjectId objectId, out string message)
-        {
-            IReadOnlyList<RuntimeScenePickCandidate> candidates = GetCandidates(screenPosition, out message);
-            objectId = candidates.Count > 0 ? candidates[0].ObjectId : default;
-            return objectId.IsValid;
-        }
-
         internal IReadOnlyList<RuntimeScenePickCandidate> GetCandidates(Vector2 screenPosition, out string message)
         {
             var candidates = new List<RuntimeScenePickCandidate>();

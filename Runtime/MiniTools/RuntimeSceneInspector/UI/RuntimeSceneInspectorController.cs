@@ -15,6 +15,8 @@ namespace SAS.Utilities.RuntimeSceneInspector
         private readonly RuntimeSceneInspectorHierarchyController _hierarchy;
         private readonly RuntimeSceneInspectorDetailsController _inspector;
         private readonly RuntimeSceneObjectPicker _objectPicker;
+        private IReadOnlyList<RuntimeScenePickCandidate> _pickCandidates = Array.Empty<RuntimeScenePickCandidate>();
+        private int _pickCandidateIndex = -1;
         private RuntimeSceneInspectorPanel _focusedPanel = RuntimeSceneInspectorPanel.Hierarchy;
         private string _error = string.Empty;
         private float _nextRefresh;
@@ -57,6 +59,12 @@ namespace SAS.Utilities.RuntimeSceneInspector
         internal bool IsEditing => _inspector.IsEditing;
         internal string Search => _hierarchy.Search;
         internal string Error => _error;
+        internal IReadOnlyList<RuntimeScenePickCandidate> PickCandidates => _pickCandidates;
+        internal int PickCandidateIndex => _pickCandidateIndex;
+        internal RuntimeScenePickCandidate SelectedPickCandidate =>
+            _pickCandidateIndex >= 0 && _pickCandidateIndex < _pickCandidates.Count
+                ? _pickCandidates[_pickCandidateIndex]
+                : null;
         internal int HierarchyCursor => _hierarchy.Cursor;
         internal int InspectorCursor => _inspector.Cursor;
 
@@ -191,6 +199,7 @@ namespace SAS.Utilities.RuntimeSceneInspector
             if (_inspector.IsEditing)
                 CancelEdit();
             _pickingObject = false;
+            ClearPickCandidates();
             _focusedPanel = RuntimeSceneInspectorPanel.Hierarchy;
             _focusSearchField = false;
             _inspector.RevealCursor = false;
@@ -240,6 +249,7 @@ namespace SAS.Utilities.RuntimeSceneInspector
             if (_inspector.IsEditing)
                 CancelEdit();
             _pickingObject = true;
+            ClearPickCandidates();
             _clearGuiFocus = true;
             _error = string.Empty;
         }
@@ -247,6 +257,7 @@ namespace SAS.Utilities.RuntimeSceneInspector
         internal void CancelObjectPicking()
         {
             _pickingObject = false;
+            ClearPickCandidates();
             _error = string.Empty;
             _input.ResetNavigationUntilNeutral();
         }
@@ -257,23 +268,20 @@ namespace SAS.Utilities.RuntimeSceneInspector
                 return;
 
             _hierarchy.Refresh();
-            if (!_objectPicker.TryPick(screenPosition, out RuntimeObjectId objectId, out string message))
+            _pickCandidates = _objectPicker.GetCandidates(screenPosition, out string message);
+            _pickCandidateIndex = -1;
+            if (_pickCandidates.Count == 0)
             {
                 _error = message;
                 return;
             }
 
-            if (!_hierarchy.SelectAndReveal(objectId))
-            {
-                _error = "The picked object is no longer present in the runtime hierarchy.";
-                return;
-            }
-
-            _inspector.Select(objectId);
-            _pickingObject = false;
-            SetFocusedPanel(RuntimeSceneInspectorPanel.Inspector);
-            _error = string.Empty;
+            SelectPickCandidate(0);
         }
+
+        internal void SelectPreviousPickCandidate() => MovePickCandidate(-1);
+
+        internal void SelectNextPickCandidate() => MovePickCandidate(1);
 
         internal void ActivateHierarchyRow(int index)
         {
@@ -518,6 +526,41 @@ namespace SAS.Utilities.RuntimeSceneInspector
             if (!string.IsNullOrEmpty(inspectorMessage))
                 _error = inspectorMessage;
             _nextRefresh = Time.unscaledTime + _settings.HierarchyRefreshInterval;
+        }
+
+        private void SelectPickCandidate(int index)
+        {
+            if (index < 0 || index >= _pickCandidates.Count)
+                return;
+
+            RuntimeScenePickCandidate candidate = _pickCandidates[index];
+            _hierarchy.Refresh();
+            if (!_hierarchy.SelectAndReveal(candidate.ObjectId))
+            {
+                _error = "The picked object is no longer present in the runtime hierarchy.";
+                return;
+            }
+
+            _pickCandidateIndex = index;
+            _inspector.Select(candidate.ObjectId);
+            _pickingObject = false;
+            SetFocusedPanel(RuntimeSceneInspectorPanel.Inspector);
+            _error = string.Empty;
+        }
+
+        private void MovePickCandidate(int direction)
+        {
+            if (_pickCandidates.Count < 2)
+                return;
+
+            int index = (_pickCandidateIndex + direction + _pickCandidates.Count) % _pickCandidates.Count;
+            SelectPickCandidate(index);
+        }
+
+        private void ClearPickCandidates()
+        {
+            _pickCandidates = Array.Empty<RuntimeScenePickCandidate>();
+            _pickCandidateIndex = -1;
         }
     }
 }

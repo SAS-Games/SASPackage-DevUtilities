@@ -100,6 +100,7 @@ namespace SAS.Utilities.RuntimeSceneInspector
 
             GUILayout.Space(8f);
             DrawPanelTabs();
+            DrawPickCandidateSelector();
             GUILayout.Space(6f);
             DrawSearch();
             GUILayout.Space(8f);
@@ -241,6 +242,28 @@ namespace SAS.Utilities.RuntimeSceneInspector
                 _controller.PickObjectAt(new Vector2(pointer.x, Screen.height - pointer.y));
                 current.Use();
             }
+        }
+
+        private void DrawPickCandidateSelector()
+        {
+            RuntimeScenePickCandidate selected = _controller.SelectedPickCandidate;
+            if (selected == null)
+                return;
+
+            GUILayout.Space(4f);
+            GUILayout.BeginHorizontal(_theme.Toolbar);
+            GUILayout.Label($"OBJECT {_controller.PickCandidateIndex + 1}/{_controller.PickCandidates.Count}",
+                _theme.Badge, GUILayout.Width(92f), GUILayout.Height(28f));
+            GUILayout.Label($"{selected.Name}  [{selected.Source}]  {selected.HierarchyPath}",
+                _theme.Muted, GUILayout.Height(28f));
+            bool previousEnabled = GUI.enabled;
+            GUI.enabled = previousEnabled && _controller.PickCandidates.Count > 1;
+            if (GUILayout.Button("PREVIOUS", _theme.Button, GUILayout.Width(82f), GUILayout.Height(28f)))
+                _controller.SelectPreviousPickCandidate();
+            if (GUILayout.Button("NEXT", _theme.Button, GUILayout.Width(58f), GUILayout.Height(28f)))
+                _controller.SelectNextPickCandidate();
+            GUI.enabled = previousEnabled;
+            GUILayout.EndHorizontal();
         }
 
         private void DrawPanelTab(string label, RuntimeSceneInspectorPanel panel, float width)
