@@ -17,6 +17,13 @@ namespace SAS.Utilities.RuntimeSceneInspector
         [SerializeField] private bool m_IncludeInactiveObjects = true;
         [SerializeField] private bool m_AutomaticRefresh = true;
 
+        [Header("Object Picking")] [SerializeField] private bool m_AllowObjectPicking = true;
+
+        [SerializeField] private LayerMask m_ObjectPickingLayerMask = ~0;
+        [SerializeField] private bool m_PickUiObjects = true;
+        [SerializeField] private bool m_PickTriggerColliders = true;
+        [SerializeField] private bool m_UseRendererBoundsFallback = true;
+
         [Header("Permissions")] [SerializeField] private bool m_AllowValueChanges = true;
 
         [SerializeField] private bool m_AllowActivationChanges = true;
@@ -62,6 +69,11 @@ namespace SAS.Utilities.RuntimeSceneInspector
         public float HierarchyRefreshInterval => Mathf.Max(0.1f, m_HierarchyRefreshInterval);
         public bool IncludeInactiveObjects => m_IncludeInactiveObjects;
         public bool AutomaticRefresh => m_AutomaticRefresh;
+        public bool AllowObjectPicking => m_AllowObjectPicking;
+        public int ObjectPickingLayerMask => m_ObjectPickingLayerMask.value;
+        public bool PickUiObjects => m_PickUiObjects;
+        public bool PickTriggerColliders => m_PickTriggerColliders;
+        public bool UseRendererBoundsFallback => m_UseRendererBoundsFallback;
         public bool AllowValueChanges => m_AllowValueChanges;
         public bool AllowActivationChanges => m_AllowActivationChanges;
         public bool AllowComponentEnableChanges => m_AllowComponentEnableChanges;

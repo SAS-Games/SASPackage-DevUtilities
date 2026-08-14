@@ -1,0 +1,21 @@
+{
+  "name": "DevUtilities.RemoteDevUtilities.MiniTools.EditorTests",
+  "rootNamespace": "SAS.Utilities.RemoteDevUtilities.MiniTools.Tests",
+  "references": [
+    "DevUtilities",
+    "GUID:373a1572e0714ca44b6d57809b2e2f59",
+    "DevUtilities.RemoteDevUtilities",
+    "DevUtilities.RemoteDevUtilities.Editor",
+    "DevUtilities.RemoteDevUtilities.MiniTools.Protocol",
+    "DevUtilities.RemoteDevUtilities.MiniTools.Runtime",
+    "DevUtilities.RemoteDevUtilities.MiniTools.Editor",
+    "GUID:6055be8ebefd69e48b49212b09b47b2f",
+    "GUID:75469ad4d38634e559750d17036d5f7c",
+    "GUID:15fc0a57446b3144c949da3e2b9737a9",
+    "GUID:df380645f10b7bc4b97d4f5eb6303d95",
+    "GUID:457756d89b35d2941b3e7b37b4ece6f1"
+  ],
+  "includePlatforms": ["Editor"],
+  "autoReferenced": false,
+  "optionalUnityReferences": ["TestAssemblies"]
+}

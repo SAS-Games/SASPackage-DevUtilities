@@ -10,7 +10,7 @@ using Object = UnityEngine.Object;
 
 namespace SAS.Utilities.RuntimeSceneInspector.Core
 {
-    public sealed class RuntimeSceneInspectorService : IRuntimeSceneInspector, IDisposable
+    public sealed class RuntimeSceneInspectorService : IRuntimeSceneInspector, IRuntimeSceneObjectResolver, IDisposable
     {
         private static readonly ProfilerMarker HierarchyMarker = new("RuntimeSceneInspector.Hierarchy.Reconcile");
         private static readonly ProfilerMarker InspectorMarker = new("RuntimeSceneInspector.Inspector.Build");
@@ -156,6 +156,19 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                     extension.Inspect(gameObject, _registry, details);
                 return details;
             }
+        }
+
+        public bool TryGetObjectId(GameObject target, out RuntimeObjectId objectId)
+        {
+            EnsureMainThread();
+            objectId = default;
+            for (Transform current = target != null ? target.transform : null; current != null; current = current.parent)
+            {
+                if (_registry.TryGetId(current.gameObject, out objectId))
+                    return true;
+            }
+
+            return false;
         }
 
         public RuntimeCommandResult Execute(RuntimeSceneInspectorCommand command)

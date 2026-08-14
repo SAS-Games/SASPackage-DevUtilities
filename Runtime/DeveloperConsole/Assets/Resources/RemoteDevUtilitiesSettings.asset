@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: RemoteDevUtilitiesSettings
   m_EditorClassIdentifier: DevUtilities.RemoteDevUtilities::SAS.Utilities.RemoteDevUtilities.RemoteDevUtilitiesRuntimeSettings
   m_EnableRemoteAgent: 1
-  m_BuildDebugUiVisibility: 3
+  m_BuildDebugUiVisibility: 0
   m_AllowCommandExecution: 1
   m_StreamLogs: 1
   m_AllowMiniTools: 1

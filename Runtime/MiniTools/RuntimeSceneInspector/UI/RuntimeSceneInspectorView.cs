@@ -42,6 +42,13 @@ namespace SAS.Utilities.RuntimeSceneInspector
             if (!_controller.IsOpen)
                 return;
 
+            _theme.EnsureCreated();
+            if (_controller.IsPickingObject)
+            {
+                DrawObjectPicker();
+                return;
+            }
+
             float scale = Mathf.Clamp(_settings.UiScale, 0.75f, 2f);
             float logicalScreenWidth = Screen.width / scale;
             float logicalScreenHeight = Screen.height / scale;
@@ -55,7 +62,6 @@ namespace SAS.Utilities.RuntimeSceneInspector
             RevealHierarchyCursorIfNeeded();
             Matrix4x4 previousMatrix = GUI.matrix;
             GUI.matrix = Matrix4x4.Scale(new Vector3(scale, scale, 1f));
-            _theme.EnsureCreated();
             _fontAtlas.ValidateVisibleCharacters(_theme.Font, _theme.BoldFont, _controller);
             Rect windowResult = GUI.Window(windowId, _window, DrawWindow, GUIContent.none, _theme.Window);
             if (_pendingWindowSize.x > 0f && _pendingWindowSize.y > 0f)
@@ -187,9 +193,54 @@ namespace SAS.Utilities.RuntimeSceneInspector
             DrawPanelTab("SEARCH", RuntimeSceneInspectorPanel.Search, 88f);
             DrawPanelTab("HIERARCHY", RuntimeSceneInspectorPanel.Hierarchy, 104f);
             DrawPanelTab("INSPECTOR", RuntimeSceneInspectorPanel.Inspector, 96f);
+            if (_settings.AllowObjectPicking && GUILayout.Button("PICK OBJECT", _theme.PrimaryButton, GUILayout.Width(112f), GUILayout.Height(28f)))
+                _controller.BeginObjectPicking();
             GUILayout.FlexibleSpace();
-            GUILayout.Label("TAB / RB  NEXT", _theme.Muted, GUILayout.Height(28f));
+            GUILayout.Label("F2 / Y  PICK    TAB / RB  NEXT", _theme.Muted, GUILayout.Height(28f));
             GUILayout.EndHorizontal();
+        }
+
+        private void DrawObjectPicker()
+        {
+            const float bannerHeight = 58f;
+            Rect banner = new(0f, 0f, Screen.width, bannerHeight);
+            GUI.Box(banner, GUIContent.none, _theme.Toolbar);
+            GUI.Label(new Rect(16f, 8f, Screen.width - 170f, 22f), "PICK OBJECT FROM GAME VIEW", _theme.Section);
+            string hint = string.IsNullOrEmpty(_controller.Error)
+                ? "Click a visible object, or press Enter/A to pick screen centre. Right-click or Esc cancels."
+                : _controller.Error;
+            GUI.Label(new Rect(16f, 30f, Screen.width - 170f, 20f), hint,
+                string.IsNullOrEmpty(_controller.Error) ? _theme.Muted : _theme.Message);
+            if (GUI.Button(new Rect(Screen.width - 132f, 14f, 116f, 30f), "CANCEL", _theme.Button))
+                _controller.CancelObjectPicking();
+
+            Event current = Event.current;
+            Vector2 pointer = current.mousePosition;
+            if (!banner.Contains(pointer))
+            {
+                Color previousColor = GUI.color;
+                GUI.color = _settings.FocusColor;
+                GUI.DrawTexture(new Rect(pointer.x - 9f, pointer.y, 18f, 1f), Texture2D.whiteTexture);
+                GUI.DrawTexture(new Rect(pointer.x, pointer.y - 9f, 1f, 18f), Texture2D.whiteTexture);
+                Vector2 centre = new(Screen.width * 0.5f, Screen.height * 0.5f);
+                Color centreColor = _settings.FocusColor;
+                centreColor.a = 0.65f;
+                GUI.color = centreColor;
+                GUI.DrawTexture(new Rect(centre.x - 14f, centre.y, 28f, 2f), Texture2D.whiteTexture);
+                GUI.DrawTexture(new Rect(centre.x, centre.y - 14f, 2f, 28f), Texture2D.whiteTexture);
+                GUI.color = previousColor;
+            }
+
+            if (current.type == EventType.MouseDown && current.button == 1)
+            {
+                _controller.CancelObjectPicking();
+                current.Use();
+            }
+            else if (current.type == EventType.MouseDown && current.button == 0 && !banner.Contains(pointer))
+            {
+                _controller.PickObjectAt(new Vector2(pointer.x, Screen.height - pointer.y));
+                current.Use();
+            }
         }
 
         private void DrawPanelTab(string label, RuntimeSceneInspectorPanel panel, float width)

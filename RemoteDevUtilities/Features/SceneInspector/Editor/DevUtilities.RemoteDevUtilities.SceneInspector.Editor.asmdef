@@ -1,0 +1,22 @@
+{
+  "name": "DevUtilities.RemoteDevUtilities.SceneInspector.Editor",
+  "rootNamespace": "SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector",
+  "references": [
+    "DevUtilities",
+    "DevUtilities.RemoteDevUtilities",
+    "DevUtilities.RemoteDevUtilities.Editor",
+    "DevUtilities.RemoteDevUtilities.SceneInspector.Protocol",
+    "DevUtilities.RemoteDevUtilities.SceneInspector.Runtime"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

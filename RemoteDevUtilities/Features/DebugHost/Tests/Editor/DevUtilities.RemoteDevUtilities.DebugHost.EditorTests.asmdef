@@ -1,0 +1,19 @@
+{
+  "name": "DevUtilities.RemoteDevUtilities.DebugHost.EditorTests",
+  "rootNamespace": "SAS.Utilities.RemoteDevUtilities.DebugHost.Tests",
+  "references": [
+    "DevUtilities",
+    "GUID:373a1572e0714ca44b6d57809b2e2f59",
+    "DevUtilities.RemoteDevUtilities",
+    "DevUtilities.RemoteDevUtilities.Editor",
+    "DevUtilities.RemoteDevUtilities.DebugHost.Runtime",
+    "DevUtilities.RemoteDevUtilities.DebugHost.Editor"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "autoReferenced": false,
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ]
+}

@@ -1,36 +1,150 @@
 using System;
+using System.Collections.Generic;
 using SAS.Utilities.RemoteDevUtilities.Editor.Client;
-using SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration;
-using SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector;
 using SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels;
 using UnityEditor;
-using UnityEditor.Networking.PlayerConnection;
 using UnityEngine;
-using UnityEngine.Networking.PlayerConnection;
 
 namespace SAS.Utilities.RemoteDevUtilities.Editor.UI
 {
-    public sealed class RemoteDevUtilitiesWindow : EditorWindow
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
+    internal sealed class RemoteWorkspacePanelAttribute : Attribute
     {
-        private enum Tab
+        public RemoteWorkspacePanelAttribute(string id, string displayName, int order)
         {
-            Commands,
-            Logs,
-            MiniTools,
-            RuntimeSceneInspector
+            Id = string.IsNullOrWhiteSpace(id)
+                ? throw new ArgumentException("A workspace panel id is required.", nameof(id))
+                : id;
+            DisplayName = string.IsNullOrWhiteSpace(displayName) ? Id : displayName;
+            Order = order;
         }
 
+        public string Id { get; }
+        public string DisplayName { get; }
+        public int Order { get; }
+    }
+
+    internal interface IRemoteWorkspacePanel : IDisposable
+    {
+        void Initialize(Action repaint);
+        bool Draw(RemoteDevUtilitiesClient client, bool connected, Rect windowRect);
+        void Deactivate();
+    }
+
+    internal sealed class RemoteWorkspacePanelInstance
+    {
+        public RemoteWorkspacePanelInstance(RemoteWorkspacePanelAttribute registration, IRemoteWorkspacePanel panel)
+        {
+            Registration = registration;
+            Panel = panel;
+        }
+
+        public RemoteWorkspacePanelAttribute Registration { get; }
+        public IRemoteWorkspacePanel Panel { get; }
+    }
+
+    internal static class RemoteWorkspacePanelRegistry
+    {
+        internal static IReadOnlyList<RemoteWorkspacePanelInstance> CreatePanels(Action repaint)
+        {
+            var registrations = new List<(RemoteWorkspacePanelAttribute Attribute, Type Type)>();
+            foreach (Type type in TypeCache.GetTypesWithAttribute<RemoteWorkspacePanelAttribute>())
+            {
+                if (type == null || type.IsAbstract || !typeof(IRemoteWorkspacePanel).IsAssignableFrom(type))
+                    continue;
+
+                RemoteWorkspacePanelAttribute attribute =
+                    (RemoteWorkspacePanelAttribute)Attribute.GetCustomAttribute(type, typeof(RemoteWorkspacePanelAttribute));
+                if (attribute != null)
+                    registrations.Add((attribute, type));
+            }
+
+            registrations.Sort(Compare);
+            var ids = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var panels = new List<RemoteWorkspacePanelInstance>(registrations.Count);
+            foreach ((RemoteWorkspacePanelAttribute attribute, Type type) in registrations)
+            {
+                if (!ids.Add(attribute.Id))
+                    throw new InvalidOperationException($"A remote workspace panel with id '{attribute.Id}' is already registered.");
+
+                if (Activator.CreateInstance(type, true) is not IRemoteWorkspacePanel panel)
+                    throw new InvalidOperationException($"Remote workspace panel '{type.FullName}' could not be created.");
+                panel.Initialize(repaint);
+                panels.Add(new RemoteWorkspacePanelInstance(attribute, panel));
+            }
+
+            return panels;
+        }
+
+        private static int Compare(
+            (RemoteWorkspacePanelAttribute Attribute, Type Type) left,
+            (RemoteWorkspacePanelAttribute Attribute, Type Type) right)
+        {
+            int order = left.Attribute.Order.CompareTo(right.Attribute.Order);
+            return order != 0
+                ? order
+                : string.Compare(left.Type.FullName, right.Type.FullName, StringComparison.Ordinal);
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
+    internal sealed class RemoteWorkspaceHeaderAttribute : Attribute
+    {
+        public RemoteWorkspaceHeaderAttribute(int order) => Order = order;
+        public int Order { get; }
+    }
+
+    internal interface IRemoteWorkspaceHeader
+    {
+        bool Draw(RemoteDevUtilitiesClient client, bool showNativeWorkspace);
+    }
+
+    internal static class RemoteWorkspaceHeaderRegistry
+    {
+        internal static IReadOnlyList<IRemoteWorkspaceHeader> CreateHeaders()
+        {
+            var registrations = new List<(int Order, Type Type)>();
+            foreach (Type type in TypeCache.GetTypesWithAttribute<RemoteWorkspaceHeaderAttribute>())
+            {
+                if (type == null || type.IsAbstract || !typeof(IRemoteWorkspaceHeader).IsAssignableFrom(type))
+                    continue;
+
+                var attribute = (RemoteWorkspaceHeaderAttribute)Attribute.GetCustomAttribute(
+                    type, typeof(RemoteWorkspaceHeaderAttribute));
+                if (attribute != null)
+                    registrations.Add((attribute.Order, type));
+            }
+
+            registrations.Sort((left, right) =>
+            {
+                int order = left.Order.CompareTo(right.Order);
+                return order != 0
+                    ? order
+                    : string.Compare(left.Type.FullName, right.Type.FullName, StringComparison.Ordinal);
+            });
+
+            var headers = new List<IRemoteWorkspaceHeader>(registrations.Count);
+            foreach ((int _, Type type) in registrations)
+            {
+                if (Activator.CreateInstance(type, true) is IRemoteWorkspaceHeader header)
+                    headers.Add(header);
+            }
+
+            return headers;
+        }
+    }
+
+    public sealed class RemoteDevUtilitiesWindow : EditorWindow
+    {
         private RemoteDevUtilitiesClient _client;
         private RemoteConnectionPanel _connectionPanel;
-        private EditorDebugWorkspacePanel _debugWorkspacePanel;
-        private RemoteCommandPanel _commandPanel;
-        private RemoteLogPanel _logPanel;
-        private RemoteMiniToolsPanel _miniToolsPanel;
-        private RemoteRuntimeSceneInspectorPanel _runtimeSceneInspectorPanel;
-        private Tab _tab;
+        private IReadOnlyList<IRemoteWorkspaceHeader> _workspaceHeaders =
+            Array.Empty<IRemoteWorkspaceHeader>();
+        private IReadOnlyList<RemoteWorkspacePanelInstance> _workspacePanels =
+            Array.Empty<RemoteWorkspacePanelInstance>();
         private string _initializationError;
-        private IConnectionState _unityConnectionState;
         [SerializeField] private bool _showNativeWorkspace;
+        [SerializeField] private string _selectedWorkspacePanelId = "commands";
         [SerializeField] private Vector2 _windowScroll;
 
         [MenuItem("Tools/Dev Utilities/Remote Dev Utilities")]
@@ -44,24 +158,21 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI
 
         private void OnEnable()
         {
-            _connectionPanel = new RemoteConnectionPanel();
-            _debugWorkspacePanel = new EditorDebugWorkspacePanel();
-            _commandPanel = new RemoteCommandPanel();
-            _logPanel = new RemoteLogPanel();
-            _miniToolsPanel = new RemoteMiniToolsPanel();
-            _runtimeSceneInspectorPanel = new RemoteRuntimeSceneInspectorPanel();
+            _connectionPanel = new RemoteConnectionPanel(this, Repaint);
+            _workspaceHeaders = RemoteWorkspaceHeaderRegistry.CreateHeaders();
+            if (_workspaceHeaders.Count == 0)
+                _showNativeWorkspace = true;
+            _workspacePanels = RemoteWorkspacePanelRegistry.CreatePanels(Repaint);
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
-            RemoteMiniToolVisibilitySettings.Changed += Repaint;
             TryInitializeClient();
-            InitializeUnityConnectionState();
         }
 
         private void OnDisable()
         {
             EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
-            RemoteMiniToolVisibilitySettings.Changed -= Repaint;
-            _unityConnectionState?.Dispose();
-            _unityConnectionState = null;
+            _connectionPanel?.Dispose();
+            _connectionPanel = null;
+            DisposeWorkspacePanels();
             if (_client != null)
             {
                 _client.StateChanged -= Repaint;
@@ -86,8 +197,12 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI
                 return;
             }
 
-            _connectionPanel.Draw(_client, _unityConnectionState);
-            _showNativeWorkspace = _debugWorkspacePanel.Draw(_client, _showNativeWorkspace);
+            _connectionPanel.Draw(_client);
+            bool previouslyShowingNativeWorkspace = _showNativeWorkspace;
+            for (int i = 0; i < _workspaceHeaders.Count; i++)
+                _showNativeWorkspace = _workspaceHeaders[i].Draw(_client, _showNativeWorkspace);
+            if (previouslyShowingNativeWorkspace && !_showNativeWorkspace)
+                DeactivateSelectedWorkspacePanel();
             EditorGUILayout.Space(4f);
 
             if (!_showNativeWorkspace)
@@ -95,61 +210,57 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI
 
             EditorGUILayout.Space(5f);
             EditorGUILayout.LabelField("Native Workspace", EditorStyles.boldLabel);
-            _tab = (Tab)GUILayout.Toolbar((int)_tab, new[] { "Commands", "Logs", "Mini Tools", "Runtime Scene Inspector" });
-            EditorGUILayout.Space(3f);
-
-            switch (_tab)
+            if (_workspacePanels.Count == 0)
             {
-                case Tab.Commands:
-                    _commandPanel.Draw(_client.Commands, _client.CommandPresentation, _client.IsConnected);
-                    break;
-                case Tab.Logs:
-                    if (_logPanel.Draw(_client.Logs, _client.Commands, _client.IsConnected))
-                    {
-                        _windowScroll.y = float.MaxValue;
-                    }
-
-                    break;
-                case Tab.MiniTools:
-                    _miniToolsPanel.Draw(_client.MiniTools, _client.IsConnected);
-                    break;
-                case Tab.RuntimeSceneInspector:
-                    _runtimeSceneInspectorPanel.Draw(_client.RuntimeSceneInspector, _client.IsConnected, position);
-                    break;
+                EditorGUILayout.HelpBox("No Remote Dev Utilities workspace features are installed.", MessageType.Info);
+                return;
             }
+
+            int selectedIndex = FindSelectedWorkspacePanelIndex();
+            var labels = new string[_workspacePanels.Count];
+            for (int i = 0; i < labels.Length; i++)
+                labels[i] = _workspacePanels[i].Registration.DisplayName;
+
+            int nextIndex = GUILayout.Toolbar(selectedIndex, labels);
+            if (nextIndex != selectedIndex)
+            {
+                _workspacePanels[selectedIndex].Panel.Deactivate();
+                selectedIndex = nextIndex;
+                _selectedWorkspacePanelId = _workspacePanels[selectedIndex].Registration.Id;
+            }
+
+            EditorGUILayout.Space(3f);
+            if (_workspacePanels[selectedIndex].Panel.Draw(_client, _client.IsConnected, position))
+                _windowScroll.y = float.MaxValue;
+        }
+
+        private int FindSelectedWorkspacePanelIndex()
+        {
+            for (int i = 0; i < _workspacePanels.Count; i++)
+            {
+                if (string.Equals(_workspacePanels[i].Registration.Id, _selectedWorkspacePanelId,
+                        StringComparison.OrdinalIgnoreCase))
+                    return i;
+            }
+
+            _selectedWorkspacePanelId = _workspacePanels[0].Registration.Id;
+            return 0;
+        }
+
+        private void DeactivateSelectedWorkspacePanel()
+        {
+            if (_workspacePanels.Count > 0)
+                _workspacePanels[FindSelectedWorkspacePanelIndex()].Panel.Deactivate();
+        }
+
+        private void DisposeWorkspacePanels()
+        {
+            for (int i = _workspacePanels.Count - 1; i >= 0; i--)
+                _workspacePanels[i].Panel.Dispose();
+            _workspacePanels = Array.Empty<RemoteWorkspacePanelInstance>();
         }
 
         private void OnPlayModeStateChanged(PlayModeStateChange state) => Repaint();
-
-        private void InitializeUnityConnectionState()
-        {
-            _unityConnectionState?.Dispose();
-#if UNITY_6000_0_OR_NEWER
-            _unityConnectionState = PlayerConnectionGUIUtility.GetConnectionState(this, OnUnityTargetConnected);
-#else
-            _unityConnectionState = PlayerConnectionGUIUtility.GetAttachToPlayerState(this, OnUnityTargetConnected);
-#endif
-        }
-
-        private void OnUnityTargetConnected(string targetName)
-        {
-            if (_client == null)
-                return;
-
-            _client.RefreshConnectedPlayers();
-            _connectionPanel.NotifyUnityTargetConnected(targetName);
-            Repaint();
-            EditorApplication.delayCall += RefreshPlayersAfterUnityAttach;
-        }
-
-        private void RefreshPlayersAfterUnityAttach()
-        {
-            if (_client == null)
-                return;
-
-            _client.RefreshConnectedPlayers();
-            Repaint();
-        }
 
         private void TryInitializeClient()
         {

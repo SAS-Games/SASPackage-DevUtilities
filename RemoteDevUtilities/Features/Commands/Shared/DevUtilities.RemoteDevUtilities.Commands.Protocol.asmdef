@@ -1,0 +1,14 @@
+{
+  "name": "DevUtilities.RemoteDevUtilities.Commands.Protocol",
+  "rootNamespace": "SAS.Utilities.RemoteDevUtilities.Protocol.Commands",
+  "references": [],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

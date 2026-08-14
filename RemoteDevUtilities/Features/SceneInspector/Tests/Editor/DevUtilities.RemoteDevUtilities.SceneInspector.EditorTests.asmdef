@@ -1,0 +1,19 @@
+{
+  "name": "DevUtilities.RemoteDevUtilities.SceneInspector.EditorTests",
+  "rootNamespace": "SAS.Utilities.RemoteDevUtilities.SceneInspector.Tests",
+  "references": [
+    "DevUtilities",
+    "DevUtilities.RemoteDevUtilities",
+    "DevUtilities.RemoteDevUtilities.Editor",
+    "DevUtilities.RemoteDevUtilities.SceneInspector.Protocol",
+    "DevUtilities.RemoteDevUtilities.SceneInspector.Runtime",
+    "DevUtilities.RemoteDevUtilities.SceneInspector.Editor"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "autoReferenced": false,
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ]
+}

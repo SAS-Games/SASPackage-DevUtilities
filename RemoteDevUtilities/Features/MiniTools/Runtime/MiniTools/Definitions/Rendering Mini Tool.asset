@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06e1e76115a54cef8f35d38bf0bb10cc, type: 3}
+  m_Name: Rendering Mini Tool
+  m_EditorClassIdentifier: DevUtilities.RemoteDevUtilities::SAS.Utilities.RemoteDevUtilities.MiniTools.MiniToolDefinition
+  _toolId: runtime.rendering
+  _displayName: Rendering
+  _description: Runtime renderer, material, camera, and light census.
+  _updateInterval: 1
+  _streamInterval: 0.1
+  _providerScriptGuid: f090b36f941c07744a7f1168c0aaf332
+  _providerTypeName: SAS.Utilities.RemoteDevUtilities.MiniTools.Providers.RuntimeRenderingMiniToolProvider,
+    DevUtilities.RemoteDevUtilities.MiniTools.Runtime
+  _command: {fileID: 0}
+  _commandName: 
+  _commandRouting: 1
+  _debugHostPrefabGuid: 
+  _visibleByDefault: 1

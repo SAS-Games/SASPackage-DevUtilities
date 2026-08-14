@@ -32,6 +32,20 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             return id;
         }
 
+        public bool TryGetId(Object target, out RuntimeObjectId id)
+        {
+            id = default;
+            if (target == null)
+                return false;
+
+            int instanceId = target.GetInstanceID();
+            if (!_byInstance.TryGetValue(instanceId, out Entry entry) || !ReferenceEquals(entry.Target, target))
+                return false;
+
+            id = entry.Id;
+            return true;
+        }
+
         public void EndReconciliation()
         {
             var remove = new List<int>();

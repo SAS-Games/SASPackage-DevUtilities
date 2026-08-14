@@ -1,0 +1,14 @@
+{
+  "name": "DevUtilities.RemoteDevUtilities.Transport.PlayerConnection.EditorTests",
+  "rootNamespace": "SAS.Utilities.RemoteDevUtilities.Transport.PlayerConnection.Tests",
+  "references": [
+    "DevUtilities",
+    "DevUtilities.RemoteDevUtilities",
+    "DevUtilities.RemoteDevUtilities.Editor",
+    "DevUtilities.RemoteDevUtilities.Transport.PlayerConnection.Runtime",
+    "DevUtilities.RemoteDevUtilities.Transport.PlayerConnection.Editor"
+  ],
+  "includePlatforms": ["Editor"],
+  "autoReferenced": false,
+  "optionalUnityReferences": ["TestAssemblies"]
+}

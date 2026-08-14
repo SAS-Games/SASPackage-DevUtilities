@@ -1,0 +1,14 @@
+{
+  "name": "DevUtilities.RemoteDevUtilities.SceneInspector.Protocol",
+  "rootNamespace": "SAS.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector",
+  "references": [],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

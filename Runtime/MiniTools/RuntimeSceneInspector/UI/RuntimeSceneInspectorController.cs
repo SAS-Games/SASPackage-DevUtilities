@@ -14,11 +14,13 @@ namespace SAS.Utilities.RuntimeSceneInspector
         private readonly InputSystemRuntimeSceneInspectorInput _input;
         private readonly RuntimeSceneInspectorHierarchyController _hierarchy;
         private readonly RuntimeSceneInspectorDetailsController _inspector;
+        private readonly RuntimeSceneObjectPicker _objectPicker;
         private RuntimeSceneInspectorPanel _focusedPanel = RuntimeSceneInspectorPanel.Hierarchy;
         private string _error = string.Empty;
         private float _nextRefresh;
         private float _savedTimeScale;
         private bool _open;
+        private bool _pickingObject;
         private bool _focusSearchField;
         private bool _clearGuiFocus;
 
@@ -34,10 +36,12 @@ namespace SAS.Utilities.RuntimeSceneInspector
             _input = new InputSystemRuntimeSceneInspectorInput(settings);
             _hierarchy = new RuntimeSceneInspectorHierarchyController(_service);
             _inspector = new RuntimeSceneInspectorDetailsController(_service, settings);
+            _objectPicker = new RuntimeSceneObjectPicker(settings, service as IRuntimeSceneObjectResolver);
             Refresh();
         }
 
         internal bool IsOpen => _open;
+        internal bool IsPickingObject => _pickingObject;
         internal bool ConsumesGameplayInput => _open && _settings.ConsumeInput;
         internal RuntimeHierarchySnapshot Snapshot => _hierarchy.Snapshot;
         internal RuntimeObjectDetails Details => _inspector.Details;
@@ -97,6 +101,21 @@ namespace SAS.Utilities.RuntimeSceneInspector
             _input.Update();
             if (!_open)
                 return;
+
+            if (_pickingObject)
+            {
+                if (_input.Cancel)
+                    CancelObjectPicking();
+                else if (_input.Confirm)
+                    PickObjectAt(new Vector2(Screen.width * 0.5f, Screen.height * 0.5f));
+                return;
+            }
+
+            if (_input.PickObject)
+            {
+                BeginObjectPicking();
+                return;
+            }
 
             if (_settings.AutomaticRefresh && Time.unscaledTime >= _nextRefresh)
                 Refresh();
@@ -171,6 +190,7 @@ namespace SAS.Utilities.RuntimeSceneInspector
 
             if (_inspector.IsEditing)
                 CancelEdit();
+            _pickingObject = false;
             _focusedPanel = RuntimeSceneInspectorPanel.Hierarchy;
             _focusSearchField = false;
             _inspector.RevealCursor = false;
@@ -202,6 +222,58 @@ namespace SAS.Utilities.RuntimeSceneInspector
         }
 
         internal void SetSearch(string value) => _hierarchy.SetSearch(value);
+
+        internal void BeginObjectPicking()
+        {
+            if (!_settings.AllowObjectPicking)
+            {
+                _error = "Object picking is disabled by the runtime scene inspector settings.";
+                return;
+            }
+
+            if (_service is not IRuntimeSceneObjectResolver)
+            {
+                _error = "Object picking is only available in the local runtime inspector.";
+                return;
+            }
+
+            if (_inspector.IsEditing)
+                CancelEdit();
+            _pickingObject = true;
+            _clearGuiFocus = true;
+            _error = string.Empty;
+        }
+
+        internal void CancelObjectPicking()
+        {
+            _pickingObject = false;
+            _error = string.Empty;
+            _input.ResetNavigationUntilNeutral();
+        }
+
+        internal void PickObjectAt(Vector2 screenPosition)
+        {
+            if (!_pickingObject)
+                return;
+
+            _hierarchy.Refresh();
+            if (!_objectPicker.TryPick(screenPosition, out RuntimeObjectId objectId, out string message))
+            {
+                _error = message;
+                return;
+            }
+
+            if (!_hierarchy.SelectAndReveal(objectId))
+            {
+                _error = "The picked object is no longer present in the runtime hierarchy.";
+                return;
+            }
+
+            _inspector.Select(objectId);
+            _pickingObject = false;
+            SetFocusedPanel(RuntimeSceneInspectorPanel.Inspector);
+            _error = string.Empty;
+        }
 
         internal void ActivateHierarchyRow(int index)
         {

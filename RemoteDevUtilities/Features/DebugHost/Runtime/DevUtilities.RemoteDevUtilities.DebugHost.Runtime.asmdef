@@ -1,0 +1,21 @@
+{
+    "name": "DevUtilities.RemoteDevUtilities.DebugHost.Runtime",
+    "rootNamespace": "SAS.Utilities.RemoteDevUtilities.DebugHost",
+    "references": [
+        "GUID:cfbcb856ed571e04480857f2fe81e499",
+        "GUID:a891377085b3492d8872e92be37704e7",
+        "GUID:6055be8ebefd69e48b49212b09b47b2f",
+        "GUID:75469ad4d38634e559750d17036d5f7c",
+        "GUID:15fc0a57446b3144c949da3e2b9737a9",
+        "GUID:df380645f10b7bc4b97d4f5eb6303d95"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

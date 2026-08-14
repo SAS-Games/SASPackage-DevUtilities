@@ -1,0 +1,14 @@
+{
+  "name": "DevUtilities.RemoteDevUtilities.Transport.Tcp.EditorTests",
+  "rootNamespace": "SAS.Utilities.RemoteDevUtilities.Transport.Tcp.Tests",
+  "references": [
+    "DevUtilities",
+    "DevUtilities.RemoteDevUtilities",
+    "DevUtilities.RemoteDevUtilities.Editor",
+    "DevUtilities.RemoteDevUtilities.Transport.Tcp.Runtime",
+    "DevUtilities.RemoteDevUtilities.Transport.Tcp.Editor"
+  ],
+  "includePlatforms": ["Editor"],
+  "autoReferenced": false,
+  "optionalUnityReferences": ["TestAssemblies"]
+}

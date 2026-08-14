@@ -1,11 +1,7 @@
 using System;
 using System.Collections.Generic;
-using SAS.Utilities.RemoteDevUtilities.Commands;
-using SAS.Utilities.RemoteDevUtilities.Logging;
-using SAS.Utilities.RemoteDevUtilities.MiniTools;
 using SAS.Utilities.RemoteDevUtilities.Presentation;
 using SAS.Utilities.RemoteDevUtilities.Protocol;
-using SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector;
 using SAS.Utilities.RemoteDevUtilities.Transport;
 using SAS.Utilities.RuntimeSceneInspector.Core;
 using UnityEngine;
@@ -17,13 +13,12 @@ namespace SAS.Utilities.RemoteDevUtilities.Agent
     {
         private readonly List<IRuntimeRemoteEndpoint> _endpoints = new();
         private readonly Dictionary<string, IRuntimeRemoteEndpoint> _routes = new(StringComparer.Ordinal);
+        private readonly List<IRuntimeRemoteConnectionService> _connectionServices = new();
 
         private RemoteDevUtilitiesRuntimeSettings _settings;
         private IRuntimeRemoteTransport _transport;
-        private IRuntimeTcpEndpoint _tcpEndpoint;
         private RuntimeConnectionEndpoint _connectionEndpoint;
         private RuntimeBackgroundExecutionLease _backgroundExecution;
-        private RuntimeLanDiscoveryBroadcaster _lanDiscovery;
         private string _runtimeSessionId;
 
         public static RuntimeDevUtilitiesAgent Instance { get; private set; }
@@ -52,7 +47,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Agent
         private void Update()
         {
             _transport?.Tick();
-            _lanDiscovery?.Tick();
+            for (int i = 0; i < _connectionServices.Count; i++)
+                _connectionServices[i].Tick();
             for (int i = 0; i < _endpoints.Count; i++)
                 _endpoints[i].Tick();
         }
@@ -72,7 +68,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Agent
             _backgroundExecution = new RuntimeBackgroundExecutionLease();
             _backgroundExecution.Acquire(_settings.KeepPlayerRunningInBackground);
             _runtimeSessionId = Guid.NewGuid().ToString("N");
-            _transport = RuntimeRemoteTransportFactory.Create(_runtimeSessionId, _settings, out _tcpEndpoint);
+            _transport = RuntimeRemoteTransportFactory.Create(_runtimeSessionId, _settings, out IReadOnlyList<IRuntimeRemoteTransport> transports);
             _transport.MessageReceived += OnMessage;
             _transport.EditorDisconnected += OnEditorDisconnected;
 
@@ -87,15 +83,20 @@ namespace SAS.Utilities.RemoteDevUtilities.Agent
             _connectionEndpoint.SessionStateChanged += OnSessionStateChanged;
 
             AddEndpoint(_connectionEndpoint, context);
-            AddEndpoint(new RuntimeRemoteCommandEndpoint(), context);
-            AddEndpoint(new RuntimeRemoteLogEndpoint(), context);
-            AddEndpoint(new RuntimeRemoteMiniToolEndpoint(), context);
-            AddEndpoint(new RemoteRuntimeSceneInspectorEndpoint(), context);
+            foreach (IRuntimeRemoteEndpoint endpoint in RuntimeRemoteEndpointRegistry.CreateEndpoints())
+                AddEndpoint(endpoint, context);
             _transport.Start();
-            _lanDiscovery = _tcpEndpoint?.IsListening == true
-                ? RuntimeLanDiscoveryBroadcaster.TryCreate(_runtimeSessionId, _settings, _tcpEndpoint.BoundPort)
-                : null;
-            _lanDiscovery?.Start();
+            var serviceContext = new RuntimeRemoteConnectionServiceContext
+            {
+                RuntimeSessionId = _runtimeSessionId,
+                Settings = _settings,
+                Transports = transports
+            };
+            foreach (IRuntimeRemoteConnectionService service in RuntimeRemoteConnectionServiceRegistry.CreateServices())
+            {
+                service.Initialize(serviceContext);
+                _connectionServices.Add(service);
+            }
         }
 
         private void StopSubsystem()
@@ -119,10 +120,9 @@ namespace SAS.Utilities.RemoteDevUtilities.Agent
                 _transport = null;
             }
 
-            _tcpEndpoint = null;
-
-            _lanDiscovery?.Dispose();
-            _lanDiscovery = null;
+            for (int i = _connectionServices.Count - 1; i >= 0; i--)
+                _connectionServices[i].Dispose();
+            _connectionServices.Clear();
 
             _backgroundExecution?.Dispose();
             _backgroundExecution = null;

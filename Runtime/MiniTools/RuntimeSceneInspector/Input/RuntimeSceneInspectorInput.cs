@@ -46,7 +46,8 @@ namespace SAS.Utilities.RuntimeSceneInspector.Input
             PageDown = 1 << 12,
             Space = 1 << 13,
             ClearSearch = 1 << 14,
-            Refresh = 1 << 15
+            Refresh = 1 << 15,
+            PickObject = 1 << 16
         }
 
         private const Signal DirectionMask = Signal.Up | Signal.Down | Signal.Left | Signal.Right;
@@ -83,6 +84,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Input
             AddButtonAction("Space", Signal.Space, "<Keyboard>/space", "<Gamepad>/buttonWest");
             AddButtonAction("ClearSearch", Signal.ClearSearch, "<Gamepad>/buttonWest");
             AddButtonAction("Refresh", Signal.Refresh, "<Keyboard>/f5");
+            AddButtonAction("PickObject", Signal.PickObject, "<Keyboard>/f2", "<Gamepad>/buttonNorth");
 
             AddDirectionAction("Up", Signal.Up, "<Keyboard>/upArrow", "<Gamepad>/dpad/up");
             AddDirectionAction("Down", Signal.Down, "<Keyboard>/downArrow", "<Gamepad>/dpad/down");
@@ -132,6 +134,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Input
         public bool Space => Has(Signal.Space);
         public bool ClearSearch => Has(Signal.ClearSearch);
         public bool Refresh => Has(Signal.Refresh);
+        public bool PickObject => Has(Signal.PickObject);
         public bool LargeStepModifier => _shiftHeld;
         public bool SmallStepModifier => _controlHeld;
 

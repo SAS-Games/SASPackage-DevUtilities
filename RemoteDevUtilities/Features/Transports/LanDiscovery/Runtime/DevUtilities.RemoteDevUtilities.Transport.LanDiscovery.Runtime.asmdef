@@ -1,0 +1,14 @@
+{
+  "name": "DevUtilities.RemoteDevUtilities.Transport.LanDiscovery.Runtime",
+  "rootNamespace": "SAS.Utilities.RemoteDevUtilities.Transport.LanDiscovery",
+  "references": ["DevUtilities", "DevUtilities.RemoteDevUtilities"],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

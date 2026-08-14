@@ -1,0 +1,17 @@
+{
+  "name": "DevUtilities.RemoteDevUtilities.MiniTools.Protocol",
+  "rootNamespace": "SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools",
+  "references": [
+    "DevUtilities",
+    "DevUtilities.RemoteDevUtilities"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

@@ -1,0 +1,19 @@
+{
+  "name": "DevUtilities.RemoteDevUtilities.Commands.Editor",
+  "rootNamespace": "SAS.Utilities.RemoteDevUtilities.Editor.Commands",
+  "references": [
+    "DevUtilities",
+    "DevUtilities.RemoteDevUtilities",
+    "DevUtilities.RemoteDevUtilities.Editor",
+    "DevUtilities.RemoteDevUtilities.Commands.Protocol"
+  ],
+  "includePlatforms": ["Editor"],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

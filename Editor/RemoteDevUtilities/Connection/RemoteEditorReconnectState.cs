@@ -6,6 +6,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
     internal sealed class RemoteEditorReconnectState
     {
         public RemoteEditorConnectionKind Kind;
+        public string TransportId;
+        public string TargetName;
         public int PlayerId = -1;
         public string Host;
         public int Port;
@@ -15,6 +17,16 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
         {
             get
             {
+                if (!string.IsNullOrWhiteSpace(TransportId))
+                {
+                    if (string.Equals(TransportId, RemoteEditorTransportIds.PlayerConnection,
+                            StringComparison.OrdinalIgnoreCase))
+                        return true;
+                    if (string.Equals(TransportId, RemoteEditorTransportIds.Tcp,
+                            StringComparison.OrdinalIgnoreCase))
+                        return !string.IsNullOrWhiteSpace(Host) && Port >= 1 && Port <= 65535;
+                }
+
                 switch (Kind)
                 {
                     case RemoteEditorConnectionKind.PlayerConnection:

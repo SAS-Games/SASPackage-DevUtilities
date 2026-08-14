@@ -122,6 +122,34 @@ namespace SAS.Utilities.RuntimeSceneInspector
             return entry.Kind == RuntimeHierarchyKind.GameObject ? entry.Id : default;
         }
 
+        internal bool SelectAndReveal(RuntimeObjectId objectId)
+        {
+            if (_snapshot == null || !objectId.IsValid)
+                return false;
+
+            var byId = _snapshot.Entries.ToDictionary(item => item.Id.Value);
+            if (!byId.TryGetValue(objectId.Value, out RuntimeHierarchyEntry selected) ||
+                selected.Kind != RuntimeHierarchyKind.GameObject)
+                return false;
+
+            _search = string.Empty;
+            RuntimeObjectId parentId = selected.ParentId;
+            while (parentId.IsValid && byId.TryGetValue(parentId.Value, out RuntimeHierarchyEntry parent))
+            {
+                _expanded.Add(parent.Id.Value);
+                parentId = parent.ParentId;
+            }
+
+            RebuildVisible();
+            int index = _visible.FindIndex(item => item.Id.Equals(objectId));
+            if (index < 0)
+                return false;
+
+            _cursor = index;
+            RevealCursor = true;
+            return true;
+        }
+
         internal RuntimeCommandResult ToggleCurrentActive()
         {
             if (_visible.Count == 0)

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace SAS.Utilities.RuntimeSceneInspector.Core
 {
@@ -142,6 +143,15 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
         RuntimeObjectDetails InspectObject(RuntimeObjectId objectId);
         RuntimeCommandResult Execute(RuntimeSceneInspectorCommand command);
         void RefreshHierarchy();
+    }
+
+    /// <summary>
+    /// Optional local-runtime capability used by the scene-view object picker. Remote inspector
+    /// implementations do not need to expose Unity object references.
+    /// </summary>
+    public interface IRuntimeSceneObjectResolver
+    {
+        bool TryGetObjectId(GameObject target, out RuntimeObjectId objectId);
     }
 
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]

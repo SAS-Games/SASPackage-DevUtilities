@@ -86,6 +86,19 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
 
         private static void Reconnect(RemoteDevUtilitiesClient client, RemoteEditorReconnectState state)
         {
+            if (!string.IsNullOrWhiteSpace(state.TransportId))
+            {
+                client.ConnectTransport(state.TransportId, new RemoteEditorTransportConnectRequest
+                {
+                    PlayerId = state.PlayerId,
+                    Host = state.Host,
+                    Port = state.Port,
+                    AccessToken = state.AccessToken,
+                    TargetName = state.TargetName
+                });
+                return;
+            }
+
             switch (state.Kind)
             {
                 case RemoteEditorConnectionKind.PlayerConnection:

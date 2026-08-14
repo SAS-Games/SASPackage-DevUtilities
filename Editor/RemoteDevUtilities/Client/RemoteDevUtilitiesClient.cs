@@ -1,12 +1,6 @@
 using System;
 using System.Collections.Generic;
-using SAS.Utilities.RemoteDevUtilities.Editor.Commands;
-using SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation;
 using SAS.Utilities.RemoteDevUtilities.Editor.Connection;
-using SAS.Utilities.RemoteDevUtilities.Editor.Connection.Tcp;
-using SAS.Utilities.RemoteDevUtilities.Editor.Logging;
-using SAS.Utilities.RemoteDevUtilities.Editor.MiniTools;
-using SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector;
 using SAS.Utilities.RemoteDevUtilities.Protocol;
 using SAS.Utilities.RemoteDevUtilities.Protocol.Connection;
 using SAS.Utilities.RemoteDevUtilities.Protocol.Serialization;
@@ -19,115 +13,170 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
         private const double HandshakeRetryIntervalSeconds = 0.75d;
         private const double HandshakeTimeoutSeconds = 8d;
 
-        private readonly EditorPlayerConnectionTransport _playerTransport = new();
-        private readonly EditorTcpConnectionTransport _tcpTransport = new();
-        private readonly EditorLanDiscoveryService _lanDiscovery = new();
+        private readonly List<IRemoteEditorTransport> _transports = new();
+        private readonly Dictionary<string, IRemoteEditorTransport> _transportsById =
+            new(StringComparer.OrdinalIgnoreCase);
+        private readonly List<IRemoteEditorConnectionService> _connectionServices = new();
         private readonly List<RemoteEditorPlayerDescriptor> _connectedPlayers = new();
         private readonly List<IRemoteEditorFeatureClient> _features = new();
         private readonly Dictionary<string, IRemoteEditorFeatureClient> _routes = new(StringComparer.Ordinal);
         private readonly string _editorSessionId = Guid.NewGuid().ToString("N");
+        private IRemoteEditorTransport _activeTransport;
+        private RemoteEditorTransportConnectRequest _activeRequest;
         private long _nextRequestId;
         private double _nextHandshakeAttempt;
         private double _handshakeDeadline;
         private int _handshakeAttemptCount;
         private string _accessToken = string.Empty;
-        private string _selectedTcpHost;
-        private int _selectedTcpPort;
 
         public RemoteDevUtilitiesClient()
         {
-            Commands = new RemoteCommandClient(this);
-            Logs = new RemoteLogClient(this);
-            MiniTools = new RemoteMiniToolClient(this);
-            RuntimeSceneInspector = new RemoteRuntimeSceneInspectorClient(this);
-            CommandPresentation = new RemoteCommandPresentationCoordinator(this);
+            foreach (IRemoteEditorFeatureClient feature in RemoteEditorFeatureRegistry.CreateFeatures(this))
+                AddFeature(feature);
 
-            AddFeature(Commands);
-            AddFeature(Logs);
-            AddFeature(MiniTools);
-            AddFeature(RuntimeSceneInspector);
+            foreach (IRemoteEditorTransport transport in RemoteEditorTransportRegistry.CreateTransports())
+                AddTransport(transport);
+            foreach (IRemoteEditorConnectionService service in RemoteEditorConnectionServiceRegistry.CreateServices())
+            {
+                service.Start(this);
+                _connectionServices.Add(service);
+            }
 
-            _playerTransport.MessageReceived += OnPlayerMessage;
-            _playerTransport.PlayerConnected += OnPlayerListChanged;
-            _playerTransport.PlayerDisconnected += OnPlayerDisconnected;
-            _tcpTransport.Connected += OnTcpConnected;
-            _tcpTransport.Disconnected += OnTcpDisconnected;
-            _tcpTransport.ConnectionFailed += OnTcpConnectionFailed;
-            _tcpTransport.MessageReceived += OnMessage;
             EditorApplication.update += Tick;
-            _playerTransport.Start();
-            _lanDiscovery.Start();
             RefreshConnectedPlayers();
         }
 
         public event Action StateChanged;
 
-        public RemoteCommandClient Commands { get; }
-        public RemoteCommandPresentationCoordinator CommandPresentation { get; }
-        public RemoteLogClient Logs { get; }
-        public RemoteMiniToolClient MiniTools { get; }
-        public RemoteRuntimeSceneInspectorClient RuntimeSceneInspector { get; }
         public int SelectedPlayerId { get; private set; } = -1;
         public RemoteEditorConnectionKind ConnectionKind { get; private set; }
+        public string SelectedTransportId => _activeTransport?.Id;
         public string SelectedTargetName { get; private set; }
-        public bool HasSelectedTarget => ConnectionKind != RemoteEditorConnectionKind.None;
+        public bool HasSelectedTarget => _activeTransport != null;
         public bool IsConnected { get; private set; }
         public bool IsHandshakePending { get; private set; }
         public string ConnectionError { get; private set; }
         public string RuntimeSessionId { get; private set; }
         public RemoteTargetDescriptor Target { get; private set; }
         public IReadOnlyList<RemoteEditorPlayerDescriptor> ConnectedPlayers => _connectedPlayers;
-        public IReadOnlyList<RemoteLanPlayerDescriptor> LanPlayers => _lanDiscovery.Players;
-        public string LanDiscoveryError => _lanDiscovery.Error;
+        public IReadOnlyList<RemoteLanPlayerDescriptor> LanPlayers =>
+            FindConnectionService<IRemoteLanDiscoveryService>()?.Players ?? Array.Empty<RemoteLanPlayerDescriptor>();
+        public string LanDiscoveryError => FindConnectionService<IRemoteLanDiscoveryService>()?.Error;
+
+        internal bool HasTransport(string transportId) =>
+            !string.IsNullOrWhiteSpace(transportId) && _transportsById.ContainsKey(transportId);
+
+        internal bool HasConnectionService<T>() where T : class, IRemoteEditorConnectionService =>
+            FindConnectionService<T>() != null;
+
+        internal bool TryGetTransport<T>(out T transport) where T : class, IRemoteEditorTransport
+        {
+            for (int i = 0; i < _transports.Count; i++)
+            {
+                if (_transports[i] is T candidate)
+                {
+                    transport = candidate;
+                    return true;
+                }
+            }
+
+            transport = null;
+            return false;
+        }
+
+        internal bool TryGetFeature<T>(out T feature) where T : class, IRemoteEditorFeatureClient
+        {
+            for (int i = 0; i < _features.Count; i++)
+            {
+                if (_features[i] is T candidate)
+                {
+                    feature = candidate;
+                    return true;
+                }
+            }
+
+            feature = null;
+            return false;
+        }
+
+        internal T GetRequiredFeature<T>() where T : class, IRemoteEditorFeatureClient
+        {
+            if (TryGetFeature(out T feature))
+                return feature;
+            throw new InvalidOperationException($"Required remote editor feature '{typeof(T).FullName}' is not registered.");
+        }
 
         public void RefreshConnectedPlayers()
         {
             _connectedPlayers.Clear();
-            IReadOnlyList<RemoteEditorPlayerDescriptor> players = _playerTransport.GetConnectedPlayers();
-            for (int i = 0; i < players.Count; i++)
-                _connectedPlayers.Add(players[i]);
+            for (int i = 0; i < _transports.Count; i++)
+            {
+                if (_transports[i] is not IRemoteEditorPlayerTransport playerTransport)
+                    continue;
+                IReadOnlyList<RemoteEditorPlayerDescriptor> players = playerTransport.GetConnectedPlayers();
+                for (int playerIndex = 0; playerIndex < players.Count; playerIndex++)
+                    _connectedPlayers.Add(players[playerIndex]);
+            }
             NotifyStateChanged();
         }
 
         public void RefreshLanPlayers()
         {
-            if (_lanDiscovery.Clear())
+            if (FindConnectionService<IRemoteLanDiscoveryService>()?.Clear() == true)
                 NotifyStateChanged();
         }
 
         public void Connect(int playerId, string accessToken = null)
         {
-            ResetSession();
-            ConnectionKind = RemoteEditorConnectionKind.PlayerConnection;
-            SelectedPlayerId = playerId;
-            SelectedTargetName = $"Player {playerId}";
-            _accessToken = accessToken ?? string.Empty;
-            IsHandshakePending = true;
-            double now = EditorApplication.timeSinceStartup;
-            _handshakeDeadline = now + HandshakeTimeoutSeconds;
-            _nextHandshakeAttempt = now;
-            SendHandshake();
-            NotifyStateChanged();
+            ConnectTransport(RemoteEditorTransportIds.PlayerConnection, new RemoteEditorTransportConnectRequest
+            {
+                PlayerId = playerId,
+                TargetName = $"Player {playerId}",
+                AccessToken = accessToken
+            });
         }
 
         public void ConnectTcp(string host, int port, string accessToken = null)
         {
-            ResetSession();
             if (string.IsNullOrWhiteSpace(host) || port < 1 || port > 65535)
                 return;
-
             string normalizedHost = host.Trim();
-            ConnectionKind = RemoteEditorConnectionKind.DirectTcp;
-            SelectedTargetName = $"{normalizedHost}:{port}";
-            _selectedTcpHost = normalizedHost;
-            _selectedTcpPort = port;
-            _accessToken = accessToken ?? string.Empty;
+            ConnectTransport(RemoteEditorTransportIds.Tcp, new RemoteEditorTransportConnectRequest
+            {
+                Host = normalizedHost,
+                Port = port,
+                TargetName = $"{normalizedHost}:{port}",
+                AccessToken = accessToken
+            });
+        }
+
+        internal bool ConnectTransport(string transportId, RemoteEditorTransportConnectRequest request)
+        {
+            ResetSession();
+            if (!_transportsById.TryGetValue(transportId ?? string.Empty, out IRemoteEditorTransport transport))
+            {
+                ConnectionError = $"The '{transportId}' remote transport is not installed.";
+                NotifyStateChanged();
+                return false;
+            }
+
+            _activeTransport = transport;
+            _activeRequest = request ?? new RemoteEditorTransportConnectRequest();
+            ConnectionKind = transport.Kind;
+            SelectedPlayerId = _activeRequest.PlayerId;
+            SelectedTargetName = string.IsNullOrWhiteSpace(_activeRequest.TargetName)
+                ? transport.Id
+                : _activeRequest.TargetName;
+            _accessToken = _activeRequest.AccessToken ?? string.Empty;
             IsHandshakePending = true;
             double now = EditorApplication.timeSinceStartup;
             _handshakeDeadline = now + HandshakeTimeoutSeconds;
             _nextHandshakeAttempt = now;
-            _tcpTransport.Connect(normalizedHost, port);
+            transport.Connect(_activeRequest);
+            if (transport.IsReady)
+                SendHandshake();
             NotifyStateChanged();
+            return true;
         }
 
         internal RemoteEditorReconnectState CaptureReconnectState()
@@ -137,11 +186,13 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
 
             return new RemoteEditorReconnectState
             {
+                TransportId = _activeTransport.Id,
                 Kind = ConnectionKind,
-                PlayerId = SelectedPlayerId,
-                Host = _selectedTcpHost,
-                Port = _selectedTcpPort,
-                AccessToken = _accessToken
+                PlayerId = _activeRequest?.PlayerId ?? -1,
+                Host = _activeRequest?.Host,
+                Port = _activeRequest?.Port ?? 0,
+                AccessToken = _accessToken,
+                TargetName = SelectedTargetName
             };
         }
 
@@ -149,7 +200,6 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
         {
             if (!IsHandshakePending)
                 return;
-
             ResetSession();
             NotifyStateChanged();
         }
@@ -164,66 +214,78 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
 
         public long Send<T>(string messageType, T payload)
         {
-            if (!HasSelectedTarget)
+            if (_activeTransport == null)
                 return 0;
-
             long requestId = ++_nextRequestId;
-            if (ConnectionKind == RemoteEditorConnectionKind.PlayerConnection)
-                _playerTransport.Send(SelectedPlayerId, messageType, requestId, _editorSessionId, payload);
-            else if (ConnectionKind == RemoteEditorConnectionKind.DirectTcp)
-                _tcpTransport.Send(messageType, requestId, _editorSessionId, payload);
-
+            _activeTransport.Send(messageType, requestId, _editorSessionId, payload);
             return requestId;
         }
 
-        public void NotifyStateChanged()
-        {
-            StateChanged?.Invoke();
-        }
+        public void NotifyStateChanged() => StateChanged?.Invoke();
 
         public void Dispose()
         {
             EditorApplication.update -= Tick;
             Disconnect();
-            _playerTransport.MessageReceived -= OnPlayerMessage;
-            _playerTransport.PlayerConnected -= OnPlayerListChanged;
-            _playerTransport.PlayerDisconnected -= OnPlayerDisconnected;
-            _tcpTransport.Connected -= OnTcpConnected;
-            _tcpTransport.Disconnected -= OnTcpDisconnected;
-            _tcpTransport.ConnectionFailed -= OnTcpConnectionFailed;
-            _tcpTransport.MessageReceived -= OnMessage;
-            _playerTransport.Dispose();
-            _tcpTransport.Dispose();
-            _lanDiscovery.Dispose();
+            for (int i = _connectionServices.Count - 1; i >= 0; i--)
+                _connectionServices[i].Dispose();
+            _connectionServices.Clear();
+            for (int i = _transports.Count - 1; i >= 0; i--)
+                _transports[i].Dispose();
+            _transports.Clear();
+            _transportsById.Clear();
             _connectedPlayers.Clear();
             _features.Clear();
             _routes.Clear();
             StateChanged = null;
         }
 
+        private void AddTransport(IRemoteEditorTransport transport)
+        {
+            if (transport == null || string.IsNullOrWhiteSpace(transport.Id))
+                return;
+            if (_transportsById.ContainsKey(transport.Id))
+                throw new InvalidOperationException($"Duplicate editor remote transport id '{transport.Id}'.");
+
+            _transports.Add(transport);
+            _transportsById.Add(transport.Id, transport);
+            transport.MessageReceived += envelope => OnTransportMessage(transport, envelope);
+            transport.Ready += () => OnTransportReady(transport);
+            transport.Disconnected += error => OnTransportDisconnected(transport, error);
+            transport.ConnectionFailed += error => OnTransportConnectionFailed(transport, error);
+            transport.TargetsChanged += RefreshConnectedPlayers;
+            transport.Start();
+        }
+
         private void Tick()
         {
-            _tcpTransport.Tick();
-            if (_lanDiscovery.Tick(EditorApplication.timeSinceStartup))
+            for (int i = 0; i < _transports.Count; i++)
+                _transports[i].Tick();
+            bool serviceChanged = false;
+            for (int i = 0; i < _connectionServices.Count; i++)
+                serviceChanged |= _connectionServices[i].Tick(EditorApplication.timeSinceStartup);
+            if (serviceChanged)
                 NotifyStateChanged();
 
-            if (!IsHandshakePending || !HasSelectedTarget)
+            if (!IsHandshakePending || _activeTransport == null)
                 return;
-
             double now = EditorApplication.timeSinceStartup;
             if (now >= _handshakeDeadline)
             {
                 string target = SelectedTargetName ?? "the Player";
-                FailConnection($"No handshake response from {target} after {_handshakeAttemptCount} " + "attempts. The Player may still be starting; press Connect to retry.");
+                FailConnection($"No handshake response from {target} after {_handshakeAttemptCount} " +
+                               "attempts. The Player may still be starting; press Connect to retry.");
                 return;
             }
 
-            if (now >= _nextHandshakeAttempt && (ConnectionKind != RemoteEditorConnectionKind.DirectTcp || _tcpTransport.IsConnected))
+            if (now >= _nextHandshakeAttempt && _activeTransport.IsReady)
                 SendHandshake();
         }
 
         private void SendHandshake()
         {
+            if (!IsHandshakePending || _activeTransport == null || !_activeTransport.IsReady)
+                return;
             _handshakeAttemptCount++;
             _nextHandshakeAttempt = EditorApplication.timeSinceStartup + HandshakeRetryIntervalSeconds;
             Send(RemoteMessageTypes.HandshakeRequest, new RemoteHandshakeRequest
@@ -242,11 +304,20 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
                 _routes[messageType] = feature;
         }
 
-        private void OnPlayerMessage(int playerId, RemoteEnvelope envelope)
+        private T FindConnectionService<T>() where T : class, IRemoteEditorConnectionService
         {
-            if (ConnectionKind != RemoteEditorConnectionKind.PlayerConnection || playerId != SelectedPlayerId)
-                return;
+            for (int i = 0; i < _connectionServices.Count; i++)
+            {
+                if (_connectionServices[i] is T match)
+                    return match;
+            }
+            return null;
+        }
 
+        private void OnTransportMessage(IRemoteEditorTransport transport, RemoteEnvelope envelope)
+        {
+            if (!ReferenceEquals(transport, _activeTransport))
+                return;
             OnMessage(envelope);
         }
 
@@ -254,16 +325,15 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
         {
             if (envelope == null)
                 return;
-
             if (envelope.MessageType == RemoteMessageTypes.HandshakeResponse)
             {
                 HandleHandshake(envelope);
                 return;
             }
-
-            if (!IsConnected || envelope.ProtocolVersion != RemoteProtocolConstants.Version || (!string.IsNullOrEmpty(RuntimeSessionId) && !string.Equals(envelope.SessionId, RuntimeSessionId, StringComparison.Ordinal)))
+            if (!IsConnected || envelope.ProtocolVersion != RemoteProtocolConstants.Version ||
+                (!string.IsNullOrEmpty(RuntimeSessionId) &&
+                 !string.Equals(envelope.SessionId, RuntimeSessionId, StringComparison.Ordinal)))
                 return;
-
             if (_routes.TryGetValue(envelope.MessageType, out IRemoteEditorFeatureClient feature))
                 feature.Handle(envelope);
         }
@@ -278,19 +348,17 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
                 FailConnection(error);
                 return;
             }
-
             if (!response.Accepted)
             {
                 FailConnection(response.Error ?? "The runtime rejected the connection.");
                 return;
             }
-
-            if (envelope.ProtocolVersion != RemoteProtocolConstants.Version || response.ProtocolVersion != RemoteProtocolConstants.Version)
+            if (envelope.ProtocolVersion != RemoteProtocolConstants.Version ||
+                response.ProtocolVersion != RemoteProtocolConstants.Version)
             {
                 FailConnection($"Protocol mismatch. Editor={RemoteProtocolConstants.Version}, Runtime={response.ProtocolVersion}.");
                 return;
             }
-
             if (string.IsNullOrWhiteSpace(response.RuntimeSessionId))
             {
                 FailConnection("The runtime handshake did not include a session identifier.");
@@ -301,51 +369,35 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
             ConnectionError = null;
             RuntimeSessionId = response.RuntimeSessionId;
             Target = response.Target;
-            Commands.RequestCatalog();
-            Logs.RequestSettings();
-            MiniTools.RequestCatalog();
-            RuntimeSceneInspector.RequestHierarchy(true);
+            for (int i = 0; i < _features.Count; i++)
+                _features[i].OnConnected();
             NotifyStateChanged();
         }
 
-        private void OnPlayerListChanged(int playerId) => RefreshConnectedPlayers();
-
-        private void OnPlayerDisconnected(int playerId)
+        private void OnTransportReady(IRemoteEditorTransport transport)
         {
-            if (ConnectionKind == RemoteEditorConnectionKind.PlayerConnection && playerId == SelectedPlayerId)
-                ResetSession();
-            RefreshConnectedPlayers();
-        }
-
-        private void OnTcpConnected()
-        {
-            if (ConnectionKind != RemoteEditorConnectionKind.DirectTcp || !IsHandshakePending)
+            if (!ReferenceEquals(transport, _activeTransport) || !IsHandshakePending)
                 return;
-
             _nextHandshakeAttempt = EditorApplication.timeSinceStartup;
             SendHandshake();
             NotifyStateChanged();
         }
 
-        private void OnTcpDisconnected(string error)
+        private void OnTransportDisconnected(IRemoteEditorTransport transport, string error)
         {
-            if (ConnectionKind != RemoteEditorConnectionKind.DirectTcp)
-                return;
-
-            FailConnection(string.IsNullOrWhiteSpace(error) ? "The TCP connection to the Player closed." : error);
+            if (ReferenceEquals(transport, _activeTransport))
+                FailConnection(string.IsNullOrWhiteSpace(error) ? "The connection to the Player closed." : error);
         }
 
-        private void OnTcpConnectionFailed(string error)
+        private void OnTransportConnectionFailed(IRemoteEditorTransport transport, string error)
         {
-            if (ConnectionKind != RemoteEditorConnectionKind.DirectTcp)
-                return;
-
-            FailConnection("Could not connect to the Player by direct IP: " + (string.IsNullOrWhiteSpace(error) ? "Unknown TCP error." : error));
+            if (ReferenceEquals(transport, _activeTransport))
+                FailConnection(string.IsNullOrWhiteSpace(error) ? "Could not connect to the Player." : error);
         }
 
         private void ResetSession()
         {
-            bool disconnectTcp = ConnectionKind == RemoteEditorConnectionKind.DirectTcp;
+            IRemoteEditorTransport previousTransport = _activeTransport;
             IsConnected = false;
             IsHandshakePending = false;
             _nextHandshakeAttempt = 0d;
@@ -357,13 +409,12 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
             ConnectionKind = RemoteEditorConnectionKind.None;
             SelectedTargetName = null;
             SelectedPlayerId = -1;
-            _selectedTcpHost = null;
-            _selectedTcpPort = 0;
             _accessToken = string.Empty;
+            _activeTransport = null;
+            _activeRequest = null;
             for (int i = 0; i < _features.Count; i++)
                 _features[i].Reset();
-            if (disconnectTcp)
-                _tcpTransport.Disconnect();
+            previousTransport?.Disconnect();
         }
 
         private void FailConnection(string error)
