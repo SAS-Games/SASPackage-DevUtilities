@@ -20,8 +20,10 @@ namespace SAS.Utilities.RemoteDevUtilities.Agent
 
         private RemoteDevUtilitiesRuntimeSettings _settings;
         private IRuntimeRemoteTransport _transport;
+        private IRuntimeTcpEndpoint _tcpEndpoint;
         private RuntimeConnectionEndpoint _connectionEndpoint;
         private RuntimeBackgroundExecutionLease _backgroundExecution;
+        private RuntimeLanDiscoveryBroadcaster _lanDiscovery;
         private string _runtimeSessionId;
 
         public static RuntimeDevUtilitiesAgent Instance { get; private set; }
@@ -50,6 +52,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Agent
         private void Update()
         {
             _transport?.Tick();
+            _lanDiscovery?.Tick();
             for (int i = 0; i < _endpoints.Count; i++)
                 _endpoints[i].Tick();
         }
@@ -69,7 +72,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Agent
             _backgroundExecution = new RuntimeBackgroundExecutionLease();
             _backgroundExecution.Acquire(_settings.KeepPlayerRunningInBackground);
             _runtimeSessionId = Guid.NewGuid().ToString("N");
-            _transport = RuntimeRemoteTransportFactory.Create(_runtimeSessionId, _settings);
+            _transport = RuntimeRemoteTransportFactory.Create(_runtimeSessionId, _settings, out _tcpEndpoint);
             _transport.MessageReceived += OnMessage;
             _transport.EditorDisconnected += OnEditorDisconnected;
 
@@ -89,6 +92,10 @@ namespace SAS.Utilities.RemoteDevUtilities.Agent
             AddEndpoint(new RuntimeRemoteMiniToolEndpoint(), context);
             AddEndpoint(new RemoteRuntimeSceneInspectorEndpoint(), context);
             _transport.Start();
+            _lanDiscovery = _tcpEndpoint?.IsListening == true
+                ? RuntimeLanDiscoveryBroadcaster.TryCreate(_runtimeSessionId, _settings, _tcpEndpoint.BoundPort)
+                : null;
+            _lanDiscovery?.Start();
         }
 
         private void StopSubsystem()
@@ -111,6 +118,11 @@ namespace SAS.Utilities.RemoteDevUtilities.Agent
                 _transport.Dispose();
                 _transport = null;
             }
+
+            _tcpEndpoint = null;
+
+            _lanDiscovery?.Dispose();
+            _lanDiscovery = null;
 
             _backgroundExecution?.Dispose();
             _backgroundExecution = null;

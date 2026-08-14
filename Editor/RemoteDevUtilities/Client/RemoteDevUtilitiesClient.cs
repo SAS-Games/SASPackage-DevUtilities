@@ -21,6 +21,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
 
         private readonly EditorPlayerConnectionTransport _playerTransport = new();
         private readonly EditorTcpConnectionTransport _tcpTransport = new();
+        private readonly EditorLanDiscoveryService _lanDiscovery = new();
         private readonly List<RemoteEditorPlayerDescriptor> _connectedPlayers = new();
         private readonly List<IRemoteEditorFeatureClient> _features = new();
         private readonly Dictionary<string, IRemoteEditorFeatureClient> _routes = new(StringComparer.Ordinal);
@@ -55,6 +56,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
             _tcpTransport.MessageReceived += OnMessage;
             EditorApplication.update += Tick;
             _playerTransport.Start();
+            _lanDiscovery.Start();
             RefreshConnectedPlayers();
         }
 
@@ -75,6 +77,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
         public string RuntimeSessionId { get; private set; }
         public RemoteTargetDescriptor Target { get; private set; }
         public IReadOnlyList<RemoteEditorPlayerDescriptor> ConnectedPlayers => _connectedPlayers;
+        public IReadOnlyList<RemoteLanPlayerDescriptor> LanPlayers => _lanDiscovery.Players;
+        public string LanDiscoveryError => _lanDiscovery.Error;
 
         public void RefreshConnectedPlayers()
         {
@@ -83,6 +87,12 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
             for (int i = 0; i < players.Count; i++)
                 _connectedPlayers.Add(players[i]);
             NotifyStateChanged();
+        }
+
+        public void RefreshLanPlayers()
+        {
+            if (_lanDiscovery.Clear())
+                NotifyStateChanged();
         }
 
         public void Connect(int playerId, string accessToken = null)
@@ -184,6 +194,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
             _tcpTransport.MessageReceived -= OnMessage;
             _playerTransport.Dispose();
             _tcpTransport.Dispose();
+            _lanDiscovery.Dispose();
             _connectedPlayers.Clear();
             _features.Clear();
             _routes.Clear();
@@ -193,6 +204,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
         private void Tick()
         {
             _tcpTransport.Tick();
+            if (_lanDiscovery.Tick(EditorApplication.timeSinceStartup))
+                NotifyStateChanged();
 
             if (!IsHandshakePending || !HasSelectedTarget)
                 return;

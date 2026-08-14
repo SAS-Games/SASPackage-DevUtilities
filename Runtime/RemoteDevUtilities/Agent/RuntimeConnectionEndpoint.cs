@@ -95,16 +95,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Agent
                 ProtocolVersion = RemoteProtocolConstants.Version,
                 PackageVersion = RemoteProtocolConstants.PackageVersion,
                 RuntimeSessionId = _context.RuntimeSessionId,
-                Target = new RemoteTargetDescriptor
-                {
-                    ProductName = Application.productName,
-                    ApplicationVersion = Application.version,
-                    UnityVersion = Application.unityVersion,
-                    Platform = Application.platform.ToString(),
-                    DeviceName = SystemInfo.deviceName,
-                    IsDebugBuild = UnityEngine.Debug.isDebugBuild,
-                    IsDevUtilitiesEnabled = IsDevUtilitiesEnabled()
-                }
+                Target = CreateTargetDescriptor()
             });
             SessionStateChanged?.Invoke(true);
         }
@@ -145,6 +136,20 @@ namespace SAS.Utilities.RemoteDevUtilities.Agent
             for (int i = 0; i < expected.Length; i++)
                 difference |= expected[i] ^ received[i];
             return difference == 0;
+        }
+
+        internal static RemoteTargetDescriptor CreateTargetDescriptor()
+        {
+            return new RemoteTargetDescriptor
+            {
+                ProductName = Application.productName,
+                ApplicationVersion = Application.version,
+                UnityVersion = Application.unityVersion,
+                Platform = Application.platform.ToString(),
+                DeviceName = SystemInfo.deviceName,
+                IsDebugBuild = UnityEngine.Debug.isDebugBuild,
+                IsDevUtilitiesEnabled = IsDevUtilitiesEnabled()
+            };
         }
 
         private static bool IsDevUtilitiesEnabled()

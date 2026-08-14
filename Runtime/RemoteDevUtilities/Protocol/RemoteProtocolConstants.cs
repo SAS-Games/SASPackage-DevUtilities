@@ -8,6 +8,10 @@ namespace SAS.Utilities.RemoteDevUtilities.Protocol
         public const string PackageVersion = "1.5.0";
         public const int MaximumMessageBytes = 8 * 1024 * 1024;
         public const int DefaultTcpPort = 56000;
+        public const int LanDiscoveryPort = 56001;
+        public const string LanDiscoverySignature = "SAS.RemoteDevUtilities.Discovery.v1";
+        public const float LanDiscoveryBeaconIntervalSeconds = 3f;
+        public const double LanDiscoveryEntryLifetimeSeconds = 10d;
 
         public static readonly Guid EditorToPlayerMessageId = new("e993cd15-4701-46fc-996b-cba576c04774");
         public static readonly Guid PlayerToEditorMessageId = new("1a511547-fd46-4c48-8b28-e9d60f45d964");

@@ -4,7 +4,9 @@ using SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration;
 using SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector;
 using SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels;
 using UnityEditor;
+using UnityEditor.Networking.PlayerConnection;
 using UnityEngine;
+using UnityEngine.Networking.PlayerConnection;
 
 namespace SAS.Utilities.RemoteDevUtilities.Editor.UI
 {
@@ -27,6 +29,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI
         private RemoteRuntimeSceneInspectorPanel _runtimeSceneInspectorPanel;
         private Tab _tab;
         private string _initializationError;
+        private IConnectionState _unityConnectionState;
         [SerializeField] private bool _showNativeWorkspace;
         [SerializeField] private Vector2 _windowScroll;
 
@@ -50,12 +53,15 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
             RemoteMiniToolVisibilitySettings.Changed += Repaint;
             TryInitializeClient();
+            InitializeUnityConnectionState();
         }
 
         private void OnDisable()
         {
             EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
             RemoteMiniToolVisibilitySettings.Changed -= Repaint;
+            _unityConnectionState?.Dispose();
+            _unityConnectionState = null;
             if (_client != null)
             {
                 _client.StateChanged -= Repaint;
@@ -80,7 +86,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI
                 return;
             }
 
-            _connectionPanel.Draw(_client);
+            _connectionPanel.Draw(_client, _unityConnectionState);
             _showNativeWorkspace = _debugWorkspacePanel.Draw(_client, _showNativeWorkspace);
             EditorGUILayout.Space(4f);
 
@@ -114,6 +120,36 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI
         }
 
         private void OnPlayModeStateChanged(PlayModeStateChange state) => Repaint();
+
+        private void InitializeUnityConnectionState()
+        {
+            _unityConnectionState?.Dispose();
+#if UNITY_6000_0_OR_NEWER
+            _unityConnectionState = PlayerConnectionGUIUtility.GetConnectionState(this, OnUnityTargetConnected);
+#else
+            _unityConnectionState = PlayerConnectionGUIUtility.GetAttachToPlayerState(this, OnUnityTargetConnected);
+#endif
+        }
+
+        private void OnUnityTargetConnected(string targetName)
+        {
+            if (_client == null)
+                return;
+
+            _client.RefreshConnectedPlayers();
+            _connectionPanel.NotifyUnityTargetConnected(targetName);
+            Repaint();
+            EditorApplication.delayCall += RefreshPlayersAfterUnityAttach;
+        }
+
+        private void RefreshPlayersAfterUnityAttach()
+        {
+            if (_client == null)
+                return;
+
+            _client.RefreshConnectedPlayers();
+            Repaint();
+        }
 
         private void TryInitializeClient()
         {

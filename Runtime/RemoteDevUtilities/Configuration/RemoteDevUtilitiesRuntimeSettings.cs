@@ -34,9 +34,23 @@ namespace SAS.Utilities.RemoteDevUtilities
         [SerializeField, Range(1024, 65535)]
         private int _tcpPort = Protocol.RemoteProtocolConstants.DefaultTcpPort;
 
-        [Tooltip("Allow the TCP transport to listen on network interfaces in addition to loopback. A non-empty access token is required.")]
+        [InspectorName("Enable TCP Port Fallback")]
+        [Tooltip("If the configured TCP port is occupied, try subsequent ports instead of disabling the TCP transport.")]
+        [SerializeField]
+        private bool _enableTcpPortFallback = true;
+
+        [InspectorName("TCP Port Fallback Count")]
+        [Tooltip("Number of additional consecutive TCP ports to try after the configured port.")]
+        [SerializeField, Range(0, 32)]
+        private int _tcpPortFallbackCount = 9;
+
+        [Tooltip("Allow the TCP transport to listen on network interfaces in addition to loopback and advertise this Player to LAN discovery. A non-empty access token is required.")]
         [SerializeField]
         private bool _allowTcpConnectionsFromOtherMachines;
+
+        [Tooltip("Advertise this Player to Remote Dev Utilities editors on the local network. LAN TCP access and a non-empty access token are also required.")]
+        [SerializeField]
+        private bool _enableLanDiscovery = true;
 
         [Tooltip("Shared access token required by the runtime handshake. TCP traffic is not encrypted; use Remote Dev Utilities only on a trusted development network.")]
         [SerializeField]
@@ -53,7 +67,10 @@ namespace SAS.Utilities.RemoteDevUtilities
         internal bool AllowRuntimeSceneInspector => _allowRuntimeSceneInspector;
         internal bool KeepPlayerRunningInBackground => _keepPlayerRunningInBackground;
         internal int TcpPort => Mathf.Clamp(_tcpPort, 1024, 65535);
+        internal bool EnableTcpPortFallback => _enableTcpPortFallback;
+        internal int TcpPortFallbackCount => _enableTcpPortFallback ? Mathf.Clamp(_tcpPortFallbackCount, 0, 32) : 0;
         internal bool AllowTcpConnectionsFromOtherMachines => _allowTcpConnectionsFromOtherMachines;
+        internal bool EnableLanDiscovery => _enableLanDiscovery;
         internal string TcpAccessToken => string.IsNullOrWhiteSpace(_tcpAccessToken) ? string.Empty : _tcpAccessToken;
         internal int MaxQueuedLogs => Mathf.Max(16, _maxQueuedLogs);
         internal int MaxLogsPerBatch => Mathf.Max(1, _maxLogsPerBatch);
@@ -71,7 +88,10 @@ namespace SAS.Utilities.RemoteDevUtilities
             _allowRuntimeSceneInspector = settings.AllowRuntimeSceneInspector;
             _keepPlayerRunningInBackground = settings.KeepPlayerRunningInBackground;
             _tcpPort = settings.TcpPort;
+            _enableTcpPortFallback = settings.EnableTcpPortFallback;
+            _tcpPortFallbackCount = settings.TcpPortFallbackCount;
             _allowTcpConnectionsFromOtherMachines = settings.AllowTcpConnectionsFromOtherMachines;
+            _enableLanDiscovery = settings.EnableLanDiscovery;
             _tcpAccessToken = settings.TcpAccessToken;
             _maxQueuedLogs = settings.MaxQueuedLogs;
             _maxLogsPerBatch = settings.MaxLogsPerBatch;
@@ -104,9 +124,24 @@ namespace SAS.Utilities.RemoteDevUtilities
         [SerializeField, Range(1024, 65535)]
         private int m_TcpPort = Protocol.RemoteProtocolConstants.DefaultTcpPort;
 
-        [Tooltip("Allow the TCP transport to listen on network interfaces in addition to loopback. " + "A non-empty access token is required.")]
+        [InspectorName("Enable TCP Port Fallback")]
+        [Tooltip("If the configured TCP port is occupied, try subsequent ports instead of disabling the TCP transport.")]
+        [SerializeField]
+        private bool m_EnableTcpPortFallback = true;
+
+        [InspectorName("TCP Port Fallback Count")]
+        [Tooltip("Number of additional consecutive TCP ports to try after the configured port.")]
+        [SerializeField, Range(0, 32)]
+        private int m_TcpPortFallbackCount = 9;
+
+        [Tooltip("Allow the TCP transport to listen on network interfaces in addition to loopback and advertise this Player to LAN discovery. " + "A non-empty access token is required.")]
         [SerializeField]
         private bool m_AllowTcpConnectionsFromOtherMachines;
+
+        [Tooltip("Advertise this Player to Remote Dev Utilities editors on the local network. " +
+                 "LAN TCP access and a non-empty access token are also required.")]
+        [SerializeField]
+        private bool m_EnableLanDiscovery = true;
 
         [Tooltip("Shared access token required by the runtime handshake. TCP traffic is not encrypted; " + "use Remote Dev Utilities only on a trusted development network.")]
         [SerializeField]
@@ -124,7 +159,10 @@ namespace SAS.Utilities.RemoteDevUtilities
         public bool AllowRuntimeSceneInspector => m_AllowRuntimeSceneInspector;
         public bool KeepPlayerRunningInBackground => m_KeepPlayerRunningInBackground;
         public int TcpPort => Mathf.Clamp(m_TcpPort, 1024, 65535);
+        public bool EnableTcpPortFallback => m_EnableTcpPortFallback;
+        public int TcpPortFallbackCount => m_EnableTcpPortFallback ? Mathf.Clamp(m_TcpPortFallbackCount, 0, 32) : 0;
         public bool AllowTcpConnectionsFromOtherMachines => m_AllowTcpConnectionsFromOtherMachines;
+        public bool EnableLanDiscovery => m_EnableLanDiscovery;
         public string TcpAccessToken => string.IsNullOrWhiteSpace(m_TcpAccessToken) ? string.Empty : m_TcpAccessToken;
         public int MaxQueuedLogs => Mathf.Max(16, m_MaxQueuedLogs);
         public int MaxLogsPerBatch => Mathf.Max(1, m_MaxLogsPerBatch);
@@ -181,7 +219,10 @@ namespace SAS.Utilities.RemoteDevUtilities
             m_AllowRuntimeSceneInspector = configuration.AllowRuntimeSceneInspector;
             m_KeepPlayerRunningInBackground = configuration.KeepPlayerRunningInBackground;
             m_TcpPort = configuration.TcpPort;
+            m_EnableTcpPortFallback = configuration.EnableTcpPortFallback;
+            m_TcpPortFallbackCount = configuration.TcpPortFallbackCount;
             m_AllowTcpConnectionsFromOtherMachines = configuration.AllowTcpConnectionsFromOtherMachines;
+            m_EnableLanDiscovery = configuration.EnableLanDiscovery;
             m_TcpAccessToken = configuration.TcpAccessToken;
             m_MaxQueuedLogs = configuration.MaxQueuedLogs;
             m_MaxLogsPerBatch = configuration.MaxLogsPerBatch;

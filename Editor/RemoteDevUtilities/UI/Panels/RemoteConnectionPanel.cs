@@ -6,29 +6,59 @@ using SAS.Utilities.RemoteDevUtilities.Editor.Configuration;
 using SAS.Utilities.RemoteDevUtilities.Editor.Connection;
 using SAS.Utilities.RemoteDevUtilities.Protocol;
 using UnityEditor;
+using UnityEditor.Networking.PlayerConnection;
 using UnityEngine;
+using UnityEngine.Networking.PlayerConnection;
 
 namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
 {
     internal sealed class RemoteConnectionPanel
     {
-        private enum ConnectionMode
+        private enum TargetKind
         {
-            DiscoveredPlayer,
-            DirectIp
+            None,
+            UnityPlayer,
+            LanPlayer,
+            ManualIp
         }
 
-        private const string ModePreferenceKey = "RemoteDevUtilities.ConnectionMode";
+        private readonly struct TargetOption
+        {
+            public TargetOption(TargetKind kind, string key, string label, int playerId = -1, string lanSessionId = null)
+            {
+                Kind = kind;
+                Key = key;
+                Label = label;
+                PlayerId = playerId;
+                LanSessionId = lanSessionId;
+            }
+
+            public TargetKind Kind { get; }
+            public string Key { get; }
+            public string Label { get; }
+            public int PlayerId { get; }
+            public string LanSessionId { get; }
+        }
+
+        private const string LegacyModePreferenceKey = "RemoteDevUtilities.ConnectionMode";
         private const string HostPreferenceKey = "RemoteDevUtilities.TcpHost";
         private const string PortPreferenceKey = "RemoteDevUtilities.TcpPort";
         private const string TokenSessionKey = "RemoteDevUtilities.AccessToken";
         private const string ExpandedPreferenceKey = "RemoteDevUtilities.ConnectionPanelExpanded";
+        private const string ManualTargetKey = "manual";
 
+        private static GUIStyle s_UnityAttachNativeStyle;
+        private static GUIStyle s_UnityAttachLabelStyle;
+
+        private TargetKind _selectedTargetKind;
+        private string _selectedTargetKey;
         private int? _selectedPlayerId;
-        private ConnectionMode _mode;
+        private string _selectedLanSessionId;
         private string _tcpHost;
         private int _tcpPort;
         private string _accessToken;
+        private string _lastUnityTargetName;
+        private bool _pendingUnityTargetSelection;
         private bool _expanded;
 
         private RemoteDevUtilitiesRuntimeConfiguration RuntimeSettings => RemoteDevUtilitiesProjectSettings.instance.Runtime;
@@ -36,14 +66,20 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
 
         public RemoteConnectionPanel()
         {
-            _mode = (ConnectionMode)Mathf.Clamp(EditorPrefs.GetInt(ModePreferenceKey, (int)ConnectionMode.DiscoveredPlayer), 0, 1);
+            int legacyMode = Mathf.Clamp(EditorPrefs.GetInt(LegacyModePreferenceKey, 0), 0, 2);
+            _selectedTargetKind = legacyMode switch
+            {
+                1 => TargetKind.ManualIp,
+                2 => TargetKind.LanPlayer,
+                _ => TargetKind.UnityPlayer
+            };
             _tcpHost = EditorPrefs.GetString(HostPreferenceKey, "127.0.0.1");
             _tcpPort = EditorPrefs.GetInt(PortPreferenceKey, ConfiguredTcpPort);
             _accessToken = SessionState.GetString(TokenSessionKey, string.Empty);
             _expanded = EditorPrefs.GetBool(ExpandedPreferenceKey, true);
         }
 
-        public void Draw(RemoteDevUtilitiesClient client)
+        public void Draw(RemoteDevUtilitiesClient client, IConnectionState unityConnectionState)
         {
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             bool expanded = EditorGUILayout.Foldout(_expanded, BuildHeader(client), true, EditorStyles.foldoutHeader);
@@ -61,21 +97,23 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
 
             using (new EditorGUI.DisabledScope(client.IsConnected || client.IsHandshakePending))
             {
-                DrawConnectionMode();
-                EditorGUILayout.Space(2f);
-                if (_mode == ConnectionMode.DiscoveredPlayer)
-                    DrawPlayerTarget(client);
-                else
-                {
-                    DrawTcpTarget();
-                    DrawAccessToken();
-                }
+                DrawTargetPicker(client, unityConnectionState);
+                DrawAutomaticTargetStatus(client);
+                DrawSelectedTargetConfiguration(client);
             }
 
             EditorGUILayout.Space(3f);
             DrawConnectionAction(client);
             DrawConnectionStatus(client);
             EditorGUILayout.EndVertical();
+        }
+
+        public void NotifyUnityTargetConnected(string targetName)
+        {
+            _lastUnityTargetName = string.IsNullOrWhiteSpace(targetName) ? null : targetName;
+            _pendingUnityTargetSelection = !string.IsNullOrWhiteSpace(_lastUnityTargetName);
+            _selectedTargetKey = null;
+            _selectedTargetKind = TargetKind.None;
         }
 
         private static string BuildHeader(RemoteDevUtilitiesClient client)
@@ -86,61 +124,208 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
                 return $"Remote Target — {target}";
             }
 
-            if (client.IsHandshakePending)
-                return "Remote Target — Connecting";
-
-            return "Remote Target";
+            return client.IsHandshakePending ? "Remote Target — Connecting" : "Remote Target";
         }
 
-        private void DrawConnectionMode()
+        private void DrawTargetPicker(RemoteDevUtilitiesClient client, IConnectionState unityConnectionState)
         {
-            ConnectionMode nextMode = (ConnectionMode)GUILayout.Toolbar((int)_mode, new[] { "Discovered Players", "Direct IP" });
-            if (nextMode == _mode)
-                return;
+            List<TargetOption> options = BuildTargetOptions(client);
+            int selectedIndex = FindSelectedIndex(options);
+            if (selectedIndex < 0)
+                selectedIndex = FindInitialIndex(options);
 
-            SetConnectionMode(nextMode);
-        }
-
-        private void DrawPlayerTarget(RemoteDevUtilitiesClient client)
-        {
-            IReadOnlyList<RemoteEditorPlayerDescriptor> players = client.ConnectedPlayers;
-            string[] labels = new string[players.Count];
-            int selectedIndex = -1;
-            int? activePlayerId = client.ConnectionKind == RemoteEditorConnectionKind.PlayerConnection ? client.SelectedPlayerId : _selectedPlayerId;
-            for (int i = 0; i < players.Count; i++)
-            {
-                RemoteEditorPlayerDescriptor player = players[i];
-                labels[i] = $"{player.Name}  [{player.PlayerId}]";
-                if (activePlayerId.HasValue && player.PlayerId == activePlayerId.Value)
-                    selectedIndex = i;
-            }
-
-            if (selectedIndex < 0 && players.Count > 0)
-                selectedIndex = 0;
+            string[] labels = new string[options.Count];
+            for (int i = 0; i < options.Count; i++)
+                labels[i] = options[i].Label;
 
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("Player", GUILayout.Width(90f));
-            int nextIndex = EditorGUILayout.Popup(Mathf.Max(0, selectedIndex), labels.Length == 0 ? new[] { "No Unity-discovered Players" } : labels);
-            if (GUILayout.Button(new GUIContent("Refresh", "Reload the Players currently known to Unity PlayerConnection."), GUILayout.Width(68f)))
-            {
+            EditorGUILayout.LabelField("Target", GUILayout.Width(90f));
+            int nextIndex = EditorGUILayout.Popup(selectedIndex, labels);
+            DrawUnityAttachControl(unityConnectionState);
+            if (GUILayout.Button(new GUIContent("Refresh", "Refresh Unity connections. LAN targets update automatically from discovery beacons."), GUILayout.Width(68f)))
                 client.RefreshConnectedPlayers();
-            }
-
             EditorGUILayout.EndHorizontal();
 
-            if (labels.Length == 0)
-            {
-                _selectedPlayerId = null;
-                EditorGUILayout.HelpBox("Unity only lists Players that have established a PlayerConnection. " + "If Autoconnect Profiler is disabled, use Direct IP instead.", MessageType.Info);
-                if (GUILayout.Button("Use Direct IP", GUILayout.Width(110f)))
-                {
-                    SetConnectionMode(ConnectionMode.DirectIp);
-                }
+            SelectOption(options[Mathf.Clamp(nextIndex, 0, options.Count - 1)]);
+        }
 
+        private List<TargetOption> BuildTargetOptions(RemoteDevUtilitiesClient client)
+        {
+            var options = new List<TargetOption>();
+            IReadOnlyList<RemoteEditorPlayerDescriptor> unityPlayers = client.ConnectedPlayers;
+            for (int i = 0; i < unityPlayers.Count; i++)
+            {
+                RemoteEditorPlayerDescriptor player = unityPlayers[i];
+                var option = new TargetOption(TargetKind.UnityPlayer, $"unity:{player.PlayerId}", $"{player.Name}  ·  Unity", player.PlayerId);
+                options.Add(option);
+                if (_pendingUnityTargetSelection && IsMatchingUnityTarget(player.Name, _lastUnityTargetName))
+                {
+                    _selectedTargetKey = option.Key;
+                    _selectedTargetKind = TargetKind.UnityPlayer;
+                    _pendingUnityTargetSelection = false;
+                }
+            }
+
+            IReadOnlyList<RemoteLanPlayerDescriptor> lanPlayers = client.LanPlayers;
+            for (int i = 0; i < lanPlayers.Count; i++)
+            {
+                RemoteLanPlayerDescriptor player = lanPlayers[i];
+                string product = string.IsNullOrWhiteSpace(player.Target?.ProductName) ? "Unity Player" : player.Target.ProductName;
+                string device = string.IsNullOrWhiteSpace(player.Target?.DeviceName) ? player.Host : player.Target.DeviceName;
+                string compatibility = player.IsProtocolCompatible ? string.Empty : $"  ·  protocol {player.ProtocolVersion}";
+                options.Add(new TargetOption(TargetKind.LanPlayer, $"lan:{player.RuntimeSessionId}",
+                    $"{product} on {device}  ({player.Host}:{player.Port})  ·  LAN{compatibility}", lanSessionId: player.RuntimeSessionId));
+            }
+
+            if (_pendingUnityTargetSelection)
+                options.Insert(0, new TargetOption(TargetKind.None, "unity:pending", $"Waiting for {_lastUnityTargetName}…"));
+
+            options.Add(new TargetOption(TargetKind.ManualIp, ManualTargetKey, "Manual IP address…"));
+            return options;
+        }
+
+        private int FindSelectedIndex(IReadOnlyList<TargetOption> options)
+        {
+            if (!string.IsNullOrWhiteSpace(_selectedTargetKey))
+            {
+                for (int i = 0; i < options.Count; i++)
+                {
+                    if (string.Equals(options[i].Key, _selectedTargetKey, StringComparison.Ordinal))
+                        return i;
+                }
+            }
+
+            if (_pendingUnityTargetSelection)
+                return 0;
+
+            for (int i = 0; i < options.Count; i++)
+            {
+                if (options[i].Kind == _selectedTargetKind)
+                    return i;
+            }
+
+            return -1;
+        }
+
+        private static int FindInitialIndex(IReadOnlyList<TargetOption> options)
+        {
+            for (int i = 0; i < options.Count; i++)
+            {
+                if (options[i].Kind != TargetKind.None)
+                    return i;
+            }
+
+            return 0;
+        }
+
+        private void SelectOption(TargetOption option)
+        {
+            _selectedTargetKind = option.Kind;
+            _selectedTargetKey = option.Key;
+            _selectedPlayerId = option.Kind == TargetKind.UnityPlayer ? option.PlayerId : null;
+            _selectedLanSessionId = option.Kind == TargetKind.LanPlayer ? option.LanSessionId : null;
+
+            int legacyMode = option.Kind switch
+            {
+                TargetKind.ManualIp => 1,
+                TargetKind.LanPlayer => 2,
+                _ => 0
+            };
+            EditorPrefs.SetInt(LegacyModePreferenceKey, legacyMode);
+        }
+
+        private static void DrawUnityAttachControl(IConnectionState unityConnectionState)
+        {
+            if (unityConnectionState == null)
+            {
+                using (new EditorGUI.DisabledScope(true))
+                    GUILayout.Button("Attach via Unity...", GUILayout.Width(132f));
+            }
+            else
+            {
+                EnsureUnityAttachStyles();
+                Rect rect = GUILayoutUtility.GetRect(132f, EditorGUIUtility.singleLineHeight, s_UnityAttachNativeStyle, GUILayout.Width(132f));
+                PlayerConnectionGUI.ConnectionTargetSelectionDropdown(rect, unityConnectionState, s_UnityAttachNativeStyle);
+                GUI.Label(rect, new GUIContent("Attach via Unity...",
+                    "Opens Unity's native target menu. Choose a standalone Development Player; Play Mode is the Editor, not a remote build."), s_UnityAttachLabelStyle);
+            }
+        }
+
+        private static void DrawAutomaticTargetStatus(RemoteDevUtilitiesClient client)
+        {
+            if (client.ConnectedPlayers.Count == 0 && client.LanPlayers.Count == 0)
+            {
+                if (!string.IsNullOrWhiteSpace(client.LanDiscoveryError))
+                    EditorGUILayout.HelpBox(client.LanDiscoveryError, MessageType.Error);
+                else
+                    EditorGUILayout.LabelField("Searching for Dev Utilities Players... Use Attach via Unity for a Development Player, or choose Manual IP.", EditorStyles.wordWrappedMiniLabel);
+            }
+        }
+
+        private static void EnsureUnityAttachStyles()
+        {
+            if (s_UnityAttachNativeStyle != null)
+                return;
+
+            s_UnityAttachNativeStyle = new GUIStyle(EditorStyles.popup);
+            HideStyleText(s_UnityAttachNativeStyle.normal);
+            HideStyleText(s_UnityAttachNativeStyle.hover);
+            HideStyleText(s_UnityAttachNativeStyle.active);
+            HideStyleText(s_UnityAttachNativeStyle.focused);
+            HideStyleText(s_UnityAttachNativeStyle.onNormal);
+            HideStyleText(s_UnityAttachNativeStyle.onHover);
+            HideStyleText(s_UnityAttachNativeStyle.onActive);
+            HideStyleText(s_UnityAttachNativeStyle.onFocused);
+
+            s_UnityAttachLabelStyle = new GUIStyle(EditorStyles.label)
+            {
+                alignment = TextAnchor.MiddleLeft,
+                clipping = TextClipping.Clip,
+                padding = new RectOffset(
+                    EditorStyles.popup.padding.left,
+                    EditorStyles.popup.padding.right + 12,
+                    EditorStyles.popup.padding.top,
+                    EditorStyles.popup.padding.bottom)
+            };
+        }
+
+        private static void HideStyleText(GUIStyleState state)
+        {
+            state.textColor = Color.clear;
+        }
+
+        private void DrawSelectedTargetConfiguration(RemoteDevUtilitiesClient client)
+        {
+            switch (_selectedTargetKind)
+            {
+                case TargetKind.LanPlayer:
+                    DrawLanTargetStatus(client);
+                    DrawAccessToken();
+                    break;
+                case TargetKind.ManualIp:
+                    DrawTcpTarget();
+                    DrawAccessToken();
+                    break;
+                case TargetKind.None:
+                    EditorGUILayout.HelpBox("Waiting for Unity to establish the selected Player connection.", MessageType.Info);
+                    break;
+            }
+        }
+
+        private void DrawLanTargetStatus(RemoteDevUtilitiesClient client)
+        {
+            RemoteLanPlayerDescriptor selected = FindSelectedLanPlayer(client);
+            if (selected == null)
+            {
+                EditorGUILayout.HelpBox("This LAN target is no longer advertising. Choose another target or wait for it to reappear.", MessageType.Info);
                 return;
             }
 
-            _selectedPlayerId = players[Mathf.Clamp(nextIndex, 0, players.Count - 1)].PlayerId;
+            if (!selected.IsProtocolCompatible)
+            {
+                EditorGUILayout.HelpBox($"This Player uses protocol {selected.ProtocolVersion}; this Editor uses " +
+                                        $"protocol {RemoteProtocolConstants.Version}. Install matching package versions.", MessageType.Warning);
+            }
         }
 
         private void DrawTcpTarget()
@@ -150,49 +335,43 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
 
             EditorGUI.BeginChangeCheck();
             _tcpHost = EditorGUILayout.TextField("Host", _tcpHost);
-            _tcpPort = EditorGUILayout.IntField("Port", _tcpPort);
-            _tcpPort = Mathf.Clamp(_tcpPort, 1, 65535);
+            _tcpPort = Mathf.Clamp(EditorGUILayout.IntField("Port", _tcpPort), 1, 65535);
             if (EditorGUI.EndChangeCheck())
                 PersistTcpTarget();
 
             EditorGUILayout.BeginHorizontal();
             GUILayout.Space(94f);
-            if (GUILayout.Button("Use Localhost", GUILayout.Width(100f)))
+            if (GUILayout.Button("Localhost", GUILayout.Width(86f)))
             {
                 _tcpHost = "127.0.0.1";
                 PersistTcpTarget();
             }
-
-            if (GUILayout.Button($"Use Port {configuredTcpPort}", GUILayout.Width(112f)))
+            if (GUILayout.Button($"Port {configuredTcpPort}", GUILayout.Width(92f)))
             {
                 _tcpPort = configuredTcpPort;
                 PersistTcpTarget();
             }
-
-            if (GUILayout.Button("Open Settings", GUILayout.Width(100f)))
-            {
+            if (GUILayout.Button("Build Settings", GUILayout.Width(96f)))
                 RemoteDevUtilitiesProjectSettings.Open();
-            }
-
             EditorGUILayout.EndHorizontal();
 
-            string listenerScope = runtimeSettings != null && runtimeSettings.AllowTcpConnectionsFromOtherMachines ? "local network" : "this machine only";
-            EditorGUILayout.LabelField($"The current build settings use TCP port {configuredTcpPort} " + $"and allow connections from {listenerScope}.", EditorStyles.wordWrappedMiniLabel);
+            if (runtimeSettings?.TcpPortFallbackCount > 0)
+            {
+                int finalPort = Mathf.Min(65535, configuredTcpPort + runtimeSettings.TcpPortFallbackCount);
+                if (finalPort > configuredTcpPort)
+                    EditorGUILayout.LabelField($"A busy build port can fall back through {finalPort}; Player.log reports the selected port.", EditorStyles.wordWrappedMiniLabel);
+            }
 
             if (!IsLoopbackHost(_tcpHost) && (runtimeSettings == null || !runtimeSettings.AllowTcpConnectionsFromOtherMachines))
-            {
-                EditorGUILayout.HelpBox("The runtime settings are loopback-only. Enable " + "\"Allow Tcp Connections From Other Machines\" before " + "building a Player for another PC.", MessageType.Warning);
-            }
+                EditorGUILayout.HelpBox("The current build settings accept local connections only.", MessageType.Warning);
             else if (!IsLoopbackHost(_tcpHost) && string.IsNullOrWhiteSpace(runtimeSettings?.TcpAccessToken))
-            {
-                EditorGUILayout.HelpBox("Connections from another machine require a non-empty " + "access token in the runtime settings.", MessageType.Warning);
-            }
+                EditorGUILayout.HelpBox("Remote-machine TCP connections require a build access token.", MessageType.Warning);
         }
 
         private void DrawAccessToken()
         {
             EditorGUI.BeginChangeCheck();
-            _accessToken = EditorGUILayout.PasswordField(new GUIContent("Access Token", "Must match RemoteDevUtilitiesSettings. Leave empty for the default loopback-only configuration."), _accessToken);
+            _accessToken = EditorGUILayout.PasswordField(new GUIContent("Access Token", "Must match the token baked into the target build."), _accessToken);
             if (EditorGUI.EndChangeCheck())
                 SessionState.SetString(TokenSessionKey, _accessToken ?? string.Empty);
         }
@@ -215,19 +394,33 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
             }
             else
             {
-                bool canConnect = _mode == ConnectionMode.DiscoveredPlayer ? _selectedPlayerId.HasValue : !string.IsNullOrWhiteSpace(_tcpHost) && _tcpPort > 0 && _tcpPort <= 65535;
+                RemoteLanPlayerDescriptor lanPlayer = FindSelectedLanPlayer(client);
+                bool canConnect = _selectedTargetKind switch
+                {
+                    TargetKind.UnityPlayer => _selectedPlayerId.HasValue,
+                    TargetKind.LanPlayer => lanPlayer?.IsProtocolCompatible == true && !string.IsNullOrWhiteSpace(_accessToken),
+                    TargetKind.ManualIp => !string.IsNullOrWhiteSpace(_tcpHost) && _tcpPort > 0 && _tcpPort <= 65535,
+                    _ => false
+                };
                 using (new EditorGUI.DisabledScope(!canConnect))
                 {
                     if (GUILayout.Button("Connect", GUILayout.Width(90f)))
                     {
-                        if (_mode == ConnectionMode.DiscoveredPlayer)
-                            client.Connect(_selectedPlayerId.Value);
-                        else
-                            client.ConnectTcp(_tcpHost, _tcpPort, _accessToken);
+                        switch (_selectedTargetKind)
+                        {
+                            case TargetKind.UnityPlayer:
+                                client.Connect(_selectedPlayerId.Value);
+                                break;
+                            case TargetKind.LanPlayer:
+                                client.ConnectTcp(lanPlayer.Host, lanPlayer.Port, _accessToken);
+                                break;
+                            case TargetKind.ManualIp:
+                                client.ConnectTcp(_tcpHost, _tcpPort, _accessToken);
+                                break;
+                        }
                     }
                 }
             }
-
             EditorGUILayout.EndHorizontal();
         }
 
@@ -238,16 +431,17 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
             else if (client.IsConnected && client.Target != null)
                 DrawTarget(client);
             else if (client.IsHandshakePending)
-                EditorGUILayout.LabelField("Waiting for the runtime agent handshake...", EditorStyles.miniLabel);
-            else if (_mode == ConnectionMode.DirectIp)
-                EditorGUILayout.LabelField("Direct IP works with Development and release Players built " + "with ENABLE_DEBUG. Use 127.0.0.1 on the same machine, or " + "the Player machine's IP address on a trusted network.", EditorStyles.wordWrappedMiniLabel);
-            else
-                EditorGUILayout.LabelField("Refresh shows Players already connected through Unity. " + "Use Direct IP when Unity discovery is unavailable.", EditorStyles.wordWrappedMiniLabel);
+                EditorGUILayout.LabelField("Waiting for the runtime agent handshake…", EditorStyles.miniLabel);
+            else if (_selectedTargetKind == TargetKind.LanPlayer)
+                EditorGUILayout.LabelField("LAN targets require the access token baked into the selected build.", EditorStyles.wordWrappedMiniLabel);
+            else if (_selectedTargetKind == TargetKind.ManualIp)
+                EditorGUILayout.LabelField("Use 127.0.0.1 for a Player on this machine, or its network address on a trusted LAN.", EditorStyles.wordWrappedMiniLabel);
         }
 
         private static void DrawTarget(RemoteDevUtilitiesClient client)
         {
-            string status = $"{client.Target.ProductName} {client.Target.ApplicationVersion}  |  " + $"{client.Target.Platform}  |  Unity {client.Target.UnityVersion}  |  " + $"{client.Target.DeviceName}";
+            string status = $"{client.Target.ProductName} {client.Target.ApplicationVersion}  |  " +
+                            $"{client.Target.Platform}  |  Unity {client.Target.UnityVersion}  |  {client.Target.DeviceName}";
             EditorGUILayout.LabelField(status, EditorStyles.miniLabel);
 
             if (!client.Target.IsDevUtilitiesEnabled && !client.Target.IsDebugBuild)
@@ -256,16 +450,31 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
                 EditorGUILayout.HelpBox("Connected to a non-Development Player with ENABLE_DEBUG.", MessageType.Info);
         }
 
-        private void SetConnectionMode(ConnectionMode mode)
-        {
-            _mode = mode;
-            EditorPrefs.SetInt(ModePreferenceKey, (int)_mode);
-        }
-
         private void PersistTcpTarget()
         {
             EditorPrefs.SetString(HostPreferenceKey, string.IsNullOrWhiteSpace(_tcpHost) ? "127.0.0.1" : _tcpHost.Trim());
             EditorPrefs.SetInt(PortPreferenceKey, _tcpPort);
+        }
+
+        private RemoteLanPlayerDescriptor FindSelectedLanPlayer(RemoteDevUtilitiesClient client)
+        {
+            IReadOnlyList<RemoteLanPlayerDescriptor> players = client.LanPlayers;
+            for (int i = 0; i < players.Count; i++)
+            {
+                if (string.Equals(players[i].RuntimeSessionId, _selectedLanSessionId, StringComparison.Ordinal))
+                    return players[i];
+            }
+            return null;
+        }
+
+        private static bool IsMatchingUnityTarget(string connectedPlayerName, string selectedTargetName)
+        {
+            if (string.IsNullOrWhiteSpace(connectedPlayerName) || string.IsNullOrWhiteSpace(selectedTargetName))
+                return false;
+
+            return string.Equals(connectedPlayerName, selectedTargetName, StringComparison.OrdinalIgnoreCase) ||
+                   connectedPlayerName.IndexOf(selectedTargetName, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   selectedTargetName.IndexOf(connectedPlayerName, StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         private static bool IsLoopbackHost(string host)

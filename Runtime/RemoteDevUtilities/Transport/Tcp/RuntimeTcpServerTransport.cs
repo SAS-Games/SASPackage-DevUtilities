@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace SAS.Utilities.RemoteDevUtilities.Transport.Tcp
 {
-    internal sealed class RuntimeTcpServerTransport : IRuntimeRemoteTransport
+    internal sealed class RuntimeTcpServerTransport : IRuntimeRemoteTransport, IRuntimeTcpEndpoint
     {
         private enum NotificationType
         {
@@ -38,6 +38,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Transport.Tcp
         private readonly string _runtimeSessionId;
         private readonly IPAddress _listenAddress;
         private readonly int _port;
+        private readonly int _fallbackPortCount;
         private readonly bool _requiresAccessToken;
 
         private TcpListener _listener;
@@ -45,11 +46,15 @@ namespace SAS.Utilities.RemoteDevUtilities.Transport.Tcp
         private Thread _worker;
         private volatile bool _running;
 
-        public RuntimeTcpServerTransport(string runtimeSessionId, IPAddress listenAddress, int port, bool requiresAccessToken)
+        public RuntimeTcpServerTransport(string runtimeSessionId, IPAddress listenAddress, int port, bool requiresAccessToken, int fallbackPortCount = 0)
         {
             _runtimeSessionId = runtimeSessionId;
             _listenAddress = listenAddress ?? throw new ArgumentNullException(nameof(listenAddress));
+            if (port < 1 || port > 65535)
+                throw new ArgumentOutOfRangeException(nameof(port));
+
             _port = port;
+            _fallbackPortCount = Math.Min(32, Math.Max(0, fallbackPortCount));
             _requiresAccessToken = requiresAccessToken;
         }
 
@@ -57,37 +62,78 @@ namespace SAS.Utilities.RemoteDevUtilities.Transport.Tcp
         public event Action<int> EditorConnected;
         public event Action<int> EditorDisconnected;
         public bool RequiresAccessToken => _requiresAccessToken;
+        public bool IsListening => _running && _listener != null && BoundPort > 0;
+        public int ConfiguredPort => _port;
+        public int BoundPort { get; private set; }
 
         public void Start()
         {
             if (_running)
                 return;
 
-            try
+            int finalPort = (int)Math.Min(65535L, (long)_port + _fallbackPortCount);
+            Exception lastException = null;
+            for (int candidatePort = _port; candidatePort <= finalPort; candidatePort++)
             {
-                _listener = new TcpListener(_listenAddress, _port);
-                _listener.Start(1);
-                _running = true;
-                _worker = new Thread(WorkerLoop)
+                TcpListener candidate = null;
+                try
                 {
-                    IsBackground = true,
-                    Name = "Remote Dev Utilities TCP"
-                };
-                _worker.Start();
-                Debug.Log($"[RemoteDevUtilities] ENABLE_DEBUG TCP transport listening on " + $"{_listenAddress}:{_port}.");
+                    candidate = new TcpListener(_listenAddress, candidatePort);
+                    candidate.Start(1);
+                    _listener = candidate;
+                    BoundPort = candidatePort;
+                    _running = true;
+                    _worker = new Thread(WorkerLoop)
+                    {
+                        IsBackground = true,
+                        Name = "Remote Dev Utilities TCP"
+                    };
+                    _worker.Start();
+
+                    if (candidatePort == _port)
+                    {
+                        Debug.Log($"[RemoteDevUtilities] ENABLE_DEBUG TCP transport listening on " + $"{_listenAddress}:{candidatePort}.");
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"[RemoteDevUtilities] Configured TCP port {_port} is already in use. " +
+                                         $"The ENABLE_DEBUG transport selected {_listenAddress}:{candidatePort}. " +
+                                         $"LAN discovery will advertise port {candidatePort} when enabled; use that port for Direct IP.");
+                    }
+
+                    return;
+                }
+                catch (Exception exception)
+                {
+                    lastException = exception;
+                    _running = false;
+                    _listener = null;
+                    BoundPort = 0;
+                    _worker = null;
+                    try
+                    {
+                        candidate?.Stop();
+                    }
+                    catch (SocketException)
+                    {
+                    }
+
+                    if (!IsAddressAlreadyInUse(exception))
+                        break;
+                }
             }
-            catch (Exception exception)
-            {
-                _running = false;
-                StopListener();
-                LogStartFailure(exception);
-            }
+
+            _running = false;
+            BoundPort = 0;
+            StopListener();
+            LogStartFailure(lastException ?? new InvalidOperationException("No TCP port candidate could be started."), finalPort);
         }
 
-        private void LogStartFailure(Exception exception)
+        private void LogStartFailure(Exception exception, int finalPort)
         {
             string listenScope = IPAddress.Any.Equals(_listenAddress) ? "All network interfaces" : IPAddress.Loopback.Equals(_listenAddress) ? "Loopback only" : "Specific interface";
-            string commonDetails = $"Endpoint={_listenAddress}:{_port}, " + $"Scope={listenScope}, " + $"Platform={Application.platform}, " + $"Unity={Application.unityVersion}";
+            string portDetails = finalPort == _port ? _port.ToString() : $"{_port}-{finalPort}";
+            string commonDetails = $"Endpoint={_listenAddress}, PortsTried={portDetails}, " + $"Scope={listenScope}, " + $"Platform={Application.platform}, " + $"Unity={Application.unityVersion}";
 
             if (exception is SocketException socketException)
             {
@@ -157,6 +203,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Transport.Tcp
         {
             _running = false;
             StopListener();
+            BoundPort = 0;
 
             TcpClient client;
             lock (_clientLock)
@@ -258,6 +305,11 @@ namespace SAS.Utilities.RemoteDevUtilities.Transport.Tcp
             catch (SocketException)
             {
             }
+        }
+
+        private static bool IsAddressAlreadyInUse(Exception exception)
+        {
+            return exception is SocketException socketException && socketException.SocketErrorCode == SocketError.AddressAlreadyInUse;
         }
     }
 }
