@@ -13,3 +13,4 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("DevUtilities.RemoteDevUtilities.MiniTools.Runtime")]
 [assembly: InternalsVisibleTo("DevUtilities.RemoteDevUtilities.MiniTools.Editor")]
 [assembly: InternalsVisibleTo("DevUtilities.RemoteDevUtilities.MiniTools.EditorTests")]
+[assembly: InternalsVisibleTo("DevUtilities.RuntimeSceneInspector.EditorTests")]
