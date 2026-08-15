@@ -9,14 +9,21 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
     internal sealed class RemoteConnectionPanelContributionAttribute : Attribute
     {
         public RemoteConnectionPanelContributionAttribute(string id, int order)
+            : this(id, id, order)
+        {
+        }
+
+        public RemoteConnectionPanelContributionAttribute(string id, string displayName, int order)
         {
             Id = string.IsNullOrWhiteSpace(id)
                 ? throw new ArgumentException("A connection panel contribution id is required.", nameof(id))
                 : id;
+            DisplayName = string.IsNullOrWhiteSpace(displayName) ? Id : displayName;
             Order = order;
         }
 
         public string Id { get; }
+        public string DisplayName { get; }
         public int Order { get; }
     }
 
@@ -26,9 +33,23 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
         void Draw(RemoteDevUtilitiesClient client);
     }
 
+    internal sealed class RemoteConnectionPanelContributionInstance
+    {
+        internal RemoteConnectionPanelContributionInstance(
+            RemoteConnectionPanelContributionAttribute registration,
+            IRemoteConnectionPanelContribution contribution)
+        {
+            Registration = registration;
+            Contribution = contribution;
+        }
+
+        internal RemoteConnectionPanelContributionAttribute Registration { get; }
+        internal IRemoteConnectionPanelContribution Contribution { get; }
+    }
+
     internal static class RemoteConnectionPanelContributionRegistry
     {
-        internal static IReadOnlyList<IRemoteConnectionPanelContribution> CreateContributions(
+        internal static IReadOnlyList<RemoteConnectionPanelContributionInstance> CreateContributions(
             EditorWindow owner, Action repaint)
         {
             var registrations = new List<(RemoteConnectionPanelContributionAttribute Attribute, Type Type)>();
@@ -52,7 +73,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
             });
 
             var ids = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            var contributions = new List<IRemoteConnectionPanelContribution>(registrations.Count);
+            var contributions = new List<RemoteConnectionPanelContributionInstance>(registrations.Count);
             foreach ((RemoteConnectionPanelContributionAttribute attribute, Type type) in registrations)
             {
                 if (!ids.Add(attribute.Id))
@@ -60,7 +81,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
                 if (Activator.CreateInstance(type, true) is not IRemoteConnectionPanelContribution contribution)
                     continue;
                 contribution.Initialize(owner, repaint);
-                contributions.Add(contribution);
+                contributions.Add(new RemoteConnectionPanelContributionInstance(attribute, contribution));
             }
 
             return contributions;

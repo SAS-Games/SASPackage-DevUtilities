@@ -52,6 +52,25 @@ namespace SAS.Utilities.RemoteDevUtilities.Tests
         }
 
         [Test]
+        public void RuntimeSettings_DefaultTcpPort_Is3000()
+        {
+            var settings = ScriptableObject.CreateInstance<RemoteDevUtilitiesRuntimeSettings>();
+            try
+            {
+                Assert.That(settings.TcpPort, Is.EqualTo(3000));
+
+                RemoteDevUtilitiesRuntimeSettings packaged =
+                    Resources.Load<RemoteDevUtilitiesRuntimeSettings>("RemoteDevUtilitiesSettings");
+                Assert.That(packaged, Is.Not.Null);
+                Assert.That(packaged.TcpPort, Is.EqualTo(3000));
+            }
+            finally
+            {
+                Object.DestroyImmediate(settings);
+            }
+        }
+
+        [Test]
         public void Connecting_ReappliesBakedBuildUiVisibility()
         {
             var settings = ScriptableObject.CreateInstance<RemoteDevUtilitiesRuntimeSettings>();

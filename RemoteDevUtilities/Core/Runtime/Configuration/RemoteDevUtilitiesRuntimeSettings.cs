@@ -29,7 +29,7 @@ namespace SAS.Utilities.RemoteDevUtilities
 
         [SerializeField] private bool _keepPlayerRunningInBackground = true;
 
-        [Header("ENABLE_DEBUG Network Transport")]
+        [Header("Network Transport")]
         [Tooltip("Direct-IP TCP port used by Development and non-Development Players built with ENABLE_DEBUG.")]
         [SerializeField, Range(1024, 65535)]
         private int _tcpPort = Protocol.RemoteProtocolConstants.DefaultTcpPort;
@@ -119,7 +119,7 @@ namespace SAS.Utilities.RemoteDevUtilities
 
         [SerializeField] private bool m_KeepPlayerRunningInBackground = true;
 
-        [Header("ENABLE_DEBUG Network Transport")]
+        [Header("Network Transport")]
         [Tooltip("Direct-IP TCP port used by Development and non-Development Players built with ENABLE_DEBUG.")]
         [SerializeField, Range(1024, 65535)]
         private int m_TcpPort = Protocol.RemoteProtocolConstants.DefaultTcpPort;

@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection.Tcp
 {
-    [RemoteConnectionPanelContribution(RemoteEditorTransportIds.Tcp, 200)]
+    [RemoteConnectionPanelContribution(RemoteEditorTransportIds.Tcp, "Direct TCP", 200)]
     internal sealed class TcpConnectionPanelContribution : IRemoteConnectionPanelContribution
     {
         private const string HostPreferenceKey = "RemoteDevUtilities.TcpHost";
@@ -29,10 +29,16 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection.Tcp
         {
             if (!client.HasTransport(RemoteEditorTransportIds.Tcp))
                 return;
-            EditorGUILayout.LabelField("Direct TCP", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField(
+                "Connect directly by host and port. Use this for remote machines or Players not visible through Unity.",
+                EditorStyles.wordWrappedMiniLabel);
+            EditorGUILayout.Space(4f);
             EditorGUI.BeginChangeCheck();
+            EditorGUILayout.BeginHorizontal();
             _host = EditorGUILayout.TextField("Host", _host);
-            _port = Mathf.Clamp(EditorGUILayout.IntField("Port", _port), 1, 65535);
+            GUILayout.Label("Port", GUILayout.Width(28f));
+            _port = Mathf.Clamp(EditorGUILayout.IntField(_port, GUILayout.Width(72f)), 1, 65535);
+            EditorGUILayout.EndHorizontal();
             _accessToken = EditorGUILayout.PasswordField("Access Token", _accessToken);
             if (EditorGUI.EndChangeCheck())
                 Persist();
@@ -51,9 +57,13 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection.Tcp
             if (GUILayout.Button("Build Settings", GUILayout.Width(96f)))
                 RemoteDevUtilitiesProjectSettings.Open();
             GUILayout.FlexibleSpace();
+            EditorGUILayout.EndHorizontal();
+
+            EditorGUILayout.BeginHorizontal();
+            GUILayout.FlexibleSpace();
             using (new EditorGUI.DisabledScope(string.IsNullOrWhiteSpace(_host)))
             {
-                if (GUILayout.Button("Connect TCP", GUILayout.Width(100f)))
+                if (GUILayout.Button("Connect", GUILayout.Width(120f), GUILayout.Height(26f)))
                     client.ConnectTcp(_host, _port, _accessToken);
             }
             EditorGUILayout.EndHorizontal();

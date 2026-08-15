@@ -19,7 +19,7 @@ MonoBehaviour:
   m_AllowMiniTools: 1
   m_AllowRuntimeSceneInspector: 1
   m_KeepPlayerRunningInBackground: 1
-  m_TcpPort: 56000
+  m_TcpPort: 3000
   m_AllowTcpConnectionsFromOtherMachines: 0
   m_TcpAccessToken: 
   m_MaxQueuedLogs: 512

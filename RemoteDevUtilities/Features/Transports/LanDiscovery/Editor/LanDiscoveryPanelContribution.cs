@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
 {
-    [RemoteConnectionPanelContribution("lan-discovery", 300)]
+    [RemoteConnectionPanelContribution("lan-discovery", "LAN Players", 300)]
     internal sealed class LanDiscoveryPanelContribution : IRemoteConnectionPanelContribution
     {
         private const string TokenSessionKey = "RemoteDevUtilities.AccessToken";
@@ -23,7 +23,10 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
         {
             if (!client.HasConnectionService<IRemoteLanDiscoveryService>())
                 return;
-            EditorGUILayout.LabelField("LAN Discovery", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField(
+                "Connect to Remote Dev Utilities Players discovered on the local network.",
+                EditorStyles.wordWrappedMiniLabel);
+            EditorGUILayout.Space(4f);
             if (!client.HasTransport(RemoteEditorTransportIds.Tcp))
             {
                 EditorGUILayout.HelpBox("LAN targets require the optional TCP transport module.", MessageType.Info);
@@ -35,7 +38,12 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
                 EditorGUILayout.HelpBox(client.LanDiscoveryError, MessageType.Error);
             if (players.Count == 0)
             {
-                EditorGUILayout.LabelField("Searching for LAN Players…", EditorStyles.miniLabel);
+                EditorGUILayout.HelpBox("Searching for LAN Players...", MessageType.Info);
+                EditorGUILayout.BeginHorizontal();
+                GUILayout.FlexibleSpace();
+                if (GUILayout.Button("Search Again", GUILayout.Width(100f)))
+                    client.RefreshLanPlayers();
+                EditorGUILayout.EndHorizontal();
                 return;
             }
 
@@ -44,7 +52,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
             {
                 RemoteLanPlayerDescriptor player = players[i];
                 string product = string.IsNullOrWhiteSpace(player.Target?.ProductName) ? "Unity Player" : player.Target.ProductName;
-                labels[i] = $"{product} — {player.Host}:{player.Port}";
+                labels[i] = $"{product} - {player.Host}:{player.Port}";
             }
             _selectedIndex = EditorGUILayout.Popup("Target", Mathf.Clamp(_selectedIndex, 0, players.Count - 1), labels);
             EditorGUI.BeginChangeCheck();
@@ -57,8 +65,11 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
                 EditorGUILayout.HelpBox("The selected Player uses an incompatible Remote Dev Utilities protocol.", MessageType.Warning);
             using (new EditorGUI.DisabledScope(!selected.IsProtocolCompatible || string.IsNullOrWhiteSpace(_accessToken)))
             {
-                if (GUILayout.Button("Connect to LAN Player", GUILayout.Height(24f)))
+                EditorGUILayout.BeginHorizontal();
+                GUILayout.FlexibleSpace();
+                if (GUILayout.Button("Connect", GUILayout.Width(120f), GUILayout.Height(26f)))
                     client.ConnectTcp(selected.Host, selected.Port, _accessToken);
+                EditorGUILayout.EndHorizontal();
             }
         }
 

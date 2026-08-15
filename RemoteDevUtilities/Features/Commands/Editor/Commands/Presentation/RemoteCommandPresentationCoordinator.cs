@@ -19,12 +19,11 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
             _handlers = RemoteCommandPresentationHandlerRegistry.CreateHandlers();
         }
 
-        internal void Execute(string commandLine)
+        internal long Execute(string commandLine)
         {
             if (!TryParseCommandLine(commandLine, _commands.Prefix, out string commandName, out string[] arguments))
             {
-                Complete(false, "Enter a command to execute.");
-                return;
+                return Complete(false, "Enter a command to execute.");
             }
 
             for (int i = 0; i < _handlers.Count; i++)
@@ -32,16 +31,14 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
                 if (!_handlers[i].TryExecute(_client, commandName, arguments, out RemoteCommandPresentationResult result))
                     continue;
                 if (result.ExecuteRemotely)
-                    _commands.Execute(commandLine);
-                else
-                    Complete(result.Success, result.Message);
-                return;
+                    return _commands.Execute(commandLine);
+                return Complete(result.Success, result.Message);
             }
 
-            _commands.Execute(commandLine);
+            return _commands.Execute(commandLine);
         }
 
-        private void Complete(bool success, string message)
+        private long Complete(bool success, string message)
         {
             _commands.CompleteLocally(new RemoteCommandExecuteResponse
             {
@@ -49,6 +46,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
                 CloseRequested = false,
                 Message = message
             });
+            return 0;
         }
 
         internal static bool TryParseCommandLine(string commandLine, string prefix, out string commandName, out string[] arguments)

@@ -14,7 +14,11 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
         private const string SessionKey = "RemoteDevUtilities.DebugHostRequested";
         private const string PreviousScenesKey = "RemoteDevUtilities.PreviousScenes";
         private const string RestoreScenesKey = "RemoteDevUtilities.RestoreScenes";
+        private const string SuppressAutoLaunchKey = "RemoteDevUtilities.SuppressDebugHostAutoLaunch";
         private static bool _installed;
+        private static bool _wasConnected;
+        private static bool _autoLaunchScheduled;
+        private static RemoteDevUtilitiesClient _observedClient;
         private static IReadOnlyList<IRemoteDebugHostContribution> _contributions =
             Array.Empty<IRemoteDebugHostContribution>();
 
@@ -35,9 +39,23 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
         static RemoteDebugHostLauncher()
         {
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+            RemoteDebugHostSettings.Changed += OnSettingsChanged;
+            if (!Application.isBatchMode &&
+                RemoteDebugHostSettings.instance.LaunchDebugHostOnPlayerConnect)
+                EditorApplication.delayCall += ObserveClient;
         }
 
         internal static bool IsActive => _installed || SessionState.GetBool(SessionKey, false);
+
+        [InitializeOnEnterPlayMode]
+        private static void ConfigureConsoleAutoSpawn(EnterPlayModeOptions options)
+        {
+            bool hostRequested = SessionState.GetBool(SessionKey, false);
+            AutoSpawnConsoleCommandsSystem.SuppressAutomaticSpawn =
+                ShouldSuppressConsoleAutoSpawn(
+                    hostRequested,
+                    RemoteDebugHostSettings.instance.IncludeDeveloperConsoleUi);
+        }
 
         internal static void Launch()
         {
@@ -57,9 +75,16 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
             }
 
             SaveCurrentSceneSetup();
+            bool includeConsoleUi = RemoteDebugHostSettings.instance.IncludeDeveloperConsoleUi;
+            AutoSpawnConsoleCommandsSystem.SuppressAutomaticSpawn =
+                ShouldSuppressConsoleAutoSpawn(true, includeConsoleUi);
             if (!RemoteDebugHostSceneLoader.TryCreate(out string error))
             {
-                Debug.LogWarning(error + " The Debug Host will continue with the available " + "temporary scene objects.");
+                SessionState.EraseBool(SessionKey);
+                AutoSpawnConsoleCommandsSystem.SuppressAutomaticSpawn = false;
+                RestorePreviousSceneSetup();
+                Debug.LogError(error + " The Debug Host was not launched.");
+                return;
             }
 
             EditorApplication.EnterPlaymode();
@@ -67,6 +92,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
 
         internal static void Stop()
         {
+            SessionState.SetBool(SuppressAutoLaunchKey, true);
             SessionState.EraseBool(SessionKey);
             Uninstall();
             if (EditorApplication.isPlaying)
@@ -87,7 +113,10 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
             else if (state == PlayModeStateChange.ExitingPlayMode)
             {
                 if (SessionState.GetBool(SessionKey, false))
+                {
+                    SessionState.SetBool(SuppressAutoLaunchKey, true);
                     SessionState.SetBool(RestoreScenesKey, true);
+                }
                 SessionState.EraseBool(SessionKey);
                 Uninstall();
             }
@@ -103,12 +132,12 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
                 return;
 
             RemoteDevUtilitiesClient client = RemoteDevUtilitiesEditorService.Client;
-            DeveloperConsoleBehaviour console = UnityEngine.Object.FindFirstObjectByType<DeveloperConsoleBehaviour>(FindObjectsInactive.Include);
-            if (console == null)
+            if (RemoteDebugHostSettings.instance.IncludeDeveloperConsoleUi &&
+                UnityEngine.Object.FindFirstObjectByType<DeveloperConsoleBehaviour>(FindObjectsInactive.Include) == null)
             {
                 GameObject prefab = Resources.Load<GameObject>("ConsoleCommandsSystem");
                 if (prefab != null)
-                    console = UnityEngine.Object.Instantiate(prefab).GetComponent<DeveloperConsoleBehaviour>();
+                    UnityEngine.Object.Instantiate(prefab);
             }
 
             _contributions = RemoteDebugHostContributionRegistry.CreateContributions();
@@ -123,6 +152,113 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
                 _contributions[i].Uninstall();
             _contributions = Array.Empty<IRemoteDebugHostContribution>();
             _installed = false;
+        }
+
+        private static void ObserveClient()
+        {
+            if (Application.isBatchMode ||
+                !RemoteDebugHostSettings.instance.LaunchDebugHostOnPlayerConnect)
+            {
+                StopObservingClient();
+                return;
+            }
+
+            RemoteDevUtilitiesClient client = RemoteDevUtilitiesEditorService.Client;
+            if (ReferenceEquals(_observedClient, client))
+                return;
+
+            if (_observedClient != null)
+                _observedClient.StateChanged -= OnClientStateChanged;
+            _observedClient = client;
+            _wasConnected = client.IsConnected;
+            _observedClient.StateChanged += OnClientStateChanged;
+        }
+
+        private static void OnSettingsChanged()
+        {
+            if (!Application.isBatchMode &&
+                RemoteDebugHostSettings.instance.LaunchDebugHostOnPlayerConnect)
+                ObserveClient();
+            else
+                StopObservingClient();
+        }
+
+        private static void StopObservingClient()
+        {
+            if (_observedClient != null)
+                _observedClient.StateChanged -= OnClientStateChanged;
+            _observedClient = null;
+            _wasConnected = false;
+            _autoLaunchScheduled = false;
+        }
+
+        private static void OnClientStateChanged()
+        {
+            bool connected = _observedClient?.IsConnected == true;
+            if (!connected)
+            {
+                _wasConnected = false;
+                _autoLaunchScheduled = false;
+                bool restoringHostScenes = SessionState.GetBool(RestoreScenesKey, false);
+                if (!restoringHostScenes && !IsActive &&
+                    !EditorApplication.isPlayingOrWillChangePlaymode)
+                {
+                    SessionState.EraseBool(SuppressAutoLaunchKey);
+                }
+                return;
+            }
+
+            bool wasConnected = _wasConnected;
+            _wasConnected = true;
+            if (!ShouldAutoLaunch(
+                    wasConnected,
+                    connected,
+                    RemoteDebugHostSettings.instance.LaunchDebugHostOnPlayerConnect,
+                    IsActive,
+                    EditorApplication.isPlayingOrWillChangePlaymode,
+                    SessionState.GetBool(SuppressAutoLaunchKey, false)))
+            {
+                return;
+            }
+
+            _autoLaunchScheduled = true;
+            EditorApplication.delayCall += TryAutoLaunch;
+        }
+
+        private static void TryAutoLaunch()
+        {
+            if (!_autoLaunchScheduled)
+                return;
+
+            _autoLaunchScheduled = false;
+            if (Application.isBatchMode || _observedClient?.IsConnected != true ||
+                !RemoteDebugHostSettings.instance.LaunchDebugHostOnPlayerConnect ||
+                IsActive || EditorApplication.isPlayingOrWillChangePlaymode ||
+                SessionState.GetBool(SuppressAutoLaunchKey, false))
+            {
+                return;
+            }
+
+            Launch();
+        }
+
+        internal static bool ShouldAutoLaunch(
+            bool wasConnected,
+            bool connected,
+            bool enabled,
+            bool hostActive,
+            bool editorPlayingOrChangingPlayMode,
+            bool suppressed)
+        {
+            return !wasConnected && connected && enabled && !hostActive &&
+                   !editorPlayingOrChangingPlayMode && !suppressed;
+        }
+
+        internal static bool ShouldSuppressConsoleAutoSpawn(
+            bool hostRequested,
+            bool includeDeveloperConsoleUi)
+        {
+            return hostRequested && !includeDeveloperConsoleUi;
         }
 
         private static void SaveCurrentSceneSetup()

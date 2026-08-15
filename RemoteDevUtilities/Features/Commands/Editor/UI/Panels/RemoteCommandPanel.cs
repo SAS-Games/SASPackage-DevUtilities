@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using SAS.Utilities.RemoteDevUtilities.Editor.Client;
 using SAS.Utilities.RemoteDevUtilities.Editor.Commands;
 using SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation;
+using SAS.Utilities.RemoteDevUtilities.Editor.Commands.UI.Panels;
 using SAS.Utilities.RemoteDevUtilities.Protocol.Commands;
 using UnityEditor;
 using UnityEngine;
@@ -13,18 +14,30 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
     internal sealed class RemoteCommandPanel : IRemoteWorkspacePanel
     {
         private const string CommandControlName = "RemoteDevUtilities.Command";
+        private static readonly string[] ViewLabels = { "Commands", "Sequences" };
         private string _command = string.Empty;
         private string _filter = string.Empty;
         private readonly HashSet<string> _expandedCommands = new(StringComparer.OrdinalIgnoreCase);
+        private readonly RemoteCommandSequencePanel _sequences = new();
+        private int _selectedView;
         private RemoteDevUtilitiesClient _coordinatorClient;
         private RemoteCommandPresentationCoordinator _coordinator;
 
         public void Initialize(Action repaint)
         {
+            _sequences.Initialize(repaint);
         }
 
         bool IRemoteWorkspacePanel.Draw(RemoteDevUtilitiesClient client, bool connected, Rect windowRect)
         {
+            _selectedView = GUILayout.Toolbar(_selectedView, ViewLabels, EditorStyles.toolbarButton);
+            EditorGUILayout.Space(3f);
+            if (_selectedView == 1)
+            {
+                _sequences.Draw(client, connected);
+                return false;
+            }
+
             if (!ReferenceEquals(_coordinatorClient, client))
             {
                 _coordinatorClient = client;
@@ -41,6 +54,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
 
         public void Dispose()
         {
+            _sequences.Dispose();
             _coordinator = null;
             _coordinatorClient = null;
         }
@@ -105,11 +119,13 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
                 if (command == null || !Matches(command, _filter))
                     continue;
 
-                DrawCommand(command);
+                DrawCommand(command, coordinator);
             }
         }
 
-        private void DrawCommand(RemoteCommandDescriptor command)
+        private void DrawCommand(
+            RemoteCommandDescriptor command,
+            RemoteCommandPresentationCoordinator coordinator)
         {
             string commandName = command.Name ?? string.Empty;
             string[] presets = command.Presets ?? Array.Empty<string>();
@@ -123,8 +139,16 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
             GUILayout.FlexibleSpace();
             GUILayout.Label($"{presets.Length} {(presets.Length == 1 ? "preset" : "presets")}", EditorStyles.miniLabel);
             GUILayout.Label(command.CloseOnCompletion ? "closes console" : "keeps console open", EditorStyles.miniLabel);
-            if (GUILayout.Button("Use", EditorStyles.miniButton, GUILayout.Width(44f)))
-                _command = commandName;
+            using (new EditorGUI.DisabledScope(string.IsNullOrWhiteSpace(commandName)))
+            {
+                if (GUILayout.Button(
+                        new GUIContent("Run", "Execute this command immediately without parameters."),
+                        EditorStyles.miniButton,
+                        GUILayout.Width(44f)))
+                {
+                    Execute(coordinator, commandName);
+                }
+            }
             EditorGUILayout.EndHorizontal();
 
             if (nextExpanded)
@@ -135,14 +159,16 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
                     EditorGUILayout.LabelField(command.HelpText, EditorStyles.wordWrappedMiniLabel);
                 }
 
-                DrawPresets(presets);
+                DrawPresets(presets, coordinator);
                 EditorGUI.indentLevel--;
             }
 
             EditorGUILayout.EndVertical();
         }
 
-        private void DrawPresets(string[] presets)
+        private void DrawPresets(
+            string[] presets,
+            RemoteCommandPresentationCoordinator coordinator)
         {
             if (presets.Length == 0)
                 return;
@@ -155,14 +181,35 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
                 if (string.IsNullOrWhiteSpace(preset))
                     continue;
 
-                if (GUILayout.Button(preset, EditorStyles.miniButton, GUILayout.ExpandWidth(true)))
+                EditorGUILayout.BeginHorizontal();
+                if (GUILayout.Button(
+                        new GUIContent(preset, "Copy this preset into the command input field."),
+                        EditorStyles.miniButtonLeft,
+                        GUILayout.ExpandWidth(true)))
+                {
                     _command = preset;
+                }
+                if (GUILayout.Button(
+                        new GUIContent("Run", "Execute this preset immediately."),
+                        EditorStyles.miniButtonRight,
+                        GUILayout.Width(44f)))
+                {
+                    Execute(coordinator, preset);
+                }
+                EditorGUILayout.EndHorizontal();
             }
         }
 
         private void Execute(RemoteCommandPresentationCoordinator coordinator)
         {
-            coordinator.Execute(_command.Trim());
+            Execute(coordinator, _command);
+        }
+
+        private static void Execute(
+            RemoteCommandPresentationCoordinator coordinator,
+            string commandLine)
+        {
+            coordinator.Execute((commandLine ?? string.Empty).Trim());
             GUI.FocusControl(CommandControlName);
         }
 

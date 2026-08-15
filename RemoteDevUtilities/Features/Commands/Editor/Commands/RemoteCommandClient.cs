@@ -29,6 +29,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands
         public string Error { get; private set; }
         public RemoteCommandExecuteResponse LastResult { get; private set; }
         public long LastResultRequestId { get; private set; }
+        internal event Action<long, RemoteCommandExecuteResponse> ExecutionCompleted;
+        internal event Action CatalogChanged;
         RemoteCommandExecutionResult IRemoteCommandExecutor.ExecutionResult => LastResult == null
             ? null
             : new RemoteCommandExecutionResult(LastResult.Success, LastResult.CloseRequested, LastResult.Message);
@@ -65,6 +67,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands
         {
             LastResult = response;
             LastResultRequestId = 0;
+            ExecutionCompleted?.Invoke(0, response);
             _session.NotifyStateChanged();
         }
 
@@ -82,6 +85,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands
                     Prefix = response.Prefix ?? string.Empty;
                     Error = response.Available ? null : response.Error;
                 }
+                CatalogChanged?.Invoke();
             }
             else if (envelope.MessageType == RemoteCommandMessageTypes.ExecuteResponse)
             {
@@ -90,6 +94,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands
                 else
                     LastResult = new RemoteCommandExecuteResponse { Message = error };
                 LastResultRequestId = envelope.RequestId;
+                ExecutionCompleted?.Invoke(LastResultRequestId, LastResult);
             }
 
             _session.NotifyStateChanged();

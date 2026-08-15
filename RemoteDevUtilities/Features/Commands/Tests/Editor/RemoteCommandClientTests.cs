@@ -47,6 +47,13 @@ namespace SAS.Utilities.RemoteDevUtilities.Tests
         {
             var session = new StubSession { NextRequestId = 42 };
             var client = new RemoteCommandClient(session);
+            long completedRequestId = 0;
+            RemoteCommandExecuteResponse completedResponse = null;
+            client.ExecutionCompleted += (id, response) =>
+            {
+                completedRequestId = id;
+                completedResponse = response;
+            };
 
             long requestId = client.Execute("Logging.ClearTags");
 
@@ -68,6 +75,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Tests
             Assert.That(client.LastResultRequestId, Is.EqualTo(requestId));
             Assert.That(client.LastResult.Success, Is.True);
             Assert.That(client.LastResult.Message, Is.EqualTo("Command completed."));
+            Assert.That(completedRequestId, Is.EqualTo(requestId));
+            Assert.That(completedResponse, Is.SameAs(client.LastResult));
             Assert.That(session.StateChangeCount, Is.EqualTo(1));
         }
 
@@ -76,6 +85,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Tests
         {
             var session = new StubSession();
             var client = new RemoteCommandClient(session);
+            int catalogChangeCount = 0;
+            client.CatalogChanged += () => catalogChangeCount++;
 
             client.Handle(new RemoteEnvelope
             {
@@ -98,6 +109,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Tests
             Assert.That(client.Commands, Has.Length.EqualTo(1));
             Assert.That(client.Commands[0].Name, Is.EqualTo("SceneCommand"));
             Assert.That(client.Prefix, Is.EqualTo("/"));
+            Assert.That(catalogChangeCount, Is.EqualTo(1));
             Assert.That(session.StateChangeCount, Is.EqualTo(1));
         }
 

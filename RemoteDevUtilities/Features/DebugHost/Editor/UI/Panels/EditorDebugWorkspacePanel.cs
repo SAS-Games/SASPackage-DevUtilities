@@ -30,8 +30,27 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
                 return showNativeWorkspace;
             }
 
-            EditorGUILayout.LabelField("Use lightweight Editor-native panels, or launch the existing Developer Console, " + "Runtime Scene Inspector, and mini-tool prefabs in an isolated Play Mode scene.", EditorStyles.wordWrappedMiniLabel);
+            EditorGUILayout.LabelField("Use Editor-native panels, or launch Runtime Scene Inspector and mini-tool prefabs in an isolated Play Mode Host. The Developer Console UI is optional.", EditorStyles.wordWrappedMiniLabel);
             EditorGUILayout.Space(6f);
+
+            RemoteDebugHostSettings settings = RemoteDebugHostSettings.instance;
+            bool includeConsoleUi = EditorGUILayout.ToggleLeft(
+                new GUIContent(
+                    "Include Developer Console UI",
+                    "Instantiate the Developer Console inside the Host. Commands and Sequences remain available when this is disabled."),
+                settings.IncludeDeveloperConsoleUi);
+            if (includeConsoleUi != settings.IncludeDeveloperConsoleUi)
+                settings.SetIncludeDeveloperConsoleUi(includeConsoleUi);
+
+            bool launchOnConnect = EditorGUILayout.ToggleLeft(
+                new GUIContent(
+                    "Launch Debug Host on Player Connect",
+                    "Launch after a successful Player handshake. Stopping the Host suppresses relaunch until the Player disconnects."),
+                settings.LaunchDebugHostOnPlayerConnect);
+            if (launchOnConnect != settings.LaunchDebugHostOnPlayerConnect)
+                settings.SetLaunchDebugHostOnPlayerConnect(launchOnConnect);
+
+            EditorGUILayout.Space(4f);
 
             if (active)
             {
