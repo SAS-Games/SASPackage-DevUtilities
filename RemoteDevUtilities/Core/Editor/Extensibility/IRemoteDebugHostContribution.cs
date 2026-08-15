@@ -28,8 +28,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
                 if (type == null || type.IsAbstract || !typeof(IRemoteDebugHostContribution).IsAssignableFrom(type))
                     continue;
 
-                var attribute = (RemoteDebugHostContributionAttribute)Attribute.GetCustomAttribute(
-                    type, typeof(RemoteDebugHostContributionAttribute));
+                var attribute = (RemoteDebugHostContributionAttribute)Attribute.GetCustomAttribute(type, typeof(RemoteDebugHostContributionAttribute));
                 if (attribute != null)
                     registrations.Add((attribute.Order, type));
             }
@@ -37,9 +36,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
             registrations.Sort((left, right) =>
             {
                 int order = left.Order.CompareTo(right.Order);
-                return order != 0
-                    ? order
-                    : string.Compare(left.Type.FullName, right.Type.FullName, StringComparison.Ordinal);
+                return order != 0 ? order : string.Compare(left.Type.FullName, right.Type.FullName, StringComparison.Ordinal);
             });
 
             var contributions = new List<IRemoteDebugHostContribution>(registrations.Count);

@@ -25,19 +25,13 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
         internal bool Success { get; }
         internal string Message { get; }
 
-        internal static RemoteCommandPresentationResult Local(bool success, string message) =>
-            new(false, success, message);
-
+        internal static RemoteCommandPresentationResult Local(bool success, string message) => new(false, success, message);
         internal static RemoteCommandPresentationResult Remote() => new(true, true, null);
     }
 
     internal interface IRemoteCommandPresentationHandler
     {
-        bool TryExecute(
-            RemoteDevUtilitiesClient client,
-            string commandName,
-            string[] arguments,
-            out RemoteCommandPresentationResult result);
+        bool TryExecute(RemoteDevUtilitiesClient client, string commandName, string[] arguments, out RemoteCommandPresentationResult result);
     }
 
     internal static class RemoteCommandPresentationHandlerRegistry
@@ -49,8 +43,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
             {
                 if (type == null || type.IsAbstract || !typeof(IRemoteCommandPresentationHandler).IsAssignableFrom(type))
                     continue;
-                var attribute = (RemoteCommandPresentationHandlerAttribute)Attribute.GetCustomAttribute(
-                    type, typeof(RemoteCommandPresentationHandlerAttribute));
+                var attribute = (RemoteCommandPresentationHandlerAttribute)Attribute.GetCustomAttribute(type, typeof(RemoteCommandPresentationHandlerAttribute));
                 if (attribute != null)
                     registrations.Add((attribute.Order, type));
             }

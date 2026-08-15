@@ -48,9 +48,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
     {
         public RemoteEditorTransportProviderAttribute(string id, int order)
         {
-            Id = string.IsNullOrWhiteSpace(id)
-                ? throw new ArgumentException("An editor transport provider id is required.", nameof(id))
-                : id;
+            Id = string.IsNullOrWhiteSpace(id) ? throw new ArgumentException("An editor transport provider id is required.", nameof(id)) : id;
             Order = order;
         }
 

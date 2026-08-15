@@ -19,11 +19,9 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
             {
                 if (!string.IsNullOrWhiteSpace(TransportId))
                 {
-                    if (string.Equals(TransportId, RemoteEditorTransportIds.PlayerConnection,
-                            StringComparison.OrdinalIgnoreCase))
+                    if (string.Equals(TransportId, RemoteEditorTransportIds.PlayerConnection, StringComparison.OrdinalIgnoreCase))
                         return true;
-                    if (string.Equals(TransportId, RemoteEditorTransportIds.Tcp,
-                            StringComparison.OrdinalIgnoreCase))
+                    if (string.Equals(TransportId, RemoteEditorTransportIds.Tcp, StringComparison.OrdinalIgnoreCase))
                         return !string.IsNullOrWhiteSpace(Host) && Port >= 1 && Port <= 65535;
                 }
 

@@ -14,8 +14,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
         private const double HandshakeTimeoutSeconds = 8d;
 
         private readonly List<IRemoteEditorTransport> _transports = new();
-        private readonly Dictionary<string, IRemoteEditorTransport> _transportsById =
-            new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, IRemoteEditorTransport> _transportsById = new(StringComparer.OrdinalIgnoreCase);
         private readonly List<IRemoteEditorConnectionService> _connectionServices = new();
         private readonly List<RemoteEditorPlayerDescriptor> _connectedPlayers = new();
         private readonly List<IRemoteEditorFeatureClient> _features = new();
@@ -59,15 +58,10 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
         public string RuntimeSessionId { get; private set; }
         public RemoteTargetDescriptor Target { get; private set; }
         public IReadOnlyList<RemoteEditorPlayerDescriptor> ConnectedPlayers => _connectedPlayers;
-        public IReadOnlyList<RemoteLanPlayerDescriptor> LanPlayers =>
-            FindConnectionService<IRemoteLanDiscoveryService>()?.Players ?? Array.Empty<RemoteLanPlayerDescriptor>();
+        public IReadOnlyList<RemoteLanPlayerDescriptor> LanPlayers => FindConnectionService<IRemoteLanDiscoveryService>()?.Players ?? Array.Empty<RemoteLanPlayerDescriptor>();
         public string LanDiscoveryError => FindConnectionService<IRemoteLanDiscoveryService>()?.Error;
-
-        internal bool HasTransport(string transportId) =>
-            !string.IsNullOrWhiteSpace(transportId) && _transportsById.ContainsKey(transportId);
-
-        internal bool HasConnectionService<T>() where T : class, IRemoteEditorConnectionService =>
-            FindConnectionService<T>() != null;
+        internal bool HasTransport(string transportId) => !string.IsNullOrWhiteSpace(transportId) && _transportsById.ContainsKey(transportId);
+        internal bool HasConnectionService<T>() where T : class, IRemoteEditorConnectionService => FindConnectionService<T>() != null;
 
         internal bool TryGetTransport<T>(out T transport) where T : class, IRemoteEditorTransport
         {
@@ -164,9 +158,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
             _activeRequest = request ?? new RemoteEditorTransportConnectRequest();
             ConnectionKind = transport.Kind;
             SelectedPlayerId = _activeRequest.PlayerId;
-            SelectedTargetName = string.IsNullOrWhiteSpace(_activeRequest.TargetName)
-                ? transport.Id
-                : _activeRequest.TargetName;
+            SelectedTargetName = string.IsNullOrWhiteSpace(_activeRequest.TargetName) ? transport.Id : _activeRequest.TargetName;
             _accessToken = _activeRequest.AccessToken ?? string.Empty;
             IsHandshakePending = true;
             double now = EditorApplication.timeSinceStartup;
@@ -273,8 +265,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
             if (now >= _handshakeDeadline)
             {
                 string target = SelectedTargetName ?? "the Player";
-                FailConnection($"No handshake response from {target} after {_handshakeAttemptCount} " +
-                               "attempts. The Player may still be starting; press Connect to retry.");
+                FailConnection($"No handshake response from {target} after {_handshakeAttemptCount} attempts. The Player may still be starting; press Connect to retry.");
                 return;
             }
 
@@ -331,8 +322,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
                 return;
             }
             if (!IsConnected || envelope.ProtocolVersion != RemoteProtocolConstants.Version ||
-                (!string.IsNullOrEmpty(RuntimeSessionId) &&
-                 !string.Equals(envelope.SessionId, RuntimeSessionId, StringComparison.Ordinal)))
+                (!string.IsNullOrEmpty(RuntimeSessionId) && !string.Equals(envelope.SessionId, RuntimeSessionId, StringComparison.Ordinal)))
                 return;
             if (_routes.TryGetValue(envelope.MessageType, out IRemoteEditorFeatureClient feature))
                 feature.Handle(envelope);
@@ -353,8 +343,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
                 FailConnection(response.Error ?? "The runtime rejected the connection.");
                 return;
             }
-            if (envelope.ProtocolVersion != RemoteProtocolConstants.Version ||
-                response.ProtocolVersion != RemoteProtocolConstants.Version)
+            if (envelope.ProtocolVersion != RemoteProtocolConstants.Version || response.ProtocolVersion != RemoteProtocolConstants.Version)
             {
                 FailConnection($"Protocol mismatch. Editor={RemoteProtocolConstants.Version}, Runtime={response.ProtocolVersion}.");
                 return;

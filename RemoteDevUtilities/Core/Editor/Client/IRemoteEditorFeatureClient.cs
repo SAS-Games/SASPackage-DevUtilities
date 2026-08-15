@@ -25,9 +25,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
     {
         public RemoteEditorFeatureAttribute(string id, int order)
         {
-            Id = string.IsNullOrWhiteSpace(id)
-                ? throw new ArgumentException("A remote editor feature id is required.", nameof(id))
-                : id;
+            Id = string.IsNullOrWhiteSpace(id) ? throw new ArgumentException("A remote editor feature id is required.", nameof(id)) : id;
             Order = order;
         }
 
@@ -45,8 +43,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
                 if (type == null || type.IsAbstract || !typeof(IRemoteEditorFeatureClient).IsAssignableFrom(type))
                     continue;
 
-                RemoteEditorFeatureAttribute attribute =
-                    (RemoteEditorFeatureAttribute)Attribute.GetCustomAttribute(type, typeof(RemoteEditorFeatureAttribute));
+                RemoteEditorFeatureAttribute attribute = (RemoteEditorFeatureAttribute)Attribute.GetCustomAttribute(type, typeof(RemoteEditorFeatureAttribute));
                 if (attribute != null)
                     registrations.Add((attribute, type));
             }
@@ -67,14 +64,10 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
             return features;
         }
 
-        private static int Compare(
-            (RemoteEditorFeatureAttribute Attribute, Type Type) left,
-            (RemoteEditorFeatureAttribute Attribute, Type Type) right)
+        private static int Compare((RemoteEditorFeatureAttribute Attribute, Type Type) left, (RemoteEditorFeatureAttribute Attribute, Type Type) right)
         {
             int order = left.Attribute.Order.CompareTo(right.Attribute.Order);
-            return order != 0
-                ? order
-                : string.Compare(left.Type.FullName, right.Type.FullName, StringComparison.Ordinal);
+            return order != 0 ? order : string.Compare(left.Type.FullName, right.Type.FullName, StringComparison.Ordinal);
         }
     }
 }

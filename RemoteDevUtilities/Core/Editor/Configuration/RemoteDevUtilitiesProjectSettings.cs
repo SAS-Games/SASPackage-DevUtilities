@@ -12,13 +12,9 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Configuration
         internal const string SettingsPath = "Project/Dev Utilities/Remote Dev Utilities";
 
         [SerializeField] private bool _runtimeConfigurationInitialized;
-
         [SerializeField] private RemoteDevUtilitiesRuntimeConfiguration _runtime = new();
-
         [SerializeField] private RemoteMiniToolVisibilityConfiguration _visibility = new();
-
         [SerializeField] private RemoteMiniToolPresentationConfiguration _presentations = new();
-
         [SerializeField] private RemoteMiniToolCommandConfiguration _commands = new();
 
         internal RemoteDevUtilitiesRuntimeConfiguration Runtime
@@ -31,9 +27,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Configuration
         }
 
         internal RemoteMiniToolVisibilityConfiguration Visibility => _visibility ??= new RemoteMiniToolVisibilityConfiguration();
-
         internal RemoteMiniToolPresentationConfiguration Presentations => _presentations ??= new RemoteMiniToolPresentationConfiguration();
-
         internal RemoteMiniToolCommandConfiguration Commands => _commands ??= new RemoteMiniToolCommandConfiguration();
 
         internal void Persist()

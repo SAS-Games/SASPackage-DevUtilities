@@ -5,11 +5,6 @@ using UnityEngine;
 
 namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
 {
-    /// <summary>
-    /// Stable, implementation-neutral storage for optional mini-tool catalog data.
-    /// It remains in core so removing the MiniTools module does not invalidate the
-    /// shared Remote Dev Utilities project settings asset.
-    /// </summary>
     [Serializable]
     internal sealed class RemoteMiniToolKnownCommand
     {
@@ -82,8 +77,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
                 if (descriptor != null && !string.IsNullOrWhiteSpace(descriptor.Id) && !descriptor.VisibleByDefault)
                     requiredVisibleIds.Add(descriptor.Id);
             }
-            bool changed = !_showNewToolsByDefault || _hiddenToolIds.Count > 0 ||
-                           !requiredVisibleIds.SetEquals(_visibleToolIds);
+            bool changed = !_showNewToolsByDefault || _hiddenToolIds.Count > 0 || !requiredVisibleIds.SetEquals(_visibleToolIds);
             _showNewToolsByDefault = true;
             _hiddenToolIds.Clear();
             _visibleToolIds.Clear();
@@ -112,8 +106,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
         internal bool RegisterCatalog(IEnumerable<RemoteMiniToolKnownDescriptor> descriptors)
         {
             bool changed = false;
-            foreach (RemoteMiniToolKnownDescriptor descriptor in
-                     descriptors ?? Array.Empty<RemoteMiniToolKnownDescriptor>())
+            foreach (RemoteMiniToolKnownDescriptor descriptor in descriptors ?? Array.Empty<RemoteMiniToolKnownDescriptor>())
             {
                 if (descriptor == null || string.IsNullOrWhiteSpace(descriptor.Id))
                     continue;
@@ -170,18 +163,14 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
             DefaultStreamIntervalSeconds = descriptor.DefaultStreamIntervalSeconds,
             VisibleByDefault = descriptor.VisibleByDefault,
             Capabilities = descriptor.Capabilities,
-            Command = descriptor.Command == null
-                ? null
-                : new RemoteMiniToolKnownCommand
+            Command = descriptor.Command == null ? null : new RemoteMiniToolKnownCommand
                 {
                     Name = descriptor.Command.Name,
                     SuggestedRouting = descriptor.Command.SuggestedRouting
                 }
         };
 
-        private static bool DescriptorEquals(
-            RemoteMiniToolKnownDescriptor left,
-            RemoteMiniToolKnownDescriptor right) =>
+        private static bool DescriptorEquals(RemoteMiniToolKnownDescriptor left, RemoteMiniToolKnownDescriptor right) =>
             string.Equals(left?.Id, right?.Id, StringComparison.Ordinal) &&
             string.Equals(left?.DisplayName, right?.DisplayName, StringComparison.Ordinal) &&
             string.Equals(left?.Description, right?.Description, StringComparison.Ordinal) &&
