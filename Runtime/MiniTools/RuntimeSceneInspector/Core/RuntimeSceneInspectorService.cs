@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using Unity.Profiling;
 using UnityEngine;
@@ -18,8 +17,8 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
         private readonly RuntimeObjectRegistry _registry = new();
         private readonly RuntimeValueDrawerRegistry _drawers = new();
         private readonly RuntimeComponentDrawerRegistry _componentDrawers;
+        private readonly RuntimeReflectedMemberProvider _reflectedMembers;
         private readonly List<IRuntimeSceneInspectorExtension> _inspectorExtensions = new();
-        private readonly Dictionary<Type, FieldInfo[]> _fieldCache = new();
         private readonly Dictionary<string, RuntimeObjectId> _sceneIds = new();
         private readonly int _mainThreadId;
         private RuntimeHierarchySnapshot _snapshot = new() { Entries = Array.Empty<RuntimeHierarchyEntry>() };
@@ -29,6 +28,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
         {
             _settings = settings;
             _componentDrawers = new RuntimeComponentDrawerRegistry(_drawers);
+            _reflectedMembers = new RuntimeReflectedMemberProvider(_drawers);
             _inspectorExtensions.Add(new RuntimeMaterialShaderExtension(settings));
             _mainThreadId = Thread.CurrentThread.ManagedThreadId;
             SceneManager.sceneLoaded += OnSceneChanged;
@@ -268,9 +268,21 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             var result = new List<RuntimeMemberDescriptor>();
             var memberIds = new HashSet<string>(StringComparer.Ordinal);
             var memberDisplayNames = new HashSet<string>(StringComparer.Ordinal);
+            bool includeReflectedProperties = true;
             IReadOnlyList<IRuntimeComponentDrawer> componentDrawers = _componentDrawers.Resolve(component.GetType());
             foreach (IRuntimeComponentDrawer componentDrawer in componentDrawers)
             {
+                if (componentDrawer is IRuntimeEditableComponentDrawer ownedDrawer)
+                {
+                    if (ownedDrawer.ComponentType == component.GetType())
+                        includeReflectedProperties = false;
+                    foreach (string displayName in ownedDrawer.OwnedDisplayNames)
+                    {
+                        if (!string.IsNullOrEmpty(displayName))
+                            memberDisplayNames.Add(displayName);
+                    }
+                }
+
                 IReadOnlyList<RuntimeMemberDescriptor> drawerMembers = componentDrawer.BuildInspector(component);
                 if (drawerMembers != null)
                 {
@@ -286,33 +298,16 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                 }
             }
 
-            foreach (FieldInfo field in GetInspectableFields(component.GetType()))
+            foreach (RuntimeMemberDescriptor member in _reflectedMembers.BuildInspector(component,
+                         memberDisplayNames, includeReflectedProperties))
             {
-                string displayName = Nicify(field.Name);
-                if (memberDisplayNames.Contains(displayName))
+                if (member == null || memberDisplayNames.Contains(member.DisplayName))
                     continue;
-                if (!memberIds.Add(field.Name))
+                if (!memberIds.Add(member.Name))
                     continue;
-                IRuntimeValueDrawer drawer = _drawers.Resolve(field.FieldType);
-                bool readOnly = drawer == null || field.IsInitOnly || field.IsDefined(typeof(RuntimeReadOnlyAttribute), true) || typeof(Object).IsAssignableFrom(field.FieldType);
-                try
-                {
-                    object value = field.GetValue(component);
-                    result.Add(new RuntimeMemberDescriptor
-                    {
-                        Name = field.Name, DisplayName = displayName, TypeName = field.FieldType.FullName,
-                        Value = drawer?.Format(value, field.FieldType) ?? value?.ToString() ?? "null",
-                        ReadOnly = readOnly
-                    });
-                }
-                catch (Exception ex)
-                {
-                    result.Add(new RuntimeMemberDescriptor
-                    {
-                        Name = field.Name, DisplayName = field.Name, TypeName = field.FieldType.FullName,
-                        ReadOnly = true, Error = ex.Message
-                    });
-                }
+                result.Add(member);
+                if (!string.IsNullOrEmpty(member.DisplayName))
+                    memberDisplayNames.Add(member.DisplayName);
             }
 
             if (!_settings.AllowValueChanges)
@@ -333,44 +328,13 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                     return drawerResult ?? RuntimeCommandResult.Fail("The member could not be changed.");
             }
 
-            FieldInfo field = GetInspectableFields(component.GetType()).FirstOrDefault(item => item.Name == name);
-            if (field == null || field.IsInitOnly || field.IsDefined(typeof(RuntimeReadOnlyAttribute), true))
-                return RuntimeCommandResult.Fail("The member is not writable.");
-            IRuntimeValueDrawer drawer = _drawers.Resolve(field.FieldType);
-            if (drawer == null)
-                return RuntimeCommandResult.Fail("Unsupported value type.");
-            if (!drawer.TryParse(text, field.FieldType, out object value, out string error))
-                return RuntimeCommandResult.Fail(error ?? "Invalid value.");
-            field.SetValue(component, value);
-            return RuntimeCommandResult.Ok();
-        }
+            if (_reflectedMembers.TrySetValue(component, name, text, out RuntimeCommandResult reflectedResult))
+                return reflectedResult ?? RuntimeCommandResult.Fail("The member could not be changed.");
 
-        private FieldInfo[] GetInspectableFields(Type type)
-        {
-            if (_fieldCache.TryGetValue(type, out FieldInfo[] fields))
-                return fields;
-            fields = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Where(field => !field.IsStatic && !field.IsDefined(typeof(RuntimeHiddenAttribute), true) && (field.IsPublic || field.IsDefined(typeof(SerializeField), true) || field.IsDefined(typeof(RuntimeInspectableAttribute), true))).ToArray();
-            _fieldCache[type] = fields;
-            return fields;
+            return RuntimeCommandResult.Fail("The member is not writable.");
         }
 
         private bool IsBlocked(Type type) => _settings.BlockedComponentTypes.Contains(type.FullName) || _settings.BlockedNamespaces.Any(value => !string.IsNullOrEmpty(value) && (type.Namespace?.StartsWith(value, StringComparison.Ordinal) ?? false));
-
-        private static string Nicify(string value)
-        {
-            if (string.IsNullOrEmpty(value))
-                return value;
-            var chars = new List<char>(value.Length + 4);
-            for (int i = 0; i < value.Length; i++)
-            {
-                char c = value[i];
-                if (i > 0 && char.IsUpper(c) && !char.IsUpper(value[i - 1]))
-                    chars.Add(' ');
-                chars.Add(i == 0 ? char.ToUpperInvariant(c) : c);
-            }
-
-            return new string(chars.ToArray()).TrimStart('m', '_', ' ');
-        }
 
         private RuntimeObjectId GetSceneId(Scene scene, bool persistent)
         {

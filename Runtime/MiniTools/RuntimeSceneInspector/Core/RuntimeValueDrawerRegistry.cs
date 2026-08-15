@@ -89,6 +89,14 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                 return Join(v4.x, v4.y, v4.z, v4.w);
             if (value is Quaternion q)
             {
+                float magnitudeSquared = q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w;
+                if (magnitudeSquared <= Mathf.Epsilon || float.IsNaN(magnitudeSquared) ||
+                    float.IsInfinity(magnitudeSquared))
+                    return "Invalid quaternion (" + Join(q.x, q.y, q.z, q.w) + ")";
+
+                float inverseMagnitude = 1f / Mathf.Sqrt(magnitudeSquared);
+                q = new Quaternion(q.x * inverseMagnitude, q.y * inverseMagnitude,
+                    q.z * inverseMagnitude, q.w * inverseMagnitude);
                 Vector3 e = q.eulerAngles;
                 return Join(e.x, e.y, e.z);
             }

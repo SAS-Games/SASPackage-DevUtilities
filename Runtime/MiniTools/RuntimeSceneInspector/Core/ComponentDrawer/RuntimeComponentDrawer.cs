@@ -11,6 +11,8 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
     /// </summary>
     internal interface IRuntimeEditableComponentDrawer : IRuntimeComponentDrawer
     {
+        Type ComponentType { get; }
+        IReadOnlyCollection<string> OwnedDisplayNames { get; }
         bool TrySetValue(Component component, string memberId, string text, out RuntimeCommandResult result);
     }
 
@@ -71,6 +73,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
     internal abstract class RuntimeComponentDrawer<TComponent> : IRuntimeEditableComponentDrawer where TComponent : Component
     {
         private readonly List<MemberDefinition> _members = new();
+        private readonly HashSet<string> _ownedDisplayNames = new(StringComparer.Ordinal);
         private readonly RuntimeValueDrawerRegistry _valueDrawers;
 
         protected RuntimeComponentDrawer(RuntimeValueDrawerRegistry valueDrawers)
@@ -79,6 +82,9 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
         }
 
         public bool CanDraw(Type componentType) => componentType != null && typeof(TComponent).IsAssignableFrom(componentType);
+
+        public Type ComponentType => typeof(TComponent);
+        public IReadOnlyCollection<string> OwnedDisplayNames => _ownedDisplayNames;
 
         public IReadOnlyList<RuntimeMemberDescriptor> BuildInspector(Component component)
         {
@@ -124,6 +130,8 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
         protected void Add<TValue>(string id, string displayName, Func<TComponent, TValue> getter, Action<TComponent, TValue> setter = null, Func<TComponent, bool> applies = null, Func<TComponent, TValue, string> validator = null)
         {
             _members.Add(new MemberDefinition<TValue>(id, displayName, getter, setter, applies, validator));
+            if (!string.IsNullOrEmpty(displayName))
+                _ownedDisplayNames.Add(displayName);
         }
 
         protected void AddReadOnly<TValue>(string id, string displayName, Func<TComponent, TValue> getter, Func<TComponent, bool> applies = null)

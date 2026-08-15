@@ -24,6 +24,9 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             _settings = new RuntimeVolumeSettingsDrawer(valueDrawers);
         }
 
+        public Type ComponentType => typeof(Volume);
+        public IReadOnlyCollection<string> OwnedDisplayNames => Array.Empty<string>();
+
         public bool CanDraw(Type componentType) => componentType != null && typeof(Volume).IsAssignableFrom(componentType);
 
         public IReadOnlyList<RuntimeMemberDescriptor> BuildInspector(Component component)
