@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace HP.Utilities.RuntimeSceneInspector.Input
+namespace SAS.Utilities.RuntimeSceneInspector.Input
 {
     public interface IRuntimeSceneInspectorInput
     {

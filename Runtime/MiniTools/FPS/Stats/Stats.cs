@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-namespace HP.DevUtilities.Stats
+namespace SAS.DevUtilities.Stats
 {
     /// <summary>
     /// View-only component for the Stats prefab.

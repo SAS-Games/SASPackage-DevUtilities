@@ -1,9 +1,9 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
-using HP.Utilities.Presentation;
+using SAS.Utilities.Presentation;
 
 #if ENABLE_DEBUG
-namespace HP.Utilities.DeveloperConsole
+namespace SAS.Utilities.DeveloperConsole
 {
     [CreateAssetMenu(fileName = "New Input Latency Profiler Command", menuName = DeveloperConsole.CommandBasePath + "Input Latency Profiler")]
     public class InputLatencyProfilerCommand : CompositeConsoleCommand
@@ -14,7 +14,7 @@ namespace HP.Utilities.DeveloperConsole
         private InputSettings.UpdateMode _previousUpdateMode;
         private bool _hasPreviousUpdateMode;
         public override string HelpText => "Usage: InputLatencyProfiler <Overlay|InputUpdateMode>. The open overlay can be closed with Escape, or controller B when enabled.";
-        
+
 
         private bool InputLatencyProfiler(string[] args)
         {

@@ -1,10 +1,10 @@
 using System.Collections.Generic;
-using HP.Utilities.RemoteDevUtilities;
-using HP.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration;
+using SAS.Utilities.RemoteDevUtilities;
+using SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration;
 using UnityEditor;
 using UnityEngine;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.Configuration
+namespace SAS.Utilities.RemoteDevUtilities.Editor.Configuration
 {
     [FilePath("ProjectSettings/RemoteDevUtilitiesSettings.asset", FilePathAttribute.Location.ProjectFolder)]
     internal sealed class RemoteDevUtilitiesProjectSettings : ScriptableSingleton<RemoteDevUtilitiesProjectSettings>

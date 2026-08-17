@@ -1,6 +1,6 @@
 {
     "name": "DevUtilities.RemoteDevUtilities.Logging.Protocol",
-    "rootNamespace": "HP.Utilities.RemoteDevUtilities.Protocol.Logging",
+    "rootNamespace": "SAS.Utilities.RemoteDevUtilities.Protocol.Logging",
     "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],

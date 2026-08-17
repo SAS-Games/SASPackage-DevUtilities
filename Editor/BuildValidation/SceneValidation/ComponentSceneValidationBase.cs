@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace HP.BuildValidation
+namespace SAS.BuildValidation
 {
     public abstract class ComponentSceneValidationBase<T> : SceneBuildValidationBase where T : Component
     {

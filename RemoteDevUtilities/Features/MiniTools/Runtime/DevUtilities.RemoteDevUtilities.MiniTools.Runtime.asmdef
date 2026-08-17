@@ -1,6 +1,6 @@
 {
     "name": "DevUtilities.RemoteDevUtilities.MiniTools.Runtime",
-    "rootNamespace": "HP.Utilities.RemoteDevUtilities.MiniTools",
+    "rootNamespace": "SAS.Utilities.RemoteDevUtilities.MiniTools",
     "references": [
         "GUID:cfbcb856ed571e04480857f2fe81e499",
         "GUID:a891377085b3492d8872e92be37704e7",

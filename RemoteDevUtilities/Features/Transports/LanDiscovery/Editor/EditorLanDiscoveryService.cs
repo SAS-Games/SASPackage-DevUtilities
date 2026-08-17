@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using HP.Utilities.RemoteDevUtilities.Editor.Client;
-using HP.Utilities.RemoteDevUtilities.Protocol;
+using SAS.Utilities.RemoteDevUtilities.Editor.Client;
+using SAS.Utilities.RemoteDevUtilities.Protocol;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.Connection
+namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
 {
     [RemoteEditorConnectionService("lan-discovery", 300)]
     internal sealed class EditorLanDiscoveryService : IRemoteLanDiscoveryService

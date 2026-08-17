@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.Logging.Settings
+namespace SAS.Utilities.RemoteDevUtilities.Editor.Logging.Settings
 {
     internal sealed class RemoteLoggingTagFilterEditor
     {

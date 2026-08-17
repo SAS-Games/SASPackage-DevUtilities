@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
-using HP.Utilities.DeveloperConsole;
-using HP.Utilities.RemoteDevUtilities.Agent;
-using HP.Utilities.RemoteDevUtilities.Protocol;
-using HP.Utilities.RemoteDevUtilities.Protocol.Commands;
-using HP.Utilities.RemoteDevUtilities.Protocol.Serialization;
-using RuntimeConsole = HP.Utilities.DeveloperConsole.DeveloperConsole;
+using SAS.Utilities.DeveloperConsole;
+using SAS.Utilities.RemoteDevUtilities.Agent;
+using SAS.Utilities.RemoteDevUtilities.Protocol;
+using SAS.Utilities.RemoteDevUtilities.Protocol.Commands;
+using SAS.Utilities.RemoteDevUtilities.Protocol.Serialization;
+using RuntimeConsole = SAS.Utilities.DeveloperConsole.DeveloperConsole;
 using UnityEngine.Scripting;
 
-namespace HP.Utilities.RemoteDevUtilities.Commands
+namespace SAS.Utilities.RemoteDevUtilities.Commands
 {
     [Preserve]
     [RuntimeRemoteEndpoint("commands", 100)]
@@ -84,7 +84,7 @@ namespace HP.Utilities.RemoteDevUtilities.Commands
                 return;
             }
 
-            RuntimeConsole console = behaviour.DeveloperConsole;
+            DeveloperConsole.DeveloperConsole console = behaviour.DeveloperConsole;
             var descriptors = new List<RemoteCommandDescriptor>(console.ConsoleCommands.Count);
             foreach (IConsoleCommand command in console.ConsoleCommands)
             {
@@ -161,7 +161,7 @@ namespace HP.Utilities.RemoteDevUtilities.Commands
                 return;
             }
 
-            RuntimeConsole console = behaviour.DeveloperConsole;
+            DeveloperConsole.DeveloperConsole console = behaviour.DeveloperConsole;
             string commandLine = request.CommandLine?.Trim() ?? string.Empty;
             if (!string.IsNullOrEmpty(console._prefix) && !commandLine.StartsWith(console._prefix, StringComparison.Ordinal))
                 commandLine = console._prefix + commandLine;

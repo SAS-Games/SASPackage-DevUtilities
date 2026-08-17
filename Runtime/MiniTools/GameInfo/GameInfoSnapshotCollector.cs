@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace HP.DevUtilities
+namespace SAS.DevUtilities
 {
     /// <summary>
     /// Collects the canonical GameInfo snapshot used by local and remote

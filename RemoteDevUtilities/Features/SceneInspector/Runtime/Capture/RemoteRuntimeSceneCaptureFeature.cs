@@ -1,15 +1,16 @@
 using System;
 using System.Collections.Generic;
-using HP.Utilities.RemoteDevUtilities.Agent;
-using HP.Utilities.RemoteDevUtilities.Protocol;
-using HP.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector.Capture;
-using HP.Utilities.RemoteDevUtilities.Protocol.Serialization;
-using HP.Utilities.RuntimeSceneInspector;
-using HP.Utilities.RuntimeSceneInspector.Core;
+using SAS.Utilities.RemoteDevUtilities.Agent;
+using SAS.Utilities.RemoteDevUtilities.Protocol;
+using SAS.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector;
+using SAS.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector.Capture;
+using SAS.Utilities.RemoteDevUtilities.Protocol.Serialization;
+using SAS.Utilities.RuntimeSceneInspector;
+using SAS.Utilities.RuntimeSceneInspector.Core;
 using UnityEngine;
-using RemoteMessageTypes = HP.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector.RemoteSceneInspectorMessageTypes;
+using RemoteMessageTypes = SAS.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector.RemoteSceneInspectorMessageTypes;
 
-namespace HP.Utilities.RemoteDevUtilities.RuntimeSceneInspector.Capture
+namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector.Capture
 {
     internal sealed class RemoteRuntimeSceneCaptureFeature : IDisposable
     {
@@ -178,7 +179,7 @@ namespace HP.Utilities.RemoteDevUtilities.RuntimeSceneInspector.Capture
                 return;
             }
 
-            _context.Sender.Send(RemoteMessageTypes.SceneInspectorCaptureResponse, requestId,
+            _context.Sender.Send(RemoteSceneInspectorMessageTypes.SceneInspectorCaptureResponse, requestId,
                 new RemoteSceneCaptureResponse
                 {
                     CaptureId = result.CaptureId,
@@ -193,13 +194,13 @@ namespace HP.Utilities.RemoteDevUtilities.RuntimeSceneInspector.Capture
 
         private void SendCaptureError(long requestId, string error)
         {
-            _context?.Sender.Send(RemoteMessageTypes.SceneInspectorCaptureResponse, requestId,
+            _context?.Sender.Send(RemoteSceneInspectorMessageTypes.SceneInspectorCaptureResponse, requestId,
                 new RemoteSceneCaptureResponse { Error = error ?? "Player capture failed." });
         }
 
         private void SendPickResult(long requestId, RemoteScenePickResponse response)
         {
-            _context?.Sender.Send(RemoteMessageTypes.SceneInspectorPickResponse, requestId,
+            _context?.Sender.Send(RemoteSceneInspectorMessageTypes.SceneInspectorPickResponse, requestId,
                 response ?? new RemoteScenePickResponse { Error = "Remote picking failed." });
         }
     }

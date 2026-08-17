@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace HP.Utilities.DeveloperConsole
+namespace SAS.Utilities.DeveloperConsole
 {
     [CreateAssetMenu(fileName = "New Show FPS Command PS", menuName = DeveloperConsole.CommandBasePath + "Show FPS Command PS")]
     public class ShowFPSCommandPS : ShowFPSCommand
@@ -14,7 +14,7 @@ namespace HP.Utilities.DeveloperConsole
                 return false;
 
             Application.targetFrameRate = targetFrameRate;
-            
+
             if (targetFrameRate < 0)
                 QualitySettings.vSyncCount = 0;
             else if (targetFrameRate <= 30)

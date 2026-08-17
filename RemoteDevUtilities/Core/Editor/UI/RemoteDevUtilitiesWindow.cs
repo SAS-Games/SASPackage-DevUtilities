@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using HP.Utilities.RemoteDevUtilities.Editor.Client;
-using HP.Utilities.RemoteDevUtilities.Editor.UI.Panels;
+using SAS.Utilities.RemoteDevUtilities.Editor.Client;
+using SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels;
 using UnityEditor;
 using UnityEngine;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.UI
+namespace SAS.Utilities.RemoteDevUtilities.Editor.UI
 {
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     internal sealed class RemoteWorkspacePanelAttribute : Attribute

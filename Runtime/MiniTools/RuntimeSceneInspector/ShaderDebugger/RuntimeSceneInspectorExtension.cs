@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace HP.Utilities.RuntimeSceneInspector.Core
+namespace SAS.Utilities.RuntimeSceneInspector.Core
 {
     /// <summary>
     /// Internal seam for optional inspector sections that need runtime APIs instead of component reflection.

@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using HP.Utilities.RuntimeSceneInspector.Core;
+using SAS.Utilities.RuntimeSceneInspector.Core;
 using Unity.Profiling;
 using UnityEngine;
 
-namespace HP.Utilities.RuntimeSceneInspector
+namespace SAS.Utilities.RuntimeSceneInspector
 {
     internal enum RuntimeSceneInspectorNavigationCommand
     {

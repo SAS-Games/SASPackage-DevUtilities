@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace HP.Utilities.DeveloperConsole
+namespace SAS.Utilities.DeveloperConsole
 {
     [CreateAssetMenu(fileName = "New SetDisplay Command", menuName = DeveloperConsole.CommandBasePath + "SetDisplay Command")]
     public class SetDisplayCommand : ConsoleCommand

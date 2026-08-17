@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
 
-namespace HP.BuildValidation
+namespace SAS.BuildValidation
 {
     public class ValidationReport
     {

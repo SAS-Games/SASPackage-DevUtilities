@@ -1,6 +1,6 @@
 {
     "name": "DevUtilities.BuildValidation.Editor",
-    "rootNamespace": "HP.BuildValidation",
+    "rootNamespace": "SAS.BuildValidation",
     "references": [],
     "includePlatforms": [
         "Editor"

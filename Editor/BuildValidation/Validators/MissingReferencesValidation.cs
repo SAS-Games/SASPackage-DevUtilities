@@ -3,7 +3,7 @@ using UnityEditor;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
 
-namespace HP.BuildValidation
+namespace SAS.BuildValidation
 {
     [BuildValidation(optional: false, order: 3)]
     public sealed class MissingReferencesValidation : IBuildValidation

@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using HP.Utilities.RemoteDevUtilities.Editor.Configuration;
-using HP.Utilities.RemoteDevUtilities.Protocol.MiniTools;
+using SAS.Utilities.RemoteDevUtilities.Editor.Configuration;
+using SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
+namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
 {
     /// <summary>
     /// Focused facade for the visibility section of the unified mini-tool

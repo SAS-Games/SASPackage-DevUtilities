@@ -1,4 +1,4 @@
-namespace HP.DevUtilities
+namespace SAS.DevUtilities
 {
     internal static class FrameStepperActionIds
     {

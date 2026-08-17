@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
-using HP.Utilities.RemoteDevUtilities.Agent;
-using HP.Utilities.RemoteDevUtilities.Protocol;
+using SAS.Utilities.RemoteDevUtilities.Agent;
+using SAS.Utilities.RemoteDevUtilities.Protocol;
 using UnityEngine;
 using UnityEngine.Scripting;
 
 [assembly: AlwaysLinkAssembly]
 
-namespace HP.Utilities.RemoteDevUtilities.Transport
+namespace SAS.Utilities.RemoteDevUtilities.Transport
 {
     [Preserve]
     [RuntimeRemoteConnectionService("lan-discovery", 300)]

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace HP.DevUtilities
+namespace SAS.DevUtilities
 {
     /// <summary>
     /// Automatically publishes FrameStepper snapshots when the Player's time

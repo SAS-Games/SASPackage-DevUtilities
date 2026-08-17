@@ -1,6 +1,6 @@
 {
     "name": "DevUtilities.RemoteDevUtilities.SceneInspector.Editor",
-    "rootNamespace": "HP.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector",
+    "rootNamespace": "SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector",
     "references": [
         "DevUtilities",
         "DevUtilities.RemoteDevUtilities",

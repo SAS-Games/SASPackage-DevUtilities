@@ -1,8 +1,8 @@
 #if ENABLE_DEBUG
-using HP.BuildValidation;
+using SAS.BuildValidation;
 using UnityEditor.Build.Reporting;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
+namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
 {
     /// <summary>
     /// Reports unified mini-tool registration issues through the package's

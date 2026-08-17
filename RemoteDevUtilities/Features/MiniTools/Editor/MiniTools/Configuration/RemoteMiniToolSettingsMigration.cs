@@ -1,10 +1,10 @@
 using System;
 using System.IO;
-using HP.Utilities.RemoteDevUtilities.Editor.Configuration;
+using SAS.Utilities.RemoteDevUtilities.Editor.Configuration;
 using UnityEditor;
 using UnityEngine;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
+namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
 {
     /// <summary>
     /// Repairs the serialized type identity left by the transition from the

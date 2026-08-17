@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using HP.Utilities.RemoteDevUtilities.Protocol.MiniTools;
+using SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
+namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
 {
     internal static class RemoteMiniToolCommandManifestResolver
     {

@@ -3,7 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace HP.Utilities.DeveloperConsole
+namespace SAS.Utilities.DeveloperConsole
 {
     [RequireComponent(typeof(ScrollSnapper))]
     public class SuggestionListView : SuggestionView

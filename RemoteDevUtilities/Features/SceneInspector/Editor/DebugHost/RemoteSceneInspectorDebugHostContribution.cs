@@ -1,8 +1,8 @@
-using HP.Utilities.RemoteDevUtilities.DebugHost;
-using HP.Utilities.RemoteDevUtilities.Editor.Client;
+using SAS.Utilities.RemoteDevUtilities.DebugHost;
+using SAS.Utilities.RemoteDevUtilities.Editor.Client;
 using UnityEngine;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.DebugHost
+namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
 {
     [RemoteDebugHostContribution(400)]
     internal sealed class RemoteSceneInspectorDebugHostContribution : IRemoteDebugHostContribution

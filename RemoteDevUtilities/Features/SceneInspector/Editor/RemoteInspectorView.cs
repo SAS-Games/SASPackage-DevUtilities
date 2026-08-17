@@ -1,8 +1,8 @@
-using HP.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector;
+using SAS.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector;
 using UnityEditor;
 using UnityEngine;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
+namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
 {
     internal sealed class RemoteInspectorView
     {

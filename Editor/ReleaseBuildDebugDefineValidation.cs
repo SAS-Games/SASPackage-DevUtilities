@@ -1,6 +1,6 @@
 using UnityEditor.Build.Reporting;
 
-namespace HP.BuildValidation
+namespace SAS.BuildValidation
 {
     [BuildValidation(optional: false, requiresBuildReport: true)]
     public class ReleaseBuildDebugDefineValidation : IBuildValidation

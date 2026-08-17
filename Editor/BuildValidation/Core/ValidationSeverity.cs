@@ -1,4 +1,4 @@
-namespace HP.BuildValidation
+namespace SAS.BuildValidation
 {
     public enum ValidationSeverity
     {

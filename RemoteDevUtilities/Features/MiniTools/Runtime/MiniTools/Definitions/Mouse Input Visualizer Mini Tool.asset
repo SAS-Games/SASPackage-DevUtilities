@@ -18,7 +18,7 @@ MonoBehaviour:
   _updateInterval: 0.5
   _streamInterval: 0.05
   _providerScriptGuid: d625736f13f54acf866c91576f2c0d32
-  _providerTypeName: HP.Utilities.RemoteDevUtilities.MiniTools.Providers.RuntimeMouseInputVisualizerMiniToolProvider,
+  _providerTypeName: SAS.Utilities.RemoteDevUtilities.MiniTools.Providers.RuntimeMouseInputVisualizerMiniToolProvider,
     DevUtilities.RemoteDevUtilities.MiniTools.Runtime
   _command: {fileID: 11400000, guid: abd94a4eb70f4084b86fc794f8055e24, type: 2}
   _commandName: InputVisualizer.Mouse

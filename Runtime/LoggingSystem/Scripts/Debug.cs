@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 
-namespace HP
+namespace SAS
 {
     public class LogHandler : ILogHandler
     {
@@ -25,7 +25,7 @@ namespace HP
                 level = LogLevel.Warning;
             else if (logType == LogType.Error)
                 level = LogLevel.Error;
-            
+
             int slotIndex = -1;
             string tag = string.Empty;
             if (args.Length > 1)

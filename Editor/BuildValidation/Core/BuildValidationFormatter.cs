@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace HP.BuildValidation
+namespace SAS.BuildValidation
 {
     public static class BuildValidationFormatter
     {

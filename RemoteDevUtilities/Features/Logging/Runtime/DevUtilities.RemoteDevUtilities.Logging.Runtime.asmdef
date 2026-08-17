@@ -1,6 +1,6 @@
 {
     "name": "DevUtilities.RemoteDevUtilities.Logging.Runtime",
-    "rootNamespace": "HP.Utilities.RemoteDevUtilities.Logging",
+    "rootNamespace": "SAS.Utilities.RemoteDevUtilities.Logging",
     "references": [
         "DevUtilities",
         "DevUtilities.RemoteDevUtilities",

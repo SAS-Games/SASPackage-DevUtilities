@@ -1,9 +1,9 @@
-using HP.Utilities.RemoteDevUtilities.Editor.Commands;
-using HP.Utilities.RemoteDevUtilities.Editor.Logging;
+using SAS.Utilities.RemoteDevUtilities.Editor.Logging;
+using SAS.Utilities.RemoteDevUtilities.Editor.Commands;
 using UnityEditor;
 using UnityEngine;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.Logging.Settings
+namespace SAS.Utilities.RemoteDevUtilities.Editor.Logging.Settings
 {
     internal sealed class RemoteLoggingTargetSettingsView
     {

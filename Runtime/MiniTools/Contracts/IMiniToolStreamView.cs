@@ -1,4 +1,4 @@
-namespace HP.DevUtilities
+namespace SAS.DevUtilities
 {
     /// <summary>
     /// Consumes incremental mini-tool updates independently of the rendering

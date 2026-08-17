@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 #endif
 
-namespace HP.DevUtilities
+namespace SAS.DevUtilities
 {
     [Serializable]
     public struct GraphicsInfoSnapshot : IMiniToolSnapshot

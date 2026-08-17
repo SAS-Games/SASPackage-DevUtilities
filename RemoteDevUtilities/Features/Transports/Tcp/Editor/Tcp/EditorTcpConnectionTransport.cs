@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
 using System.Threading;
-using HP.Utilities.RemoteDevUtilities.Protocol;
-using HP.Utilities.RemoteDevUtilities.Protocol.Serialization;
-using HP.Utilities.RemoteDevUtilities.Transport.Tcp;
+using SAS.Utilities.RemoteDevUtilities.Protocol;
+using SAS.Utilities.RemoteDevUtilities.Protocol.Serialization;
+using SAS.Utilities.RemoteDevUtilities.Transport.Tcp;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.Connection.Tcp
+namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection.Tcp
 {
     internal sealed class EditorTcpConnectionTransport : IRemoteEditorTransport
     {

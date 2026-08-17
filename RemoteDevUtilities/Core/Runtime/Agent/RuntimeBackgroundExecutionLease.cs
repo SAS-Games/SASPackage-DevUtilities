@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace HP.Utilities.RemoteDevUtilities.Agent
+namespace SAS.Utilities.RemoteDevUtilities.Agent
 {
     internal sealed class RuntimeBackgroundExecutionLease : IDisposable
     {

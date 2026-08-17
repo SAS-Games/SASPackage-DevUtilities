@@ -1,6 +1,6 @@
 using System;
 
-namespace HP.Utilities.RemoteDevUtilities.Protocol.Logging
+namespace SAS.Utilities.RemoteDevUtilities.Protocol.Logging
 {
     [Serializable]
     public sealed class RemoteLogSettingsRequest

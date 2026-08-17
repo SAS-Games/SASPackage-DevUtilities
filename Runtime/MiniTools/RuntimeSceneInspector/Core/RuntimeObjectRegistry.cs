@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace HP.Utilities.RuntimeSceneInspector.Core
+namespace SAS.Utilities.RuntimeSceneInspector.Core
 {
     public sealed class RuntimeObjectRegistry
     {

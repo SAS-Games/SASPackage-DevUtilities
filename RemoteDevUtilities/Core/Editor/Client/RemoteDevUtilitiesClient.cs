@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
-using HP.Utilities.RemoteDevUtilities.Editor.Connection;
-using HP.Utilities.RemoteDevUtilities.Protocol;
-using HP.Utilities.RemoteDevUtilities.Protocol.Connection;
-using HP.Utilities.RemoteDevUtilities.Protocol.Serialization;
+using SAS.Utilities.RemoteDevUtilities.Editor.Connection;
+using SAS.Utilities.RemoteDevUtilities.Protocol;
+using SAS.Utilities.RemoteDevUtilities.Protocol.Connection;
+using SAS.Utilities.RemoteDevUtilities.Protocol.Serialization;
 using UnityEditor;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.Client
+namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
 {
     internal sealed class RemoteDevUtilitiesClient : IRemoteEditorSession, IDisposable
     {

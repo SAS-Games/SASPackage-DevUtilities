@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace HP.BuildValidation
+namespace SAS.BuildValidation
 {
     public static class ValidationWarningCache
     {

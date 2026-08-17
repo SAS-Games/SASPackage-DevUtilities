@@ -1,6 +1,6 @@
 {
     "name": "DevUtilities.RemoteDevUtilities.Transport.Tcp.Runtime",
-    "rootNamespace": "HP.Utilities.RemoteDevUtilities.Transport.Tcp",
+    "rootNamespace": "SAS.Utilities.RemoteDevUtilities.Transport.Tcp",
     "references": [
         "DevUtilities",
         "DevUtilities.RemoteDevUtilities"

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace HP.Utilities.Presentation
+namespace SAS.Utilities.Presentation
 {
     [AddComponentMenu("Dev Utilities/Presentation")]
     [DisallowMultipleComponent]

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace HP.DevUtilities.Stats
+namespace SAS.DevUtilities.Stats
 {
     /// <summary>
     /// Connects the local Stats collector to the Stats view. The Editor Debug

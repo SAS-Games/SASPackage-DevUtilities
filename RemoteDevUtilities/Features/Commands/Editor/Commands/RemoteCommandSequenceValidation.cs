@@ -1,8 +1,8 @@
 using System;
-using HP.Utilities.RemoteDevUtilities.Editor.Commands.Presentation;
-using HP.Utilities.RemoteDevUtilities.Protocol.Commands;
+using SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation;
+using SAS.Utilities.RemoteDevUtilities.Protocol.Commands;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.Commands.Sequences
+namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Sequences
 {
     internal enum RemoteCommandSequenceStepAvailability
     {

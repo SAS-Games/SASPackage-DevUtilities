@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using HP.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration;
-using HP.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry;
+using SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration;
+using SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry;
 using UnityEditor;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
+namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
 {
     /// <summary>
     /// Resolves definition, project override, and advanced code mappings from

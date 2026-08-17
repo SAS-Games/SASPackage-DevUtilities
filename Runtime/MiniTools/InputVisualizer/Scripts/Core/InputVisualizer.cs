@@ -4,7 +4,7 @@ using UnityEngine;
 // Some fields assigned through only through serialization.
 #pragma warning disable CS0649
 
-namespace HP.Utilities.DeveloperConsole.InputVisualizers
+namespace SAS.Utilities.DeveloperConsole.InputVisualizers
 {
     /// <summary>
     /// Base class for <see cref="InputActionVisualizer"/> and <see cref="InputControlVisualizer"/>.

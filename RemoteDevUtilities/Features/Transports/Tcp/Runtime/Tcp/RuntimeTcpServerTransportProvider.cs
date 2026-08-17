@@ -4,7 +4,7 @@ using UnityEngine.Scripting;
 
 [assembly: AlwaysLinkAssembly]
 
-namespace HP.Utilities.RemoteDevUtilities.Transport.Tcp
+namespace SAS.Utilities.RemoteDevUtilities.Transport.Tcp
 {
     [Preserve]
     [RuntimeRemoteTransportProvider("tcp", 200)]

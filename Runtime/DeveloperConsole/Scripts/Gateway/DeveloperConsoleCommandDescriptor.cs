@@ -1,6 +1,6 @@
 using System;
 
-namespace HP.Utilities.DeveloperConsole
+namespace SAS.Utilities.DeveloperConsole
 {
     [Serializable]
     public sealed class DeveloperConsoleCommandDescriptor

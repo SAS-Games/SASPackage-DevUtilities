@@ -1,23 +1,23 @@
 using System.Collections.Generic;
-using HP.Utilities.RemoteDevUtilities.Editor.Client;
-using HP.Utilities.RemoteDevUtilities.Protocol;
-using HP.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector;
-using HP.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector.Capture;
-using HP.Utilities.RemoteDevUtilities.Protocol.Serialization;
-using RemoteMessageTypes = HP.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector.RemoteSceneInspectorMessageTypes;
+using SAS.Utilities.RemoteDevUtilities.Editor.Client;
+using SAS.Utilities.RemoteDevUtilities.Protocol;
+using SAS.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector;
+using SAS.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector.Capture;
+using SAS.Utilities.RemoteDevUtilities.Protocol.Serialization;
+using RemoteMessageTypes = SAS.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector.RemoteSceneInspectorMessageTypes;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
+namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
 {
     [RemoteEditorFeature("runtime-scene-inspector", 400)]
     internal sealed class RemoteRuntimeSceneInspectorClient : IRemoteEditorFeatureClient
     {
         private static readonly string[] SupportedMessages =
         {
-            RemoteMessageTypes.SceneInspectorHierarchyResponse,
-            RemoteMessageTypes.SceneInspectorInspectResponse,
-            RemoteMessageTypes.SceneInspectorCommandResponse,
-            RemoteMessageTypes.SceneInspectorCaptureResponse,
-            RemoteMessageTypes.SceneInspectorPickResponse
+            RemoteSceneInspectorMessageTypes.SceneInspectorHierarchyResponse,
+            RemoteSceneInspectorMessageTypes.SceneInspectorInspectResponse,
+            RemoteSceneInspectorMessageTypes.SceneInspectorCommandResponse,
+            RemoteSceneInspectorMessageTypes.SceneInspectorCaptureResponse,
+            RemoteSceneInspectorMessageTypes.SceneInspectorPickResponse
         };
 
         private readonly IRemoteEditorSession _session;
@@ -47,7 +47,7 @@ namespace HP.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
 
         public void RequestHierarchy(bool forceRefresh)
         {
-            _session.Send(RemoteMessageTypes.SceneInspectorHierarchyRequest, new RemoteSceneInspectorHierarchyRequest { ForceRefresh = forceRefresh });
+            _session.Send(RemoteSceneInspectorMessageTypes.SceneInspectorHierarchyRequest, new RemoteSceneInspectorHierarchyRequest { ForceRefresh = forceRefresh });
         }
 
         public void OnConnected() => RequestHierarchy(true);
@@ -56,20 +56,20 @@ namespace HP.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
         {
             Inspection = null;
             InspectionObjectId = objectId;
-            _inspectionRequestId = _session.Send(RemoteMessageTypes.SceneInspectorInspectRequest, new RemoteSceneInspectorInspectRequest { ObjectId = objectId });
+            _inspectionRequestId = _session.Send(RemoteSceneInspectorMessageTypes.SceneInspectorInspectRequest, new RemoteSceneInspectorInspectRequest { ObjectId = objectId });
         }
 
         public void Execute(RemoteSceneInspectorCommandRequest command)
         {
             LastCommandResult = null;
-            _session.Send(RemoteMessageTypes.SceneInspectorCommandRequest, command);
+            _session.Send(RemoteSceneInspectorMessageTypes.SceneInspectorCommandRequest, command);
         }
 
         public void RequestCapture(bool freezeWhilePicking, int maximumWidth = 960, int jpegQuality = 70)
         {
             Capture = null;
             LastPickResult = null;
-            _captureRequestId = _session.Send(RemoteMessageTypes.SceneInspectorCaptureRequest,
+            _captureRequestId = _session.Send(RemoteSceneInspectorMessageTypes.SceneInspectorCaptureRequest,
                 new RemoteSceneCaptureRequest
                 {
                     FreezeWhilePicking = freezeWhilePicking,
@@ -81,7 +81,7 @@ namespace HP.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
         public void Pick(long captureId, float normalizedX, float normalizedY)
         {
             LastPickResult = null;
-            _pickRequestId = _session.Send(RemoteMessageTypes.SceneInspectorPickRequest,
+            _pickRequestId = _session.Send(RemoteSceneInspectorMessageTypes.SceneInspectorPickRequest,
                 new RemoteScenePickRequest
                 {
                     CaptureId = captureId,
@@ -96,7 +96,7 @@ namespace HP.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
                 return;
 
             LastPickResult = null;
-            _pickRequestId = _session.Send(RemoteMessageTypes.SceneInspectorPickRequest,
+            _pickRequestId = _session.Send(RemoteSceneInspectorMessageTypes.SceneInspectorPickRequest,
                 new RemoteScenePickRequest { CaptureId = Capture.CaptureId, Cancel = true });
         }
 
@@ -114,17 +114,17 @@ namespace HP.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
         {
             switch (envelope.MessageType)
             {
-                case RemoteMessageTypes.SceneInspectorHierarchyResponse:
+                case RemoteSceneInspectorMessageTypes.SceneInspectorHierarchyResponse:
                     if (RemoteProtocolSerializer.TryDeserializePayload(envelope, out RemoteSceneInspectorHierarchyResponse hierarchy, out _))
                         Hierarchy = hierarchy;
                     break;
-                case RemoteMessageTypes.SceneInspectorInspectResponse:
+                case RemoteSceneInspectorMessageTypes.SceneInspectorInspectResponse:
                     if (envelope.RequestId != _inspectionRequestId)
                         break;
                     if (RemoteProtocolSerializer.TryDeserializePayload(envelope, out RemoteSceneInspectorInspectResponse inspection, out _))
                         Inspection = inspection;
                     break;
-                case RemoteMessageTypes.SceneInspectorCommandResponse:
+                case RemoteSceneInspectorMessageTypes.SceneInspectorCommandResponse:
                     if (RemoteProtocolSerializer.TryDeserializePayload(envelope, out RemoteSceneInspectorCommandResponse commandResult, out _))
                     {
                         LastCommandResult = commandResult;
@@ -136,14 +136,14 @@ namespace HP.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
                     }
 
                     break;
-                case RemoteMessageTypes.SceneInspectorCaptureResponse:
+                case RemoteSceneInspectorMessageTypes.SceneInspectorCaptureResponse:
                     if (envelope.RequestId != _captureRequestId)
                         break;
                     if (RemoteProtocolSerializer.TryDeserializePayload(envelope, out RemoteSceneCaptureResponse capture, out _))
                         Capture = capture;
                     _captureRequestId = 0;
                     break;
-                case RemoteMessageTypes.SceneInspectorPickResponse:
+                case RemoteSceneInspectorMessageTypes.SceneInspectorPickResponse:
                     if (envelope.RequestId != _pickRequestId)
                         break;
                     if (RemoteProtocolSerializer.TryDeserializePayload(envelope, out RemoteScenePickResponse pick, out _))

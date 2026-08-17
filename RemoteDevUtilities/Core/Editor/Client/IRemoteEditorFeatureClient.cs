@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using HP.Utilities.RemoteDevUtilities.Protocol;
+using SAS.Utilities.RemoteDevUtilities.Protocol;
 using UnityEditor;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.Client
+namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
 {
     internal interface IRemoteEditorSession
     {

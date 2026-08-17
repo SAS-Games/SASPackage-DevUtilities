@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace HP.DevUtilities
+namespace SAS.DevUtilities
 {
     /// <summary>
     /// Connects the local particle snapshot provider to the shared view. The

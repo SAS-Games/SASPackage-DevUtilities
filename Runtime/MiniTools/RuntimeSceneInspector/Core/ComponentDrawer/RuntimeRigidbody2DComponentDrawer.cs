@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace HP.Utilities.RuntimeSceneInspector.Core
+namespace SAS.Utilities.RuntimeSceneInspector.Core
 {
     internal sealed class RuntimeRigidbody2DComponentDrawer : RuntimeComponentDrawer<Rigidbody2D>
     {

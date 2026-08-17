@@ -3,7 +3,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace HP.BuildValidation
+namespace SAS.BuildValidation
 {
     [BuildValidation(optional: false, order: 1)]
     public class MissingScriptsValidation : SceneBuildValidationBase

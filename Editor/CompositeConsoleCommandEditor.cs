@@ -1,4 +1,4 @@
-using HP.Utilities.DeveloperConsole;
+using SAS.Utilities.DeveloperConsole;
 using UnityEditor;
 
 [CustomEditor(typeof(ConsoleCommand), true)]

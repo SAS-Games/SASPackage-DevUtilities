@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace HP.DevUtilities
+namespace SAS.DevUtilities
 {
     /// <summary>
     /// Collects and publishes GameInfo snapshots for the local Player prefab.

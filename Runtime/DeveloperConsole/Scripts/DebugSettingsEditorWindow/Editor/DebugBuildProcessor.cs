@@ -4,7 +4,7 @@ using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
 
-namespace HP.Utilities.DeveloperConsole.Editor
+namespace SAS.Utilities.DeveloperConsole.Editor
 {
     public class DebugBuildProcessor : IPreprocessBuildWithReport
     {

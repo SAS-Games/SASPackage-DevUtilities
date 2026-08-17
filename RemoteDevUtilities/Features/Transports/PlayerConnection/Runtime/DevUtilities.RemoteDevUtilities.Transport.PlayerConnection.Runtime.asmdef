@@ -1,6 +1,6 @@
 {
     "name": "DevUtilities.RemoteDevUtilities.Transport.PlayerConnection.Runtime",
-    "rootNamespace": "HP.Utilities.RemoteDevUtilities.Transport",
+    "rootNamespace": "SAS.Utilities.RemoteDevUtilities.Transport",
     "references": [
         "DevUtilities",
         "DevUtilities.RemoteDevUtilities"

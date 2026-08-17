@@ -1,6 +1,6 @@
 using UnityEditor;
 
-namespace HP.Utilities.DeveloperConsole.Editor
+namespace SAS.Utilities.DeveloperConsole.Editor
 {
     public static partial class DefineSymbolsMenu
     {

@@ -2,7 +2,7 @@ using System;
 using UnityEditor;
 using UnityEditor.Build;
 
-namespace HP.Utilities.DeveloperConsole.Editor
+namespace SAS.Utilities.DeveloperConsole.Editor
 {
     public static partial class DefineSymbolsMenu
     {

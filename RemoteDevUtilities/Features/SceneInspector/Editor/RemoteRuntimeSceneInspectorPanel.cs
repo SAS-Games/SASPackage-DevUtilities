@@ -1,11 +1,11 @@
 using System;
-using HP.Utilities.RemoteDevUtilities.Editor.Client;
-using HP.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector.Capture;
-using HP.Utilities.RemoteDevUtilities.Editor.UI;
+using SAS.Utilities.RemoteDevUtilities.Editor.Client;
+using SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector.Capture;
+using SAS.Utilities.RemoteDevUtilities.Editor.UI;
 using UnityEditor;
 using UnityEngine;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
+namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
 {
     [RemoteWorkspacePanel("runtime-scene-inspector", "Runtime Scene Inspector", 400)]
     internal sealed class RemoteRuntimeSceneInspectorPanel : IRemoteWorkspacePanel

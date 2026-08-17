@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using HP.Utilities.DeveloperConsole;
-using HP.Utilities.RemoteDevUtilities.Protocol.Commands;
+using SAS.Utilities.DeveloperConsole;
+using SAS.Utilities.RemoteDevUtilities.Protocol.Commands;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
+namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
 {
     /// <summary>
     /// Converts command arguments into the desired visibility of an Editor mini-tool.

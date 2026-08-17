@@ -1,6 +1,6 @@
 using System;
 
-namespace HP.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector.Capture
+namespace SAS.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector.Capture
 {
     [Serializable]
     public sealed class RemoteSceneCaptureRequest

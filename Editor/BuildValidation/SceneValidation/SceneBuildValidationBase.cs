@@ -3,7 +3,7 @@ using UnityEditor.Build.Reporting;
 using UnityEditor.SceneManagement;
 using UnityEngine.SceneManagement;
 
-namespace HP.BuildValidation
+namespace SAS.BuildValidation
 {
     public abstract class SceneBuildValidationBase : IBuildValidation
     {

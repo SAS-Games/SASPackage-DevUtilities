@@ -1,6 +1,6 @@
-using HP.Utilities.RemoteDevUtilities.Protocol.Connection;
+using SAS.Utilities.RemoteDevUtilities.Protocol.Connection;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.Connection
+namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
 {
     internal sealed class RemoteLanPlayerDescriptor
     {

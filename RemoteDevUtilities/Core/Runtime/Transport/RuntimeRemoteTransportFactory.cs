@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace HP.Utilities.RemoteDevUtilities.Transport
+namespace SAS.Utilities.RemoteDevUtilities.Transport
 {
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     internal sealed class RuntimeRemoteTransportProviderAttribute : Attribute

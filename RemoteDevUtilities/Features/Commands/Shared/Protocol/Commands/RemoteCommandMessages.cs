@@ -1,6 +1,6 @@
 using System;
 
-namespace HP.Utilities.RemoteDevUtilities.Protocol.Commands
+namespace SAS.Utilities.RemoteDevUtilities.Protocol.Commands
 {
     [Serializable]
     public sealed class RemoteCommandCatalogRequest

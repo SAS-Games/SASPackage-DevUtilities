@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using HP.Utilities.RuntimeSceneInspector.Core;
-using HP.Utilities.RuntimeSceneInspector.Input;
+using SAS.Utilities.RuntimeSceneInspector.Core;
+using SAS.Utilities.RuntimeSceneInspector.Input;
 using UnityEngine;
 
-namespace HP.Utilities.RuntimeSceneInspector
+namespace SAS.Utilities.RuntimeSceneInspector
 {
     internal sealed class RuntimeSceneInspectorController : IDisposable
     {

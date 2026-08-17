@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace HP.DevUtilities
+namespace SAS.DevUtilities
 {
     /// <summary>
     /// Connects the local GraphicsInfo snapshot provider to its view. The

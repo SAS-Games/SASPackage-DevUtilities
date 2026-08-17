@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using HP.Utilities.RemoteDevUtilities.Editor.Configuration;
-using HP.Utilities.RemoteDevUtilities.MiniTools;
+using SAS.Utilities.RemoteDevUtilities.Editor.Configuration;
+using SAS.Utilities.RemoteDevUtilities.MiniTools;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
+namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
 {
     /// <summary>
     /// Temporarily adds validated definitions to the build's preloaded assets.

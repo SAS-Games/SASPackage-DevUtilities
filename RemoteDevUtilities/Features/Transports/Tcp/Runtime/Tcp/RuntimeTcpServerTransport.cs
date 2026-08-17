@@ -4,11 +4,11 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using HP.Utilities.RemoteDevUtilities.Protocol;
-using HP.Utilities.RemoteDevUtilities.Protocol.Serialization;
+using SAS.Utilities.RemoteDevUtilities.Protocol;
+using SAS.Utilities.RemoteDevUtilities.Protocol.Serialization;
 using UnityEngine;
 
-namespace HP.Utilities.RemoteDevUtilities.Transport.Tcp
+namespace SAS.Utilities.RemoteDevUtilities.Transport.Tcp
 {
     internal sealed class RuntimeTcpServerTransport : IRuntimeRemoteTransport, IRuntimeTcpEndpoint
     {

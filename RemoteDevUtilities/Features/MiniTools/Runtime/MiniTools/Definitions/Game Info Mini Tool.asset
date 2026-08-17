@@ -18,7 +18,7 @@ MonoBehaviour:
   _updateInterval: 1
   _streamInterval: 0.1
   _providerScriptGuid: 072992e1f5408f4429276236ed32ec82
-  _providerTypeName: HP.Utilities.RemoteDevUtilities.MiniTools.Providers.RuntimeGameInfoMiniToolProvider,
+  _providerTypeName: SAS.Utilities.RemoteDevUtilities.MiniTools.Providers.RuntimeGameInfoMiniToolProvider,
     DevUtilities.RemoteDevUtilities.MiniTools.Runtime
   _command: {fileID: 11400000, guid: 236d96f8432ad2d40abd4e856cf2b242, type: 2}
   _commandName: GameInfo

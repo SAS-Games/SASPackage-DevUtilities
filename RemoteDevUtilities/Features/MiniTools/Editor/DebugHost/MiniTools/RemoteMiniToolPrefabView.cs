@@ -1,16 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using HP.DevUtilities;
-using HP.Utilities.RemoteDevUtilities.MiniTools;
-using HP.Utilities.RemoteDevUtilities.Protocol.MiniTools;
+using SAS.DevUtilities;
+using SAS.Utilities.RemoteDevUtilities.MiniTools;
+using SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.DebugHost.MiniTools
+namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost.MiniTools
 {
     internal sealed class RemoteMiniToolPrefabView : IDisposable
     {

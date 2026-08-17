@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using HP.Utilities.RemoteDevUtilities.MiniTools;
+using SAS.Utilities.RemoteDevUtilities.MiniTools;
 using UnityEditor;
 using UnityEngine;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
+namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
 {
     /// <summary>
     /// Resolves a stable provider script GUID to the current namespace and

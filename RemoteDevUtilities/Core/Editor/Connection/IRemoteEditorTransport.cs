@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using HP.Utilities.RemoteDevUtilities.Editor.Client;
-using HP.Utilities.RemoteDevUtilities.Protocol;
+using SAS.Utilities.RemoteDevUtilities.Editor.Client;
+using SAS.Utilities.RemoteDevUtilities.Protocol;
 using UnityEditor;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.Connection
+namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
 {
     internal static class RemoteEditorTransportIds
     {

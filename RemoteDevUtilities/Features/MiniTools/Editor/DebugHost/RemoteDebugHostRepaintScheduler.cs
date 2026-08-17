@@ -1,7 +1,7 @@
 using UnityEditor;
 using UnityEditorInternal;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.DebugHost
+namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
 {
     /// <summary>
     /// Coalesces live remote presentation repaints. Editor transport callbacks

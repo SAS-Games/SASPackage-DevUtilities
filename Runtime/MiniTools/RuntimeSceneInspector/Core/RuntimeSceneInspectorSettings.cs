@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace HP.Utilities.RuntimeSceneInspector
+namespace SAS.Utilities.RuntimeSceneInspector
 {
     [CreateAssetMenu(fileName = "RuntimeSceneInspectorSettings", menuName = "HP/Dev Utilities/Runtime Scene Inspector Settings")]
     public sealed class RuntimeSceneInspectorSettings : ScriptableObject

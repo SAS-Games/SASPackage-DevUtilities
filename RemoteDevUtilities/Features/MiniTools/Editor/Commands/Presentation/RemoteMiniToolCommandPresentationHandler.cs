@@ -1,11 +1,11 @@
-using HP.Utilities.RemoteDevUtilities.Editor.Client;
-using HP.Utilities.RemoteDevUtilities.Editor.Commands.Presentation;
-using HP.Utilities.RemoteDevUtilities.Editor.MiniTools;
-using HP.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration;
-using HP.Utilities.RemoteDevUtilities.Protocol.Commands;
-using HP.Utilities.RemoteDevUtilities.Protocol.MiniTools;
+using SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation;
+using SAS.Utilities.RemoteDevUtilities.Editor.Client;
+using SAS.Utilities.RemoteDevUtilities.Editor.MiniTools;
+using SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration;
+using SAS.Utilities.RemoteDevUtilities.Protocol.Commands;
+using SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
+namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
 {
     [RemoteCommandPresentationHandler(300)]
     internal sealed class RemoteMiniToolCommandPresentationHandler : IRemoteCommandPresentationHandler

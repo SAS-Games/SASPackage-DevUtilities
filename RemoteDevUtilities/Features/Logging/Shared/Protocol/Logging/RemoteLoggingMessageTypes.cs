@@ -1,4 +1,4 @@
-namespace HP.Utilities.RemoteDevUtilities.Protocol.Logging
+namespace SAS.Utilities.RemoteDevUtilities.Protocol.Logging
 {
     public static class RemoteLoggingMessageTypes
     {

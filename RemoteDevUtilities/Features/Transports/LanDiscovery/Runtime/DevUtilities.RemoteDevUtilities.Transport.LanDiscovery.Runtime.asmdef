@@ -1,6 +1,6 @@
 {
     "name": "DevUtilities.RemoteDevUtilities.Transport.LanDiscovery.Runtime",
-    "rootNamespace": "HP.Utilities.RemoteDevUtilities.Transport.LanDiscovery",
+    "rootNamespace": "SAS.Utilities.RemoteDevUtilities.Transport.LanDiscovery",
     "references": [
         "DevUtilities",
         "DevUtilities.RemoteDevUtilities"

@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace HP.Utilities.DeveloperConsole
+namespace SAS.Utilities.DeveloperConsole
 {
     public abstract class ConsoleCommand : ScriptableObject, IConsoleCommand
     {

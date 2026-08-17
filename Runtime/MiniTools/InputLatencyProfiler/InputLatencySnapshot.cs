@@ -1,5 +1,5 @@
 using System;
-using HP.DevUtilities;
+using SAS.DevUtilities;
 
 [Serializable]
 public struct InputLatencyMetricSnapshot

@@ -1,6 +1,6 @@
 {
     "name": "DevUtilities.RemoteDevUtilities.Logging.Editor",
-    "rootNamespace": "HP.Utilities.RemoteDevUtilities.Editor.Logging",
+    "rootNamespace": "SAS.Utilities.RemoteDevUtilities.Editor.Logging",
     "references": [
         "DevUtilities",
         "DevUtilities.RemoteDevUtilities",

@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
-using HP.Utilities.RemoteDevUtilities.Editor.Client;
-using HP.Utilities.RemoteDevUtilities.Editor.UI.Panels;
+using SAS.Utilities.RemoteDevUtilities.Editor.Client;
+using SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels;
 using UnityEditor;
 using UnityEditor.Networking.PlayerConnection;
 using UnityEngine;
 using UnityEngine.Networking.PlayerConnection;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.Connection
+namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
 {
     [RemoteConnectionPanelContribution(RemoteEditorTransportIds.PlayerConnection, "Unity Players", 100)]
     internal sealed class PlayerConnectionPanelContribution : IRemoteConnectionPanelContribution

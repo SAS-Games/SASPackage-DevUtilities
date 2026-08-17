@@ -1,4 +1,4 @@
-namespace HP.Utilities.RemoteDevUtilities.Transport
+namespace SAS.Utilities.RemoteDevUtilities.Transport
 {
     internal interface IRuntimeTcpEndpoint
     {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace HP.Utilities.RuntimeSceneInspector.Core
+namespace SAS.Utilities.RuntimeSceneInspector.Core
 {
     public interface IRuntimeShaderMetadataCache
     {

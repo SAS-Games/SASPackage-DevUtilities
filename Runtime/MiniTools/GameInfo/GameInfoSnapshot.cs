@@ -1,6 +1,6 @@
 using System;
 
-namespace HP.DevUtilities
+namespace SAS.DevUtilities
 {
     /// <summary>
     /// Recoverable snapshot of the running game and Unity version.

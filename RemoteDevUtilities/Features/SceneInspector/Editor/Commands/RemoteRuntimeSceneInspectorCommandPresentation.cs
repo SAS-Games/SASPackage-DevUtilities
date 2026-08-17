@@ -1,9 +1,9 @@
 using System;
-using HP.Utilities.DeveloperConsole;
-using HP.Utilities.RemoteDevUtilities.DebugHost;
-using HP.Utilities.RemoteDevUtilities.Editor.Client;
+using SAS.Utilities.DeveloperConsole;
+using SAS.Utilities.RemoteDevUtilities.DebugHost;
+using SAS.Utilities.RemoteDevUtilities.Editor.Client;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
+namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
 {
     [RemoteCommandPresentationHandler(400)]
     internal sealed class RemoteRuntimeSceneInspectorCommandPresentation : IRemoteCommandPresentationHandler

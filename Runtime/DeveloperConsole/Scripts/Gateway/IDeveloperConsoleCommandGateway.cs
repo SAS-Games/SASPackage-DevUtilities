@@ -1,6 +1,6 @@
 using System;
 
-namespace HP.Utilities.DeveloperConsole
+namespace SAS.Utilities.DeveloperConsole
 {
     /// <summary>
     /// Supplies a Developer Console with commands from an optional external

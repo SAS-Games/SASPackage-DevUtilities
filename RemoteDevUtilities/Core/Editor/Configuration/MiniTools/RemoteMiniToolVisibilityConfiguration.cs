@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using HP.Utilities.RemoteDevUtilities.Protocol.Commands;
+using SAS.Utilities.RemoteDevUtilities.Protocol.Commands;
 using UnityEngine;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
+namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
 {
     [Serializable]
     internal sealed class RemoteMiniToolKnownCommand

@@ -1,8 +1,8 @@
 using System;
-using HP.Utilities.Presentation;
+using SAS.Utilities.Presentation;
 using UnityEngine;
 
-namespace HP.Utilities.RemoteDevUtilities.Presentation
+namespace SAS.Utilities.RemoteDevUtilities.Presentation
 {
     /// <summary>
     /// Translates Remote Dev Utilities session policy into a generic core

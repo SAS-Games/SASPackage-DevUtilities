@@ -2,7 +2,7 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 
-namespace HP.BuildValidation
+namespace SAS.BuildValidation
 {
     public static class BuildValidationSettingsProvider
     {

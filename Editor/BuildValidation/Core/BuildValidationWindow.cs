@@ -2,7 +2,7 @@ using System;
 using UnityEditor;
 using UnityEngine;
 
-namespace HP.BuildValidation
+namespace SAS.BuildValidation
 {
     public class BuildValidationWindow : EditorWindow
     {

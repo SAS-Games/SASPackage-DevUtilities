@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using HP.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration;
-using HP.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry;
+using SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration;
+using SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry;
 using UnityEditor;
 using UnityEngine;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.DebugHost.MiniTools
+namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost.MiniTools
 {
     internal readonly struct RemoteMiniToolPrefabDefinition
     {

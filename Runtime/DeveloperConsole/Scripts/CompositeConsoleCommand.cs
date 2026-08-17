@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Serialization;
 using System.Reflection;
 
-namespace HP.Utilities.DeveloperConsole
+namespace SAS.Utilities.DeveloperConsole
 {
     public abstract class CompositeConsoleCommand : ConsoleCommand
     {

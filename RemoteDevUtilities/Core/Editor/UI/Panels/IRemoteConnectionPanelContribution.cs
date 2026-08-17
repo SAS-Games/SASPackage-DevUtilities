@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using HP.Utilities.RemoteDevUtilities.Editor.Client;
+using SAS.Utilities.RemoteDevUtilities.Editor.Client;
 using UnityEditor;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.UI.Panels
+namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
 {
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     internal sealed class RemoteConnectionPanelContributionAttribute : Attribute

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
+namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
 {
     [Serializable]
     internal sealed class RemoteMiniToolPresentationOverride

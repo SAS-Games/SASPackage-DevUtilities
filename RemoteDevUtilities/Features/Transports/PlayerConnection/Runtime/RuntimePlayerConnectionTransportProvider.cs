@@ -3,7 +3,7 @@ using UnityEngine.Scripting;
 
 [assembly: AlwaysLinkAssembly]
 
-namespace HP.Utilities.RemoteDevUtilities.Transport
+namespace SAS.Utilities.RemoteDevUtilities.Transport
 {
     [Preserve]
     [RuntimeRemoteTransportProvider("player-connection", 100)]

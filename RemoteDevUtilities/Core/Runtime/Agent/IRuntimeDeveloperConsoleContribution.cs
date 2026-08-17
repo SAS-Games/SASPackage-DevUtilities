@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using RuntimeConsole = HP.Utilities.DeveloperConsole.DeveloperConsole;
+using RuntimeConsole = SAS.Utilities.DeveloperConsole.DeveloperConsole;
 
-namespace HP.Utilities.RemoteDevUtilities.Commands
+namespace SAS.Utilities.RemoteDevUtilities.Commands
 {
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     internal sealed class RuntimeDeveloperConsoleContributionAttribute : Attribute
@@ -13,12 +13,12 @@ namespace HP.Utilities.RemoteDevUtilities.Commands
 
     internal interface IRuntimeDeveloperConsoleContribution
     {
-        void Configure(RuntimeConsole console);
+        void Configure(DeveloperConsole.DeveloperConsole console);
     }
 
     internal static class RuntimeDeveloperConsoleContributionRegistry
     {
-        internal static void Configure(RuntimeConsole console)
+        internal static void Configure(DeveloperConsole.DeveloperConsole console)
         {
             if (console == null)
                 return;

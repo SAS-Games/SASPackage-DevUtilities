@@ -1,6 +1,6 @@
 {
     "name": "DevUtilities.RemoteDevUtilities.Commands.Protocol",
-    "rootNamespace": "HP.Utilities.RemoteDevUtilities.Protocol.Commands",
+    "rootNamespace": "SAS.Utilities.RemoteDevUtilities.Protocol.Commands",
     "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],

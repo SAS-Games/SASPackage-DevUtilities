@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
-using HP.Utilities.RemoteDevUtilities.Protocol;
-using HP.Utilities.RemoteDevUtilities.Protocol.Serialization;
+using SAS.Utilities.RemoteDevUtilities.Protocol;
+using SAS.Utilities.RemoteDevUtilities.Protocol.Serialization;
 using UnityEditor.Networking.PlayerConnection;
 using UnityEngine;
 using UnityEngine.Networking.PlayerConnection;
 using Object = UnityEngine.Object;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.Connection
+namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
 {
     internal sealed class EditorPlayerConnectionTransport : IRemoteEditorTransport, IRemoteEditorPlayerTransport
     {

@@ -2,7 +2,7 @@ using System;
 using UnityEditor;
 using UnityEngine;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.DebugHost
+namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
 {
     /// <summary>
     /// Per-user Editor workflow preferences for the Debug Host. The asset is

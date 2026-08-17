@@ -1,6 +1,6 @@
-using HP.Utilities.RemoteDevUtilities.Editor.Client;
+using SAS.Utilities.RemoteDevUtilities.Editor.Client;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.Commands
+namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands
 {
     internal sealed class RemoteCommandExecutionResult
     {

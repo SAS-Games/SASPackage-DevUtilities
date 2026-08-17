@@ -1,7 +1,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace HP.Utilities.DeveloperConsole.Editor
+namespace SAS.Utilities.DeveloperConsole.Editor
 {
     public class DebugSettingsWindow : EditorWindow
     {

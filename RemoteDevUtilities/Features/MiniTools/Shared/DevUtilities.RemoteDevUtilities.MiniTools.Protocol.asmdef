@@ -1,6 +1,6 @@
 {
     "name": "DevUtilities.RemoteDevUtilities.MiniTools.Protocol",
-    "rootNamespace": "HP.Utilities.RemoteDevUtilities.Protocol.MiniTools",
+    "rootNamespace": "SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools",
     "references": [
         "DevUtilities",
         "DevUtilities.RemoteDevUtilities"

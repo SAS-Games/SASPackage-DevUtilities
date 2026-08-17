@@ -1,7 +1,7 @@
-using HP.Utilities.DeveloperConsole;
+using SAS.Utilities.DeveloperConsole;
 using UnityEngine;
 
-namespace HP.Utilities.RemoteDevUtilities.Commands
+namespace SAS.Utilities.RemoteDevUtilities.Commands
 {
     internal static class RuntimeDeveloperConsoleProvider
     {

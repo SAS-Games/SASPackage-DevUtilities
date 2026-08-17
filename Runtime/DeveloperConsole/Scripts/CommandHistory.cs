@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace HP.Utilities.DeveloperConsole
+namespace SAS.Utilities.DeveloperConsole
 {
     public class CommandHistory
     {
@@ -48,7 +48,7 @@ namespace HP.Utilities.DeveloperConsole
 
             _index++;
             if (_index >= _history.Count)
-                _index = 0; 
+                _index = 0;
 
             return _history[_index];
         }

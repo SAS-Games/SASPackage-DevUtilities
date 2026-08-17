@@ -4,7 +4,7 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 
-namespace HP
+namespace SAS
 {
     public class OnScreenLogUI : MonoBehaviour
     {

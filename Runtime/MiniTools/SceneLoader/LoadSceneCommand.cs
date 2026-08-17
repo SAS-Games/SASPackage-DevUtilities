@@ -4,7 +4,7 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace HP.Utilities.DeveloperConsole
+namespace SAS.Utilities.DeveloperConsole
 {
     [CreateAssetMenu(fileName = "Load Scene Command", menuName = DeveloperConsole.CommandBasePath + "Load Scene Command")]
     public class LoadSceneCommand : ConsoleCommand
@@ -61,7 +61,7 @@ namespace HP.Utilities.DeveloperConsole
             string requestedScene = string.Join(" ", args).Trim();
             if (!TryResolveScene(requestedScene, out string scenePath))
                 return false;
-            
+
 
             Debug.Log($"Loading scene '{scenePath}'.");
             SceneManager.LoadScene(scenePath, LoadSceneMode.Single);
@@ -136,12 +136,12 @@ namespace HP.Utilities.DeveloperConsole
                 string sceneName = GetSceneName(scenePath);
                 if (!sceneName.Equals(normalizedRequestedScene, StringComparison.OrdinalIgnoreCase))
                     continue;
-                
+
                 resolvedScenePath = scenePath;
                 return true;
             }
 
-           
+
             Debug.LogWarning($"Scene '{trimmedScene}' was not found in build settings.");
             return false;
         }

@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace HP.DevUtilities
+namespace SAS.DevUtilities
 {
     /// <summary>
     /// Reusable component base for mini-tool collectors that publish immutable

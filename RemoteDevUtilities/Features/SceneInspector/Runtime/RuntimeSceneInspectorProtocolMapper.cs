@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using HP.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector;
-using HP.Utilities.RuntimeSceneInspector.Core;
+using SAS.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector;
+using SAS.Utilities.RuntimeSceneInspector.Core;
 
-namespace HP.Utilities.RemoteDevUtilities.RuntimeSceneInspector
+namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector
 {
     internal static class RuntimeSceneInspectorProtocolMapper
     {

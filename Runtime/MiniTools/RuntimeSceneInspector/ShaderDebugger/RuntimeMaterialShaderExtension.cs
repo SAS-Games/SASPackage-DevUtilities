@@ -5,7 +5,7 @@ using System.Linq;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace HP.Utilities.RuntimeSceneInspector.Core
+namespace SAS.Utilities.RuntimeSceneInspector.Core
 {
     /// <summary>
     /// Adds the in-build material/shader section. The default edit path uses a material property block,

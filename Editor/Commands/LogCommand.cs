@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace HP.Utilities.DeveloperConsole
+namespace SAS.Utilities.DeveloperConsole
 {
     [CreateAssetMenu(fileName = "New Log Command", menuName =  DeveloperConsole.CommandBasePath + "Log Command")]
     public class LogCommand : ConsoleCommand

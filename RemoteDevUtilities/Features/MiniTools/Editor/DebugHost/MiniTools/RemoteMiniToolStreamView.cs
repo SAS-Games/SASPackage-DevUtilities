@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using HP.DevUtilities;
-using HP.Utilities.RemoteDevUtilities.Protocol.MiniTools;
+using SAS.DevUtilities;
+using SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools;
 using UnityEngine;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.DebugHost.MiniTools
+namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost.MiniTools
 {
     internal interface IRemoteMiniToolStreamView
     {

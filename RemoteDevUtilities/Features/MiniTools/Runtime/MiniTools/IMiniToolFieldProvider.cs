@@ -1,7 +1,7 @@
-using HP.Utilities.RemoteDevUtilities.Protocol.MiniTools;
+using SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools;
 using UnityEngine.Scripting;
 
-namespace HP.Utilities.RemoteDevUtilities.MiniTools
+namespace SAS.Utilities.RemoteDevUtilities.MiniTools
 {
     /// <summary>
     /// Optional provider capability for data rendered by Native Workspace.

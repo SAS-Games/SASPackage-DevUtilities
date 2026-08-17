@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using HP.Utilities.RemoteDevUtilities.Agent;
-using HP.Utilities.RemoteDevUtilities.Protocol;
-using HP.Utilities.RemoteDevUtilities.Protocol.Logging;
+using SAS.Utilities.RemoteDevUtilities.Agent;
+using SAS.Utilities.RemoteDevUtilities.Protocol;
+using SAS.Utilities.RemoteDevUtilities.Protocol.Logging;
 using UnityEngine;
 using UnityEngine.Scripting;
 
-namespace HP.Utilities.RemoteDevUtilities.Logging
+namespace SAS.Utilities.RemoteDevUtilities.Logging
 {
     [Preserve]
     [RuntimeRemoteEndpoint("logging", 200)]
@@ -33,7 +33,7 @@ namespace HP.Utilities.RemoteDevUtilities.Logging
         {
             _context = context;
             _maxQueuedLogs = context.Settings.MaxQueuedLogs;
-            HP.Debug.LogLevelsChanged += OnLogLevelsChanged;
+            Debug.LogLevelsChanged += OnLogLevelsChanged;
             if (context.Settings.StreamLogs)
                 Application.logMessageReceivedThreaded += OnLog;
         }
@@ -73,7 +73,7 @@ namespace HP.Utilities.RemoteDevUtilities.Logging
 
         public void Dispose()
         {
-            HP.Debug.LogLevelsChanged -= OnLogLevelsChanged;
+            Debug.LogLevelsChanged -= OnLogLevelsChanged;
             Application.logMessageReceivedThreaded -= OnLog;
             lock (_queueLock)
                 _queue.Clear();
@@ -101,9 +101,9 @@ namespace HP.Utilities.RemoteDevUtilities.Logging
         {
             _context.Sender.Send(RemoteLoggingMessageTypes.SettingsResponse, requestId, new RemoteLogSettingsResponse
             {
-                InfoEnabled = HP.Debug.IsLogLevelEnabled(HP.LogLevel.Info),
-                WarningEnabled = HP.Debug.IsLogLevelEnabled(HP.LogLevel.Warning),
-                ErrorEnabled = HP.Debug.IsLogLevelEnabled(HP.LogLevel.Error)
+                InfoEnabled = Debug.IsLogLevelEnabled(LogLevel.Info),
+                WarningEnabled = Debug.IsLogLevelEnabled(LogLevel.Warning),
+                ErrorEnabled = Debug.IsLogLevelEnabled(LogLevel.Error)
             });
         }
 

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace HP.BuildValidation
+namespace SAS.BuildValidation
 {
     public class ValidationIssue
     {

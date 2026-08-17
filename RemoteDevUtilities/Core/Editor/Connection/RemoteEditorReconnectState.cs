@@ -1,6 +1,6 @@
 using System;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.Connection
+namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
 {
     [Serializable]
     internal sealed class RemoteEditorReconnectState

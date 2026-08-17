@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace HP.Utilities.DeveloperConsole
+namespace SAS.Utilities.DeveloperConsole
 {
     [CreateAssetMenu(fileName = "New SetTimeScale Command", menuName = DeveloperConsole.CommandBasePath + "SetTimeScale")]
     public class TimeScaleCommand : ConsoleCommand

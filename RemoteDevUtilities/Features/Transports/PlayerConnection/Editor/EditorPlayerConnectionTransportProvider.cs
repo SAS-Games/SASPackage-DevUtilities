@@ -1,4 +1,4 @@
-namespace HP.Utilities.RemoteDevUtilities.Editor.Connection
+namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
 {
     [RemoteEditorTransportProvider(RemoteEditorTransportIds.PlayerConnection, 100)]
     internal sealed class EditorPlayerConnectionTransportProvider : IRemoteEditorTransportProvider

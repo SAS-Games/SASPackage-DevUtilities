@@ -1,6 +1,6 @@
 {
     "name": "DevUtilities.RemoteDevUtilities",
-    "rootNamespace": "HP.Utilities.RemoteDevUtilities",
+    "rootNamespace": "SAS.Utilities.RemoteDevUtilities",
     "references": [
         "GUID:cfbcb856ed571e04480857f2fe81e499",
         "GUID:373a1572e0714ca44b6d57809b2e2f59",

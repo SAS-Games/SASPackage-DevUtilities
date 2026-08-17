@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace HP.Utilities.DeveloperConsole
+namespace SAS.Utilities.DeveloperConsole
 {
     public class CommandSuggester
     {

@@ -1,13 +1,13 @@
-using HP.Utilities.RemoteDevUtilities.Commands;
+using SAS.Utilities.RemoteDevUtilities.Commands;
 using UnityEngine.Scripting;
-using RuntimeConsole = HP.Utilities.DeveloperConsole.DeveloperConsole;
+using RuntimeConsole = SAS.Utilities.DeveloperConsole.DeveloperConsole;
 
-namespace HP.Utilities.RemoteDevUtilities.MiniTools
+namespace SAS.Utilities.RemoteDevUtilities.MiniTools
 {
     [Preserve]
     [RuntimeDeveloperConsoleContribution(300)]
     internal sealed class RemoteMiniToolConsoleContribution : IRuntimeDeveloperConsoleContribution
     {
-        public void Configure(RuntimeConsole console) => MiniToolRuntimeRegistry.RegisterCommands(console);
+        public void Configure(DeveloperConsole.DeveloperConsole console) => MiniToolRuntimeRegistry.RegisterCommands(console);
     }
 }

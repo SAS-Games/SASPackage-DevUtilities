@@ -6,7 +6,7 @@ using UnityEditor;
 using UnityEditor.Compilation;
 using UnityEngine;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.MiniTools.Scaffolding
+namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Scaffolding
 {
     internal static class MiniToolScaffoldGenerator
     {

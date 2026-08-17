@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.Commands.Sequences
+namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Sequences
 {
     public enum RemoteCommandUnavailablePolicy
     {

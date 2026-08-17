@@ -1,6 +1,6 @@
 using UnityEditor.Build.Reporting;
 
-namespace HP.BuildValidation
+namespace SAS.BuildValidation
 {
     public interface IBuildValidation
     {

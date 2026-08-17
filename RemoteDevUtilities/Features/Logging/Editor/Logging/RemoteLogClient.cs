@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using HP.Utilities.RemoteDevUtilities.Editor.Client;
-using HP.Utilities.RemoteDevUtilities.Protocol;
-using HP.Utilities.RemoteDevUtilities.Protocol.Logging;
-using HP.Utilities.RemoteDevUtilities.Protocol.Serialization;
+using SAS.Utilities.RemoteDevUtilities.Editor.Client;
+using SAS.Utilities.RemoteDevUtilities.Protocol;
+using SAS.Utilities.RemoteDevUtilities.Protocol.Logging;
+using SAS.Utilities.RemoteDevUtilities.Protocol.Serialization;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.Logging
+namespace SAS.Utilities.RemoteDevUtilities.Editor.Logging
 {
     [RemoteEditorFeature("logging", 200)]
     internal sealed class RemoteLogClient : IRemoteEditorFeatureClient

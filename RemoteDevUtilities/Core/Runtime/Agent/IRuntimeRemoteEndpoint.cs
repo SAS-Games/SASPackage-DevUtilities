@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using HP.Utilities.RemoteDevUtilities.Protocol;
+using SAS.Utilities.RemoteDevUtilities.Protocol;
 
-namespace HP.Utilities.RemoteDevUtilities.Agent
+namespace SAS.Utilities.RemoteDevUtilities.Agent
 {
     internal interface IRuntimeRemoteSender
     {
@@ -80,14 +80,10 @@ namespace HP.Utilities.RemoteDevUtilities.Agent
             return endpoints;
         }
 
-        private static int Compare(
-            (RuntimeRemoteEndpointAttribute Attribute, Type Type) left,
-            (RuntimeRemoteEndpointAttribute Attribute, Type Type) right)
+        private static int Compare((RuntimeRemoteEndpointAttribute Attribute, Type Type) left, (RuntimeRemoteEndpointAttribute Attribute, Type Type) right)
         {
             int order = left.Attribute.Order.CompareTo(right.Attribute.Order);
-            return order != 0
-                ? order
-                : string.Compare(left.Type.FullName, right.Type.FullName, StringComparison.Ordinal);
+            return order != 0 ? order : string.Compare(left.Type.FullName, right.Type.FullName, StringComparison.Ordinal);
         }
 
         private static IEnumerable<Type> GetLoadableTypes(Assembly assembly)

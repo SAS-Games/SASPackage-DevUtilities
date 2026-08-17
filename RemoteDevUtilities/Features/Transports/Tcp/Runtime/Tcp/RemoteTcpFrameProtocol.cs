@@ -1,8 +1,8 @@
 using System;
 using System.IO;
-using HP.Utilities.RemoteDevUtilities.Protocol;
+using SAS.Utilities.RemoteDevUtilities.Protocol;
 
-namespace HP.Utilities.RemoteDevUtilities.Transport.Tcp
+namespace SAS.Utilities.RemoteDevUtilities.Transport.Tcp
 {
     internal static class RemoteTcpFrameProtocol
     {

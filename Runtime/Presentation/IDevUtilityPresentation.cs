@@ -1,4 +1,4 @@
-namespace HP.Utilities.Presentation
+namespace SAS.Utilities.Presentation
 {
     /// <summary>
     /// A Dev Utilities presentation that preserves requested visibility while

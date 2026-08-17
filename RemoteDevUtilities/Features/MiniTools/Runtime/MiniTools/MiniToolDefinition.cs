@@ -1,11 +1,11 @@
 using System;
 using System.Reflection;
-using HP.Utilities.DeveloperConsole;
-using HP.Utilities.RemoteDevUtilities.Protocol.Commands;
-using HP.Utilities.RemoteDevUtilities.Protocol.MiniTools;
+using SAS.Utilities.DeveloperConsole;
+using SAS.Utilities.RemoteDevUtilities.Protocol.Commands;
+using SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools;
 using UnityEngine;
 
-namespace HP.Utilities.RemoteDevUtilities.MiniTools
+namespace SAS.Utilities.RemoteDevUtilities.MiniTools
 {
     /// <summary>
     /// The single registration record shared by the Player, Native Workspace,

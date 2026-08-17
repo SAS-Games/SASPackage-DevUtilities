@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 
-namespace HP.BuildValidation
+namespace SAS.BuildValidation
 {
     public static class BuildValidationRegistry
     {

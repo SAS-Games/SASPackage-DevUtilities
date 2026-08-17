@@ -1,6 +1,6 @@
 {
     "name": "DevUtilities.RemoteDevUtilities.Commands.Editor",
-    "rootNamespace": "HP.Utilities.RemoteDevUtilities.Editor.Commands",
+    "rootNamespace": "SAS.Utilities.RemoteDevUtilities.Editor.Commands",
     "references": [
         "DevUtilities",
         "DevUtilities.RemoteDevUtilities",

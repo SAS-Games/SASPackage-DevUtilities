@@ -18,7 +18,7 @@ MonoBehaviour:
   _updateInterval: 0.5
   _streamInterval: 0.05
   _providerScriptGuid: 75868bd677d84fb9835fd08bee6dd91f
-  _providerTypeName: HP.Utilities.RemoteDevUtilities.MiniTools.Providers.RuntimeGamepadInputVisualizerMiniToolProvider,
+  _providerTypeName: SAS.Utilities.RemoteDevUtilities.MiniTools.Providers.RuntimeGamepadInputVisualizerMiniToolProvider,
     DevUtilities.RemoteDevUtilities.MiniTools.Runtime
   _command: {fileID: 11400000, guid: abd94a4eb70f4084b86fc794f8055e24, type: 2}
   _commandName: InputVisualizer.Gamepad

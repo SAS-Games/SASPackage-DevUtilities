@@ -18,7 +18,7 @@ MonoBehaviour:
   _updateInterval: 2
   _streamInterval: 0.1
   _providerScriptGuid: 391b5ca3edd66294e9814c35781fe8bd
-  _providerTypeName: HP.Utilities.RemoteDevUtilities.MiniTools.Providers.RuntimeGraphicsInfoMiniToolProvider,
+  _providerTypeName: SAS.Utilities.RemoteDevUtilities.MiniTools.Providers.RuntimeGraphicsInfoMiniToolProvider,
     DevUtilities.RemoteDevUtilities.MiniTools.Runtime
   _command: {fileID: 11400000, guid: 2866690c879503b4ba21fbd27ea85ea6, type: 2}
   _commandName: GraphicsInfo

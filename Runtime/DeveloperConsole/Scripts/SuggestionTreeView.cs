@@ -4,7 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace HP.Utilities.DeveloperConsole
+namespace SAS.Utilities.DeveloperConsole
 {
     [RequireComponent(typeof(ScrollSnapper))]
     public class SuggestionTreeView : SuggestionView
@@ -126,7 +126,7 @@ namespace HP.Utilities.DeveloperConsole
             if (_currentlyExpanded != null && _currentlyExpanded != presetContainer.gameObject)
                 _currentlyExpanded.SetActive(false);
 
-            // Toggle current one                                                   
+            // Toggle current one
             bool isActive = presetContainer.gameObject.activeSelf;
             presetContainer.gameObject.SetActive(!isActive);
             _currentlyExpanded = presetContainer.gameObject.activeSelf ? presetContainer.gameObject : null;

@@ -1,7 +1,7 @@
-using HP.Utilities.RemoteDevUtilities.Editor.Client;
-using HP.Utilities.RemoteDevUtilities.Editor.DebugHost.MiniTools;
+using SAS.Utilities.RemoteDevUtilities.Editor.Client;
+using SAS.Utilities.RemoteDevUtilities.Editor.DebugHost.MiniTools;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.DebugHost
+namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
 {
     [RemoteDebugHostContribution(200)]
     internal sealed class RemoteMiniToolDebugHostContribution : IRemoteDebugHostContribution

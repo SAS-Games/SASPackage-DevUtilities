@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
+namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
 {
     internal static class RemoteInspectorFormatting
     {

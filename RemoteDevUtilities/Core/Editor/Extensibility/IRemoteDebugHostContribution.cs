@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using HP.Utilities.RemoteDevUtilities.Editor.Client;
+using SAS.Utilities.RemoteDevUtilities.Editor.Client;
 using UnityEditor;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.DebugHost
+namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
 {
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     internal sealed class RemoteDebugHostContributionAttribute : Attribute

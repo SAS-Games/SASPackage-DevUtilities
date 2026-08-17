@@ -1,9 +1,9 @@
-using HP.DevUtilities;
-using HP.Utilities.RemoteDevUtilities.Protocol.MiniTools;
+using SAS.DevUtilities;
+using SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools;
 using UnityEngine;
 using UnityEngine.Scripting;
 
-namespace HP.Utilities.RemoteDevUtilities.MiniTools.Providers
+namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
 {
     /// <summary>
     /// Publishes FrameStepper state and applies its registered controls inside

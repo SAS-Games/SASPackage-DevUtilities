@@ -1,7 +1,7 @@
 using Unity.Profiling;
 using UnityEngine;
 
-namespace HP.DevUtilities
+namespace SAS.DevUtilities
 {
     /// <summary>
     /// Periodically publishes particle statistics for the local Player

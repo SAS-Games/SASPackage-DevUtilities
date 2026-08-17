@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace HP.Utilities.RemoteDevUtilities.Protocol.Commands
+namespace SAS.Utilities.RemoteDevUtilities.Protocol.Commands
 {
     /// <summary>
     /// Controls how a command is routed between the game build and its Editor tool.

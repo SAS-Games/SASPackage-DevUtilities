@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using HP.Utilities.DeveloperConsole;
-using HP.Utilities.RemoteDevUtilities.MiniTools;
+using SAS.Utilities.DeveloperConsole;
+using SAS.Utilities.RemoteDevUtilities.MiniTools;
 using UnityEditor;
 using UnityEngine;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
+namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
 {
     [CustomEditor(typeof(MiniToolDefinition))]
     internal sealed class MiniToolDefinitionEditor : UnityEditor.Editor

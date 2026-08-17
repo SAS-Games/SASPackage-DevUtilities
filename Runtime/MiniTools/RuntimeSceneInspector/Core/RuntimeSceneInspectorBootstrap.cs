@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace HP.Utilities.RuntimeSceneInspector
+namespace SAS.Utilities.RuntimeSceneInspector
 {
     internal static class RuntimeSceneInspectorBootstrap
     {

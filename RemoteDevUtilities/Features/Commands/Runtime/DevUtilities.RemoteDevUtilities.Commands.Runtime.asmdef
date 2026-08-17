@@ -1,6 +1,6 @@
 {
     "name": "DevUtilities.RemoteDevUtilities.Commands.Runtime",
-    "rootNamespace": "HP.Utilities.RemoteDevUtilities.Commands",
+    "rootNamespace": "SAS.Utilities.RemoteDevUtilities.Commands",
     "references": [
         "DevUtilities",
         "DevUtilities.RemoteDevUtilities",

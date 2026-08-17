@@ -1,15 +1,15 @@
 using System.Collections.Generic;
-using HP.Utilities.RemoteDevUtilities.Agent;
-using HP.Utilities.RemoteDevUtilities.Protocol;
-using HP.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector;
-using HP.Utilities.RemoteDevUtilities.Protocol.Serialization;
-using HP.Utilities.RemoteDevUtilities.RuntimeSceneInspector.Capture;
-using HP.Utilities.RuntimeSceneInspector;
-using HP.Utilities.RuntimeSceneInspector.Core;
+using SAS.Utilities.RemoteDevUtilities.Agent;
+using SAS.Utilities.RemoteDevUtilities.Protocol;
+using SAS.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector;
+using SAS.Utilities.RemoteDevUtilities.Protocol.Serialization;
+using SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector.Capture;
+using SAS.Utilities.RuntimeSceneInspector;
+using SAS.Utilities.RuntimeSceneInspector.Core;
 using UnityEngine.Scripting;
-using RemoteMessageTypes = HP.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector.RemoteSceneInspectorMessageTypes;
+using RemoteMessageTypes = SAS.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector.RemoteSceneInspectorMessageTypes;
 
-namespace HP.Utilities.RemoteDevUtilities.RuntimeSceneInspector
+namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector
 {
     [Preserve]
     [RuntimeRemoteEndpoint("runtime-scene-inspector", 400)]
@@ -17,11 +17,11 @@ namespace HP.Utilities.RemoteDevUtilities.RuntimeSceneInspector
     {
         private static readonly string[] SupportedMessages =
         {
-            RemoteMessageTypes.SceneInspectorHierarchyRequest,
-            RemoteMessageTypes.SceneInspectorInspectRequest,
-            RemoteMessageTypes.SceneInspectorCommandRequest,
-            RemoteMessageTypes.SceneInspectorCaptureRequest,
-            RemoteMessageTypes.SceneInspectorPickRequest
+            RemoteSceneInspectorMessageTypes.SceneInspectorHierarchyRequest,
+            RemoteSceneInspectorMessageTypes.SceneInspectorInspectRequest,
+            RemoteSceneInspectorMessageTypes.SceneInspectorCommandRequest,
+            RemoteSceneInspectorMessageTypes.SceneInspectorCaptureRequest,
+            RemoteSceneInspectorMessageTypes.SceneInspectorPickRequest
         };
 
         private RuntimeRemoteEndpointContext _context;
@@ -45,13 +45,13 @@ namespace HP.Utilities.RemoteDevUtilities.RuntimeSceneInspector
 
         public void Handle(RemoteEnvelope envelope)
         {
-            if (envelope.MessageType == RemoteMessageTypes.SceneInspectorCaptureRequest)
+            if (envelope.MessageType == RemoteSceneInspectorMessageTypes.SceneInspectorCaptureRequest)
             {
                 _captureFeature.Capture(envelope);
                 return;
             }
 
-            if (envelope.MessageType == RemoteMessageTypes.SceneInspectorPickRequest)
+            if (envelope.MessageType == RemoteSceneInspectorMessageTypes.SceneInspectorPickRequest)
             {
                 _captureFeature.Pick(envelope);
                 return;
@@ -65,13 +65,13 @@ namespace HP.Utilities.RemoteDevUtilities.RuntimeSceneInspector
 
             switch (envelope.MessageType)
             {
-                case RemoteMessageTypes.SceneInspectorHierarchyRequest:
+                case RemoteSceneInspectorMessageTypes.SceneInspectorHierarchyRequest:
                     SendHierarchy(envelope);
                     break;
-                case RemoteMessageTypes.SceneInspectorInspectRequest:
+                case RemoteSceneInspectorMessageTypes.SceneInspectorInspectRequest:
                     Inspect(envelope);
                     break;
-                case RemoteMessageTypes.SceneInspectorCommandRequest:
+                case RemoteSceneInspectorMessageTypes.SceneInspectorCommandRequest:
                     Execute(envelope);
                     break;
             }
@@ -101,7 +101,7 @@ namespace HP.Utilities.RemoteDevUtilities.RuntimeSceneInspector
             if (request.ForceRefresh)
                 _service.RefreshHierarchy();
 
-            _context.Sender.Send(RemoteMessageTypes.SceneInspectorHierarchyResponse, envelope.RequestId,
+            _context.Sender.Send(RemoteSceneInspectorMessageTypes.SceneInspectorHierarchyResponse, envelope.RequestId,
                 RuntimeSceneInspectorProtocolMapper.ToRemote(_service.GetHierarchySnapshot()));
         }
 
@@ -115,7 +115,7 @@ namespace HP.Utilities.RemoteDevUtilities.RuntimeSceneInspector
             }
 
             RuntimeObjectDetails details = _service.InspectObject(new RuntimeObjectId(request.ObjectId));
-            _context.Sender.Send(RemoteMessageTypes.SceneInspectorInspectResponse, envelope.RequestId,
+            _context.Sender.Send(RemoteSceneInspectorMessageTypes.SceneInspectorInspectResponse, envelope.RequestId,
                 new RemoteSceneInspectorInspectResponse
                 {
                     Found = details != null,
@@ -196,32 +196,32 @@ namespace HP.Utilities.RemoteDevUtilities.RuntimeSceneInspector
 
         private void SendUnavailable(RemoteEnvelope envelope)
         {
-            if (envelope.MessageType == RemoteMessageTypes.SceneInspectorInspectRequest)
+            if (envelope.MessageType == RemoteSceneInspectorMessageTypes.SceneInspectorInspectRequest)
             {
                 SendInspectError(envelope.RequestId, "The remote Runtime Scene Inspector is disabled.");
                 return;
             }
 
-            if (envelope.MessageType == RemoteMessageTypes.SceneInspectorCommandRequest)
+            if (envelope.MessageType == RemoteSceneInspectorMessageTypes.SceneInspectorCommandRequest)
             {
                 SendCommandResult(envelope.RequestId,
                     RuntimeCommandResult.Fail("The remote Runtime Scene Inspector is disabled."));
                 return;
             }
 
-            _context.Sender.Send(RemoteMessageTypes.SceneInspectorHierarchyResponse, envelope.RequestId,
+            _context.Sender.Send(RemoteSceneInspectorMessageTypes.SceneInspectorHierarchyResponse, envelope.RequestId,
                 new RemoteSceneInspectorHierarchyResponse());
         }
 
         private void SendInspectError(long requestId, string error)
         {
-            _context.Sender.Send(RemoteMessageTypes.SceneInspectorInspectResponse, requestId,
+            _context.Sender.Send(RemoteSceneInspectorMessageTypes.SceneInspectorInspectResponse, requestId,
                 new RemoteSceneInspectorInspectResponse { Error = error });
         }
 
         private void SendCommandResult(long requestId, RuntimeCommandResult result)
         {
-            _context.Sender.Send(RemoteMessageTypes.SceneInspectorCommandResponse, requestId,
+            _context.Sender.Send(RemoteSceneInspectorMessageTypes.SceneInspectorCommandResponse, requestId,
                 new RemoteSceneInspectorCommandResponse
                 {
                     Success = result?.Success == true,

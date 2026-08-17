@@ -1,7 +1,7 @@
-using HP.Utilities.Presentation;
+using SAS.Utilities.Presentation;
 using UnityEngine;
 
-namespace HP.Utilities.DeveloperConsole
+namespace SAS.Utilities.DeveloperConsole
 {
     [CreateAssetMenu(fileName = "New Game Info Command", menuName = DeveloperConsole.CommandBasePath + "Game Info Command")]
     public class GameInfoCommand : ConsoleCommand

@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
-using HP.Utilities.RemoteDevUtilities.Presentation;
-using HP.Utilities.RemoteDevUtilities.Protocol;
-using HP.Utilities.RemoteDevUtilities.Transport;
-using HP.Utilities.RuntimeSceneInspector.Core;
+using SAS.Utilities.RemoteDevUtilities.Presentation;
+using SAS.Utilities.RemoteDevUtilities.Protocol;
+using SAS.Utilities.RemoteDevUtilities.Transport;
+using SAS.Utilities.RuntimeSceneInspector.Core;
 using UnityEngine;
 
-namespace HP.Utilities.RemoteDevUtilities.Agent
+namespace SAS.Utilities.RemoteDevUtilities.Agent
 {
     [RuntimeSceneInspectorProtected]
     public sealed class RuntimeDevUtilitiesAgent : MonoBehaviour

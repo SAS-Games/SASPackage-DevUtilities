@@ -1,4 +1,4 @@
-namespace HP.Utilities.DeveloperConsole
+namespace SAS.Utilities.DeveloperConsole
 {
     public sealed class DeveloperConsoleCommandResult
     {

@@ -1,7 +1,7 @@
-using HP.DevUtilities;
-using HP.Utilities.RemoteDevUtilities.Protocol.MiniTools;
+using SAS.DevUtilities;
+using SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools;
 
-namespace HP.Utilities.RemoteDevUtilities.MiniTools.Providers
+namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
 {
     [UnityEngine.Scripting.Preserve]
     internal sealed class RuntimeGraphicsInfoMiniToolProvider : MiniToolDataProvider<GraphicsInfoSnapshot>, IMiniToolFieldProvider

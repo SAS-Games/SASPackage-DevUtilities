@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using HP.Utilities.DeveloperConsole.InputVisualizers;
+using SAS.Utilities.DeveloperConsole.InputVisualizers;
 
-namespace HP.Utilities.RemoteDevUtilities.MiniTools.Providers
+namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
 {
     internal abstract class RuntimeInputVisualizerMiniToolProvider : MiniToolStreamingDataProvider<InputVisualizerSnapshot, InputVisualizerSampleEvent>
     {

@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using HP.Utilities.DeveloperConsole;
-using HP.Utilities.RemoteDevUtilities.Protocol.MiniTools;
+using SAS.Utilities.DeveloperConsole;
+using SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools;
 using UnityEngine;
-using RuntimeConsole = HP.Utilities.DeveloperConsole.DeveloperConsole;
+using RuntimeConsole = SAS.Utilities.DeveloperConsole.DeveloperConsole;
 
-namespace HP.Utilities.RemoteDevUtilities.MiniTools
+namespace SAS.Utilities.RemoteDevUtilities.MiniTools
 {
     internal sealed class MiniToolProviderRegistration : IDisposable
     {
@@ -222,7 +222,7 @@ namespace HP.Utilities.RemoteDevUtilities.MiniTools
             return registrations;
         }
 
-        internal static void RegisterCommands(RuntimeConsole console)
+        internal static void RegisterCommands(DeveloperConsole.DeveloperConsole console)
         {
             if (console == null)
                 return;
@@ -237,7 +237,7 @@ namespace HP.Utilities.RemoteDevUtilities.MiniTools
             }
         }
 
-        private static bool ContainsCommand(RuntimeConsole console, string commandName)
+        private static bool ContainsCommand(DeveloperConsole.DeveloperConsole console, string commandName)
         {
             if (string.IsNullOrWhiteSpace(commandName))
                 return true;

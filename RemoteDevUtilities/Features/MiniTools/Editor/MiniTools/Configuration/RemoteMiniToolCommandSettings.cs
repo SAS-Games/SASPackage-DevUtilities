@@ -1,10 +1,10 @@
 using System;
-using HP.Utilities.RemoteDevUtilities.Editor.Commands.Presentation;
-using HP.Utilities.RemoteDevUtilities.Editor.Configuration;
-using HP.Utilities.RemoteDevUtilities.Protocol.Commands;
+using SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation;
+using SAS.Utilities.RemoteDevUtilities.Editor.Configuration;
+using SAS.Utilities.RemoteDevUtilities.Protocol.Commands;
 using UnityEditor;
 
-namespace HP.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
+namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
 {
     /// <summary>
     /// Focused facade for the command section of the unified mini-tool project

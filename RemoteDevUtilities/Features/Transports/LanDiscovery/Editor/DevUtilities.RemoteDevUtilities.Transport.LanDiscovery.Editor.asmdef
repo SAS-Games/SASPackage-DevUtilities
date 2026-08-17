@@ -1,6 +1,6 @@
 {
     "name": "DevUtilities.RemoteDevUtilities.Transport.LanDiscovery.Editor",
-    "rootNamespace": "HP.Utilities.RemoteDevUtilities.Editor.Connection",
+    "rootNamespace": "SAS.Utilities.RemoteDevUtilities.Editor.Connection",
     "references": [
         "DevUtilities",
         "DevUtilities.RemoteDevUtilities",

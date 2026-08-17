@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace HP.Utilities
+namespace SAS.Utilities
 {
     public sealed class TransformOffsetManager
     {

@@ -1,6 +1,6 @@
 {
     "name": "DevUtilities.RemoteDevUtilities.Transport.Tcp.Editor",
-    "rootNamespace": "HP.Utilities.RemoteDevUtilities.Editor.Connection.Tcp",
+    "rootNamespace": "SAS.Utilities.RemoteDevUtilities.Editor.Connection.Tcp",
     "references": [
         "DevUtilities",
         "DevUtilities.RemoteDevUtilities",

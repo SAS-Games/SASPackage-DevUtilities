@@ -18,7 +18,7 @@ MonoBehaviour:
   _updateInterval: 1
   _streamInterval: 0.1
   _providerScriptGuid: f090b36f941c07744a7f1168c0aaf332
-  _providerTypeName: HP.Utilities.RemoteDevUtilities.MiniTools.Providers.RuntimeRenderingMiniToolProvider,
+  _providerTypeName: SAS.Utilities.RemoteDevUtilities.MiniTools.Providers.RuntimeRenderingMiniToolProvider,
     DevUtilities.RemoteDevUtilities.MiniTools.Runtime
   _command: {fileID: 0}
   _commandName: 
