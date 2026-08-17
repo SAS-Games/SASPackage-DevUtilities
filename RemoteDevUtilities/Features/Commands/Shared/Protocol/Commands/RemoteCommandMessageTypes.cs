@@ -1,4 +1,4 @@
-namespace SAS.Utilities.RemoteDevUtilities.Protocol.Commands
+namespace HP.Utilities.RemoteDevUtilities.Protocol.Commands
 {
     public static class RemoteCommandMessageTypes
     {

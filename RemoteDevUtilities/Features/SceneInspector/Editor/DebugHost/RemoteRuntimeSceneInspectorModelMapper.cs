@@ -1,9 +1,9 @@
 using System;
-using SAS.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector;
-using SAS.Utilities.RuntimeSceneInspector.Core;
+using HP.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector;
+using HP.Utilities.RuntimeSceneInspector.Core;
 using UnityEngine.Rendering;
 
-namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
+namespace HP.Utilities.RemoteDevUtilities.Editor.DebugHost
 {
     internal static class RemoteRuntimeSceneInspectorModelMapper
     {

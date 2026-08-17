@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 
-namespace SAS
+namespace HP
 {
     public class LogHandler : ILogHandler
     {

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace SAS.Utilities.DeveloperConsole
+namespace HP.Utilities.DeveloperConsole
 {
     public static class AutoSpawnConsoleCommandsSystem
     {

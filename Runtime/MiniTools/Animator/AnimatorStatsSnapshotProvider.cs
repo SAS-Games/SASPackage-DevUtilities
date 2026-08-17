@@ -1,7 +1,7 @@
 using Unity.Profiling;
 using UnityEngine;
 
-namespace SAS.DevUtilities
+namespace HP.DevUtilities
 {
     /// <summary>
     /// Periodically publishes Animator statistics for the local Player prefab.

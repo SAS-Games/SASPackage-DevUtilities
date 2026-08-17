@@ -1,8 +1,8 @@
-using SAS.DevUtilities;
-using SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools;
+using HP.DevUtilities;
+using HP.Utilities.RemoteDevUtilities.Protocol.MiniTools;
 using Unity.Profiling;
 
-namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
+namespace HP.Utilities.RemoteDevUtilities.MiniTools.Providers
 {
     [UnityEngine.Scripting.Preserve]
     internal sealed class RuntimeAnimatorMiniToolProvider : MiniToolDataProvider<AnimatorStatsSnapshot>, IMiniToolFieldProvider

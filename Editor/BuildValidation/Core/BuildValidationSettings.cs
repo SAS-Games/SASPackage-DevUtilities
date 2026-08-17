@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace SAS.BuildValidation
+namespace HP.BuildValidation
 {
     public class BuildValidationSettings : ScriptableObject
     {

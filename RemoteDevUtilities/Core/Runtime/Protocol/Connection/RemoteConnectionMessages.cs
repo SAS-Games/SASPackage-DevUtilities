@@ -1,6 +1,6 @@
 using System;
 
-namespace SAS.Utilities.RemoteDevUtilities.Protocol.Connection
+namespace HP.Utilities.RemoteDevUtilities.Protocol.Connection
 {
     [Serializable]
     public sealed class RemoteHandshakeRequest

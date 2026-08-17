@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 #endif
 
-namespace SAS.Utilities.DeveloperConsole
+namespace HP.Utilities.DeveloperConsole
 {
     [CreateAssetMenu(menuName = DeveloperConsole.CommandBasePath + "URP Console Command")]
     public class URPConsoleCommand : CompositeConsoleCommand

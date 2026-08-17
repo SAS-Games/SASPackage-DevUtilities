@@ -1,9 +1,9 @@
 using System;
-using SAS.Utilities.RemoteDevUtilities.Editor.Connection;
+using HP.Utilities.RemoteDevUtilities.Editor.Connection;
 using UnityEditor;
 using UnityEngine;
 
-namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
+namespace HP.Utilities.RemoteDevUtilities.Editor.Client
 {
     [InitializeOnLoad]
     internal static class RemoteDevUtilitiesEditorService

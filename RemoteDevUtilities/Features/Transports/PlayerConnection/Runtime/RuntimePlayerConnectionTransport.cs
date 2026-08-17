@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
-using SAS.Utilities.RemoteDevUtilities.Agent;
-using SAS.Utilities.RemoteDevUtilities.Protocol;
-using SAS.Utilities.RemoteDevUtilities.Protocol.Serialization;
+using HP.Utilities.RemoteDevUtilities.Agent;
+using HP.Utilities.RemoteDevUtilities.Protocol;
+using HP.Utilities.RemoteDevUtilities.Protocol.Serialization;
 using UnityEngine;
 using UnityEngine.Networking.PlayerConnection;
 using Object = UnityEngine.Object;
 
-namespace SAS.Utilities.RemoteDevUtilities.Transport
+namespace HP.Utilities.RemoteDevUtilities.Transport
 {
     internal sealed class RuntimePlayerConnectionTransport : IRuntimeRemoteTransport
     {

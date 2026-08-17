@@ -5,7 +5,7 @@ using UnityEditor.Build.Reporting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace SAS.BuildValidation
+namespace HP.BuildValidation
 {
     public sealed class DebugOnlySceneBuildProcessor : IProcessSceneWithReport
     {

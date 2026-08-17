@@ -4,7 +4,7 @@ using UnityEditor.Build.Reporting;
 using UnityEditor.SceneManagement;
 using UnityEngine.SceneManagement;
 
-namespace SAS.BuildValidation
+namespace HP.BuildValidation
 {
     [BuildValidation(optional: true, order: 2)]
     public sealed class SceneMissingReferencesValidation : IBuildValidation

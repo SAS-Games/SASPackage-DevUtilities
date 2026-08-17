@@ -1,4 +1,4 @@
-namespace SAS.DevUtilities
+namespace HP.DevUtilities
 {
     /// <summary>
     /// Keeps the original mutually exclusive Stats/FPS selection in one place.

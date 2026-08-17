@@ -2,7 +2,7 @@ using System;
 using System.Text;
 using UnityEngine;
 
-namespace SAS.Utilities.RemoteDevUtilities.Protocol.Serialization
+namespace HP.Utilities.RemoteDevUtilities.Protocol.Serialization
 {
     public static class RemoteProtocolSerializer
     {

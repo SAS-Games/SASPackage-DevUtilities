@@ -1,12 +1,12 @@
 using System;
-using SAS.Utilities.RemoteDevUtilities.Editor.Client;
-using SAS.Utilities.RemoteDevUtilities.Editor.Configuration;
-using SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels;
-using SAS.Utilities.RemoteDevUtilities.Protocol;
+using HP.Utilities.RemoteDevUtilities.Editor.Client;
+using HP.Utilities.RemoteDevUtilities.Editor.Configuration;
+using HP.Utilities.RemoteDevUtilities.Editor.UI.Panels;
+using HP.Utilities.RemoteDevUtilities.Protocol;
 using UnityEditor;
 using UnityEngine;
 
-namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection.Tcp
+namespace HP.Utilities.RemoteDevUtilities.Editor.Connection.Tcp
 {
     [RemoteConnectionPanelContribution(RemoteEditorTransportIds.Tcp, "Direct TCP", 200)]
     internal sealed class TcpConnectionPanelContribution : IRemoteConnectionPanelContribution

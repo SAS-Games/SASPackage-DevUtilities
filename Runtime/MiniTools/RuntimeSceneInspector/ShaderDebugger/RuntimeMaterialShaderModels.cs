@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace SAS.Utilities.RuntimeSceneInspector.Core
+namespace HP.Utilities.RuntimeSceneInspector.Core
 {
     public enum RuntimeMaterialEditScope
     {

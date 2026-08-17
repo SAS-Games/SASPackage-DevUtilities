@@ -1,9 +1,9 @@
 using System;
 using System.Collections;
-using SAS.Utilities.RuntimeSceneInspector.Core;
+using HP.Utilities.RuntimeSceneInspector.Core;
 using UnityEngine;
 
-namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector.Capture
+namespace HP.Utilities.RemoteDevUtilities.RuntimeSceneInspector.Capture
 {
     internal sealed class RuntimeTimeScaleFreezeLease
     {

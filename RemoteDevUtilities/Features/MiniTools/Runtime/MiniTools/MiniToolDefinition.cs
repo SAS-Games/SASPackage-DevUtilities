@@ -1,17 +1,17 @@
 using System;
 using System.Reflection;
-using SAS.Utilities.DeveloperConsole;
-using SAS.Utilities.RemoteDevUtilities.Protocol.Commands;
-using SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools;
+using HP.Utilities.DeveloperConsole;
+using HP.Utilities.RemoteDevUtilities.Protocol.Commands;
+using HP.Utilities.RemoteDevUtilities.Protocol.MiniTools;
 using UnityEngine;
 
-namespace SAS.Utilities.RemoteDevUtilities.MiniTools
+namespace HP.Utilities.RemoteDevUtilities.MiniTools
 {
     /// <summary>
     /// The single registration record shared by the Player, Native Workspace,
     /// Debug Host, and command routing.
     /// </summary>
-    [CreateAssetMenu(fileName = "MiniToolDefinition", menuName = "SAS/Dev Utilities/Mini Tool")]
+    [CreateAssetMenu(fileName = "MiniToolDefinition", menuName = "HP/Dev Utilities/Mini Tool")]
     public sealed class MiniToolDefinition : ScriptableObject
     {
         [SerializeField, HideInInspector] private string _toolId = string.Empty;

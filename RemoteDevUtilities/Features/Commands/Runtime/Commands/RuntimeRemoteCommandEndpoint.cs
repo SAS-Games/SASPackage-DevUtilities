@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
-using SAS.Utilities.DeveloperConsole;
-using SAS.Utilities.RemoteDevUtilities.Agent;
-using SAS.Utilities.RemoteDevUtilities.Protocol;
-using SAS.Utilities.RemoteDevUtilities.Protocol.Commands;
-using SAS.Utilities.RemoteDevUtilities.Protocol.Serialization;
-using RuntimeConsole = SAS.Utilities.DeveloperConsole.DeveloperConsole;
+using HP.Utilities.DeveloperConsole;
+using HP.Utilities.RemoteDevUtilities.Agent;
+using HP.Utilities.RemoteDevUtilities.Protocol;
+using HP.Utilities.RemoteDevUtilities.Protocol.Commands;
+using HP.Utilities.RemoteDevUtilities.Protocol.Serialization;
+using RuntimeConsole = HP.Utilities.DeveloperConsole.DeveloperConsole;
 using UnityEngine.Scripting;
 
-namespace SAS.Utilities.RemoteDevUtilities.Commands
+namespace HP.Utilities.RemoteDevUtilities.Commands
 {
     [Preserve]
     [RuntimeRemoteEndpoint("commands", 100)]

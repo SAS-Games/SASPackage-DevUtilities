@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace SAS.DevUtilities
+namespace HP.DevUtilities
 {
     /// <summary>
     /// Owns FrameStepper's target-side time state. Local and remote adapters

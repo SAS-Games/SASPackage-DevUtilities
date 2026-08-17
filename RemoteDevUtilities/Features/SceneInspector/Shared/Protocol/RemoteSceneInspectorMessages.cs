@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace SAS.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector
+namespace HP.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector
 {
     public static class RemoteSceneInspectorMessageTypes
     {

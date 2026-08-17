@@ -2,7 +2,7 @@ using System;
 using Unity.Profiling;
 using UnityEngine;
 
-namespace SAS.DevUtilities
+namespace HP.DevUtilities
 {
     /// <summary>
     /// Recoverable Animator statistics shared by the Player overlay and the

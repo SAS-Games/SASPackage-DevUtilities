@@ -1,7 +1,7 @@
-using SAS.Utilities.RuntimeSceneInspector;
+using HP.Utilities.RuntimeSceneInspector;
 using UnityEngine;
 
-namespace SAS.Utilities.RemoteDevUtilities.DebugHost
+namespace HP.Utilities.RemoteDevUtilities.DebugHost
 {
     /// <summary>Renders remote scene inspector data in the Editor Debug Host.</summary>
     public sealed class RemoteRuntimeSceneInspectorHost : MonoBehaviour

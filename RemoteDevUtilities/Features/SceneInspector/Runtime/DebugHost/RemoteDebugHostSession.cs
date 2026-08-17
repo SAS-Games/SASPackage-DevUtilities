@@ -1,7 +1,7 @@
 using System;
-using SAS.Utilities.RuntimeSceneInspector.Core;
+using HP.Utilities.RuntimeSceneInspector.Core;
 
-namespace SAS.Utilities.RemoteDevUtilities.DebugHost
+namespace HP.Utilities.RemoteDevUtilities.DebugHost
 {
     /// <summary>Shared state for the Editor-only Play Mode Debug Host.</summary>
     public static class RemoteDebugHostSession

@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace SAS.Utilities.RuntimeSceneInspector
+namespace HP.Utilities.RuntimeSceneInspector
 {
     internal sealed class RuntimeSceneInspectorTheme : IDisposable
     {

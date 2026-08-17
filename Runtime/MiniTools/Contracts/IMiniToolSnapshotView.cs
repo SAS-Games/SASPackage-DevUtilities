@@ -1,4 +1,4 @@
-namespace SAS.DevUtilities
+namespace HP.DevUtilities
 {
     /// <summary>
     /// Applies a recoverable snapshot to a mini-tool presentation.

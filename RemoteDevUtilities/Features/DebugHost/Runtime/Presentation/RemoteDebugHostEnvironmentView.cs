@@ -1,8 +1,8 @@
-using SAS.Utilities.RemoteDevUtilities.Agent;
+using HP.Utilities.RemoteDevUtilities.Agent;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace SAS.Utilities.RemoteDevUtilities.DebugHost.Presentation
+namespace HP.Utilities.RemoteDevUtilities.DebugHost.Presentation
 {
     /// <summary>Initializes the Editor-only Debug Host environment.</summary>
     [DefaultExecutionOrder(-10000)]

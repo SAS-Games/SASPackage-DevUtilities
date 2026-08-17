@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.Profiling;
 
-namespace SAS.DevUtilities.Stats
+namespace HP.DevUtilities.Stats
 {
     /// <summary>
     /// Collects the canonical Stats snapshot used by local and remote providers.

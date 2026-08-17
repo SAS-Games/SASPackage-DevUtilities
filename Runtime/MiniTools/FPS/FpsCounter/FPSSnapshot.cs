@@ -1,6 +1,6 @@
 using System;
 
-namespace SAS.DevUtilities
+namespace HP.DevUtilities
 {
     /// <summary>
     /// Recoverable snapshot displayed by the lightweight FPS mini-tool.

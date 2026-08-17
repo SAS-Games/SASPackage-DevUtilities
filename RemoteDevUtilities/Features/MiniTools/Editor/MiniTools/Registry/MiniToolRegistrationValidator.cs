@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
-using SAS.DevUtilities;
-using SAS.Utilities.Presentation;
-using SAS.Utilities.RemoteDevUtilities.MiniTools;
+using HP.DevUtilities;
+using HP.Utilities.Presentation;
+using HP.Utilities.RemoteDevUtilities.MiniTools;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
+namespace HP.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
 {
     /// <summary>
     /// Validates the relationship between a runtime provider and its optional

@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using SAS.Utilities.RemoteDevUtilities.Protocol;
+using HP.Utilities.RemoteDevUtilities.Protocol;
 
-namespace SAS.Utilities.RemoteDevUtilities.Agent
+namespace HP.Utilities.RemoteDevUtilities.Agent
 {
     internal interface IRuntimeRemoteSender
     {

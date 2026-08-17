@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
-using SAS.Utilities.RemoteDevUtilities.Agent;
-using SAS.Utilities.RemoteDevUtilities.Protocol;
-using SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools;
-using SAS.Utilities.RemoteDevUtilities.Protocol.Serialization;
+using HP.Utilities.RemoteDevUtilities.Agent;
+using HP.Utilities.RemoteDevUtilities.Protocol;
+using HP.Utilities.RemoteDevUtilities.Protocol.MiniTools;
+using HP.Utilities.RemoteDevUtilities.Protocol.Serialization;
 using UnityEngine;
 using UnityEngine.Scripting;
 
-namespace SAS.Utilities.RemoteDevUtilities.MiniTools
+namespace HP.Utilities.RemoteDevUtilities.MiniTools
 {
     [Preserve]
     [RuntimeRemoteEndpoint("mini-tools", 300)]

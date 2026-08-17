@@ -1,7 +1,7 @@
 using UnityEngine;
-using SAS.Utilities.Presentation;
+using HP.Utilities.Presentation;
 
-namespace SAS.Utilities.DeveloperConsole.InputVisualizers
+namespace HP.Utilities.DeveloperConsole.InputVisualizers
 {
     [CreateAssetMenu(fileName = "New InputVisualizer Command", menuName = DeveloperConsole.CommandBasePath + "InputVisualizer")]
     public class InputVisualizerCommand : CompositeConsoleCommand

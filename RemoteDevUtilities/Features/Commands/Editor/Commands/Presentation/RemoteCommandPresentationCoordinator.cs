@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using SAS.Utilities.RemoteDevUtilities.Editor.Client;
-using SAS.Utilities.RemoteDevUtilities.Protocol.Commands;
+using HP.Utilities.RemoteDevUtilities.Editor.Client;
+using HP.Utilities.RemoteDevUtilities.Protocol.Commands;
 
-namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
+namespace HP.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
 {
     internal sealed class RemoteCommandPresentationCoordinator
     {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
 
-namespace SAS.BuildValidation
+namespace HP.BuildValidation
 {
     public class ValidationReport
     {
@@ -13,7 +13,7 @@ namespace SAS.BuildValidation
         public bool HasWarnings => Warnings.Count > 0;
         public bool HasErrors => Errors.Count > 0;
     }
-
+    
     public static class BuildValidationRunner
     {
         public static ValidationReport Run(BuildReport report = null)
@@ -29,7 +29,7 @@ namespace SAS.BuildValidation
 
                 if (report == null && BuildValidationUtility.RequiresBuildReport(type))
                     continue;
-
+                
                 if (Activator.CreateInstance(type) is not IBuildValidation validation)
                     continue;
 
@@ -57,7 +57,7 @@ namespace SAS.BuildValidation
 
             return validationReport;
         }
-
+        
         private static void LogIssue(ValidationIssue issue, string message)
         {
             switch (issue.Severity)

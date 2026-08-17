@@ -3,17 +3,27 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
-using SAS.Utilities.RemoteDevUtilities.Agent;
-using SAS.Utilities.RemoteDevUtilities.Protocol;
+using HP.Utilities.RemoteDevUtilities.Agent;
+using HP.Utilities.RemoteDevUtilities.Protocol;
 using UnityEngine;
 using UnityEngine.Scripting;
 
-namespace SAS.Utilities.RemoteDevUtilities.Transport
+[assembly: AlwaysLinkAssembly]
+
+namespace HP.Utilities.RemoteDevUtilities.Transport
 {
     [Preserve]
     [RuntimeRemoteConnectionService("lan-discovery", 300)]
     internal sealed class RuntimeLanDiscoveryBroadcaster : IRuntimeRemoteConnectionService
     {
+        // Ensure this optional service assembly is loaded before the core scans
+        // AppDomain assemblies. Without a runtime root, console IL2CPP players
+        // can omit the broadcaster even though its type has [Preserve].
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
+        private static void EnsureRuntimeAssemblyIsLoaded()
+        {
+        }
+
         private byte[] _payload;
         private List<IPEndPoint> _destinations;
         private UdpClient _client;

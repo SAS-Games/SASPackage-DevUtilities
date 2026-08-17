@@ -1,8 +1,8 @@
-using SAS.Utilities.DeveloperConsole;
+using HP.Utilities.DeveloperConsole;
 using TMPro;
 using UnityEngine;
 
-namespace SAS.Utilities.DeveloperConsole
+namespace HP.Utilities.DeveloperConsole
 {
     public class ConsoleCommandButton : MonoBehaviour
     {

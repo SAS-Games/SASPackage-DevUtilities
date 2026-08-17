@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace SAS.Utilities.RuntimeSceneInspector.Core
+namespace HP.Utilities.RuntimeSceneInspector.Core
 {
     internal sealed class RuntimeCameraComponentDrawer : RuntimeComponentDrawer<Camera>
     {

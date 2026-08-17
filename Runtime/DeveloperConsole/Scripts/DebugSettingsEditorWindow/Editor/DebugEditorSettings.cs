@@ -2,7 +2,7 @@
 using UnityEditor;
 using System.Collections.Generic;
 
-namespace SAS.Utilities.DeveloperConsole.Editor
+namespace HP.Utilities.DeveloperConsole.Editor
 {
     public class DebugEditorSettings : ScriptableSingleton<DebugEditorSettings>
     {

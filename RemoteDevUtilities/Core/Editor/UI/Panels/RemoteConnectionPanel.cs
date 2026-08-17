@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
-using SAS.Utilities.RemoteDevUtilities.Editor.Client;
-using SAS.Utilities.RemoteDevUtilities.Editor.Configuration;
-using SAS.Utilities.RemoteDevUtilities.Editor.Connection;
-using SAS.Utilities.RemoteDevUtilities.Protocol.Connection;
+using HP.Utilities.RemoteDevUtilities.Editor.Client;
+using HP.Utilities.RemoteDevUtilities.Editor.Configuration;
+using HP.Utilities.RemoteDevUtilities.Editor.Connection;
+using HP.Utilities.RemoteDevUtilities.Protocol.Connection;
 using UnityEditor;
 using UnityEngine;
 
-namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
+namespace HP.Utilities.RemoteDevUtilities.Editor.UI.Panels
 {
     internal sealed class RemoteConnectionPanel : IDisposable
     {

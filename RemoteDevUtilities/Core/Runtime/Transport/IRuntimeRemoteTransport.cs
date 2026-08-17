@@ -1,8 +1,8 @@
 using System;
-using SAS.Utilities.RemoteDevUtilities.Agent;
-using SAS.Utilities.RemoteDevUtilities.Protocol;
+using HP.Utilities.RemoteDevUtilities.Agent;
+using HP.Utilities.RemoteDevUtilities.Protocol;
 
-namespace SAS.Utilities.RemoteDevUtilities.Transport
+namespace HP.Utilities.RemoteDevUtilities.Transport
 {
     internal interface IRuntimeRemoteTransport : IRuntimeRemoteSender, IDisposable
     {

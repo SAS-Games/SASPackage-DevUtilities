@@ -1,6 +1,6 @@
 using System;
 
-namespace SAS.DevUtilities
+namespace HP.DevUtilities
 {
     /// <summary>
     /// Reusable local provider base for mini-tools that publish both a

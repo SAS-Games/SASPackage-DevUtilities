@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Serialization;
 using System.Reflection;
 
-namespace SAS.Utilities.DeveloperConsole
+namespace HP.Utilities.DeveloperConsole
 {
     public abstract class CompositeConsoleCommand : ConsoleCommand
     {
@@ -18,7 +18,8 @@ namespace SAS.Utilities.DeveloperConsole
             [NonSerialized] public Func<string[], bool> Action;
         }
 
-        [FormerlySerializedAs("subCommands")] [SerializeField] protected List<SubCommand> m_SubCommands = new();
+        [FormerlySerializedAs("subCommands")]
+        [SerializeField] protected List<SubCommand> m_SubCommands = new();
 
         protected void Register(string name, Func<string[], bool> action)
         {
@@ -28,7 +29,6 @@ namespace SAS.Utilities.DeveloperConsole
                 Debug.LogWarning($"No SubCommand metadata for '{name}', under the command config '{this.name}'.");
                 return;
             }
-
             sub.Action = action;
         }
 
@@ -133,5 +133,6 @@ namespace SAS.Utilities.DeveloperConsole
                 cmd.Action = (Func<string[], bool>)Delegate.CreateDelegate(typeof(Func<string[], bool>), this, method);
             }
         }
+
     }
 }

@@ -1,8 +1,8 @@
-using SAS.DevUtilities;
-using SAS.Utilities.Presentation;
+using HP.DevUtilities;
+using HP.Utilities.Presentation;
 using UnityEngine;
 
-namespace SAS.Utilities.DeveloperConsole
+namespace HP.Utilities.DeveloperConsole
 {
     [CreateAssetMenu(fileName = "New Animator Command", menuName = DeveloperConsole.CommandBasePath + "Animator Command")]
     public class AnimatorCommand : CompositeConsoleCommand

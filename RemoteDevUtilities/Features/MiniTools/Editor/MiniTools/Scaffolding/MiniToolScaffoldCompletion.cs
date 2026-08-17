@@ -1,17 +1,17 @@
 using System;
 using System.Collections.Generic;
-using SAS.DevUtilities;
-using SAS.Utilities.DeveloperConsole;
-using SAS.Utilities.Presentation;
-using SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry;
-using SAS.Utilities.RemoteDevUtilities.MiniTools;
+using HP.DevUtilities;
+using HP.Utilities.DeveloperConsole;
+using HP.Utilities.Presentation;
+using HP.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry;
+using HP.Utilities.RemoteDevUtilities.MiniTools;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEngine;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
-namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Scaffolding
+namespace HP.Utilities.RemoteDevUtilities.Editor.MiniTools.Scaffolding
 {
     [InitializeOnLoad]
     internal static class MiniToolScaffoldCompletion

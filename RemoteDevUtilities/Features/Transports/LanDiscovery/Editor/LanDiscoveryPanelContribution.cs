@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using SAS.Utilities.RemoteDevUtilities.Editor.Client;
-using SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels;
+using HP.Utilities.RemoteDevUtilities.Editor.Client;
+using HP.Utilities.RemoteDevUtilities.Editor.UI.Panels;
 using UnityEditor;
 using UnityEngine;
 
-namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
+namespace HP.Utilities.RemoteDevUtilities.Editor.Connection
 {
     [RemoteConnectionPanelContribution("lan-discovery", "LAN Players", 300)]
     internal sealed class LanDiscoveryPanelContribution : IRemoteConnectionPanelContribution
@@ -39,6 +39,10 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
             if (players.Count == 0)
             {
                 EditorGUILayout.HelpBox("Searching for LAN Players...", MessageType.Info);
+                EditorGUILayout.HelpBox(
+                    "The Player build must enable LAN discovery, allow TCP connections from other machines, " +
+                    "and include a non-empty access token in Project Settings > Dev Utilities > Remote Dev Utilities.",
+                    MessageType.None);
                 EditorGUILayout.BeginHorizontal();
                 GUILayout.FlexibleSpace();
                 if (GUILayout.Button("Search Again", GUILayout.Width(100f)))

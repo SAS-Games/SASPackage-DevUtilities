@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace SAS.Utilities.DeveloperConsole
+namespace HP.Utilities.DeveloperConsole
 {
     [CreateAssetMenu(fileName = "New Light Command", menuName = DeveloperConsole.CommandBasePath + "Light Command")]
     public class LightCommand : CompositeConsoleCommand

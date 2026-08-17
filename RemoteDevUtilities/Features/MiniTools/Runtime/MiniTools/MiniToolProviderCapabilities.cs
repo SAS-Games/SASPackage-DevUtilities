@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using SAS.DevUtilities;
+using HP.DevUtilities;
 
-namespace SAS.Utilities.RemoteDevUtilities.MiniTools
+namespace HP.Utilities.RemoteDevUtilities.MiniTools
 {
     /// <summary>
     /// Describes the independently optional outputs exposed by a provider.

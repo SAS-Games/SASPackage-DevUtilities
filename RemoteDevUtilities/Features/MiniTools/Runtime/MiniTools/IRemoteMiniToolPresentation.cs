@@ -1,6 +1,6 @@
-using SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools;
+using HP.Utilities.RemoteDevUtilities.Protocol.MiniTools;
 
-namespace SAS.Utilities.RemoteDevUtilities.MiniTools
+namespace HP.Utilities.RemoteDevUtilities.MiniTools
 {
     public interface IRemoteMiniToolPresentation
     {

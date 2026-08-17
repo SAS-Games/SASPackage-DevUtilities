@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace SAS.Utilities.RemoteDevUtilities
+namespace HP.Utilities.RemoteDevUtilities
 {
     public enum BuildDebugUiVisibility
     {

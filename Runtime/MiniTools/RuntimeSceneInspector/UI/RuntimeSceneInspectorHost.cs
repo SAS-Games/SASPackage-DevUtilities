@@ -1,8 +1,8 @@
-using SAS.Utilities.RuntimeSceneInspector.Core;
-using SAS.Utilities.Presentation;
+using HP.Utilities.RuntimeSceneInspector.Core;
+using HP.Utilities.Presentation;
 using UnityEngine;
 
-namespace SAS.Utilities.RuntimeSceneInspector
+namespace HP.Utilities.RuntimeSceneInspector
 {
     [RuntimeSceneInspectorProtected]
     public sealed class RuntimeSceneInspectorHost : MonoBehaviour

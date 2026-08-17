@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using SAS.Utilities.RuntimeSceneInspector.Core;
+using HP.Utilities.RuntimeSceneInspector.Core;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Rendering;
 
-namespace SAS.Utilities.RuntimeSceneInspector
+namespace HP.Utilities.RuntimeSceneInspector
 {
     internal enum RuntimeScenePickSource
     {

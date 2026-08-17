@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using SAS.DevUtilities;
-using SAS.Utilities.Presentation;
+using HP.DevUtilities;
+using HP.Utilities.Presentation;
 using UnityEngine;
 
-namespace SAS.Utilities.DeveloperConsole
+namespace HP.Utilities.DeveloperConsole
 {
     [CreateAssetMenu(fileName = "New Particle Command", menuName = DeveloperConsole.CommandBasePath + "Particle Command")]
     public class ParticleCommand : CompositeConsoleCommand

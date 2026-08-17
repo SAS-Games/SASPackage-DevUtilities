@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace SAS.DevUtilities
+namespace HP.DevUtilities
 {
     /// <summary>
     /// Carries user actions from a shared mini-tool view to whichever

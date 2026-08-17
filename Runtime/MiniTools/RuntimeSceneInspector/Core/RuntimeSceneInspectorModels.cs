@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace SAS.Utilities.RuntimeSceneInspector.Core
+namespace HP.Utilities.RuntimeSceneInspector.Core
 {
     [AttributeUsage(AttributeTargets.Class, Inherited = true)]
     internal sealed class RuntimeSceneInspectorProtectedAttribute : Attribute

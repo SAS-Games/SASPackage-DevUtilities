@@ -1,7 +1,7 @@
-using SAS.Utilities.RuntimeSceneInspector;
+using HP.Utilities.RuntimeSceneInspector;
 using UnityEngine;
 
-namespace SAS.Utilities.DeveloperConsole
+namespace HP.Utilities.DeveloperConsole
 {
     [CreateAssetMenu(fileName = "Runtime Scene Inspector Command", menuName = DeveloperConsole.CommandBasePath + "Runtime Scene Inspector")]
     public sealed class RuntimeSceneInspectorConsoleCommand : ConsoleCommand

@@ -4,7 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace SAS.Utilities.DeveloperConsole
+namespace HP.Utilities.DeveloperConsole
 {
     [RequireComponent(typeof(ScrollSnapper))]
     public class SuggestionTreeView : SuggestionView

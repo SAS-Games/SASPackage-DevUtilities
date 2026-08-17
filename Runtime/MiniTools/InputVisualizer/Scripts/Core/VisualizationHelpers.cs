@@ -7,7 +7,7 @@ using UnityEngine.InputSystem;
 
 ////REVIEW: for vector2 visualizers of sticks, it could be useful to also visualize deadzones and raw values
 
-namespace SAS.Utilities.DeveloperConsole.InputVisualizers
+namespace HP.Utilities.DeveloperConsole.InputVisualizers
 {
     using Debug = UnityEngine.Debug;
 

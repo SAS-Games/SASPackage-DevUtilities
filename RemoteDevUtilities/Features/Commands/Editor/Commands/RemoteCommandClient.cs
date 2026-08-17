@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using SAS.Utilities.RemoteDevUtilities.Editor.Client;
-using SAS.Utilities.RemoteDevUtilities.Protocol;
-using SAS.Utilities.RemoteDevUtilities.Protocol.Commands;
-using SAS.Utilities.RemoteDevUtilities.Protocol.Serialization;
+using HP.Utilities.RemoteDevUtilities.Editor.Client;
+using HP.Utilities.RemoteDevUtilities.Protocol;
+using HP.Utilities.RemoteDevUtilities.Protocol.Commands;
+using HP.Utilities.RemoteDevUtilities.Protocol.Serialization;
 
-namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands
+namespace HP.Utilities.RemoteDevUtilities.Editor.Commands
 {
     [RemoteEditorFeature("commands", 100)]
     internal sealed class RemoteCommandClient : IRemoteCommandExecutor

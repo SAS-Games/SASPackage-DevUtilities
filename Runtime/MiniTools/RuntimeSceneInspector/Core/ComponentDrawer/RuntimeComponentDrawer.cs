@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace SAS.Utilities.RuntimeSceneInspector.Core
+namespace HP.Utilities.RuntimeSceneInspector.Core
 {
     /// <summary>
     /// Optional extension implemented by component drawers that own writable synthetic members.

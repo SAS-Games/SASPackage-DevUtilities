@@ -1,9 +1,9 @@
 using System;
-using SAS.DevUtilities;
-using SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools;
+using HP.DevUtilities;
+using HP.Utilities.RemoteDevUtilities.Protocol.MiniTools;
 using UnityEngine.Scripting;
 
-namespace SAS.Utilities.RemoteDevUtilities.MiniTools
+namespace HP.Utilities.RemoteDevUtilities.MiniTools
 {
     /// <summary>
     /// Collects runtime data for a registered mini-tool. Identity, command routing,

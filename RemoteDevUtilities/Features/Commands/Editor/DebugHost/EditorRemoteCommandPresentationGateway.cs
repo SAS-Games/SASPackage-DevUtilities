@@ -1,11 +1,11 @@
 using System;
-using SAS.Utilities.DeveloperConsole;
-using SAS.Utilities.RemoteDevUtilities.Editor.Client;
-using SAS.Utilities.RemoteDevUtilities.Editor.Commands;
-using SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation;
-using SAS.Utilities.RemoteDevUtilities.Protocol.Commands;
+using HP.Utilities.DeveloperConsole;
+using HP.Utilities.RemoteDevUtilities.Editor.Client;
+using HP.Utilities.RemoteDevUtilities.Editor.Commands;
+using HP.Utilities.RemoteDevUtilities.Editor.Commands.Presentation;
+using HP.Utilities.RemoteDevUtilities.Protocol.Commands;
 
-namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
+namespace HP.Utilities.RemoteDevUtilities.Editor.DebugHost
 {
     internal sealed class EditorRemoteCommandPresentationGateway : IDeveloperConsoleCommandGateway, IDisposable
     {

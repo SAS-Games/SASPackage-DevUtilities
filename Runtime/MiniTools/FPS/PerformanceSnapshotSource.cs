@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace SAS.DevUtilities
+namespace HP.DevUtilities
 {
     internal struct PerformanceSampleCursor
     {

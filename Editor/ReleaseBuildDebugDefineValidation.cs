@@ -1,6 +1,6 @@
 using UnityEditor.Build.Reporting;
 
-namespace SAS.BuildValidation
+namespace HP.BuildValidation
 {
     [BuildValidation(optional: false, requiresBuildReport: true)]
     public class ReleaseBuildDebugDefineValidation : IBuildValidation
@@ -12,6 +12,7 @@ namespace SAS.BuildValidation
             BuildValidationResult result = BuildValidationResult.Create();
 
 #if ENABLE_DEBUG
+
             bool isDevelopmentBuild = (report.summary.options.HasFlag(UnityEditor.BuildOptions.Development));
 
             if (!isDevelopmentBuild)

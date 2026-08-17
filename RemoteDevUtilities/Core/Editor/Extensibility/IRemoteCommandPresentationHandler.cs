@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using SAS.Utilities.RemoteDevUtilities.Editor.Client;
+using HP.Utilities.RemoteDevUtilities.Editor.Client;
 using UnityEditor;
 
-namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
+namespace HP.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
 {
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     internal sealed class RemoteCommandPresentationHandlerAttribute : Attribute

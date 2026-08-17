@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace SAS.Utilities.RemoteDevUtilities.Agent
+namespace HP.Utilities.RemoteDevUtilities.Agent
 {
     internal static class RuntimeDevUtilitiesAgentBootstrap
     {

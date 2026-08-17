@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using SAS.DevUtilities;
-using SAS.Utilities.DeveloperConsole;
-using SAS.Utilities.Presentation;
-using SAS.Utilities.RemoteDevUtilities.MiniTools;
+using HP.DevUtilities;
+using HP.Utilities.DeveloperConsole;
+using HP.Utilities.Presentation;
+using HP.Utilities.RemoteDevUtilities.MiniTools;
 using UnityEditor;
 using UnityEngine;
 
-namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Scaffolding
+namespace HP.Utilities.RemoteDevUtilities.Editor.MiniTools.Scaffolding
 {
     internal enum MiniToolScaffoldTemplate
     {

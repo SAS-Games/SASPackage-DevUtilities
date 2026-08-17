@@ -1,4 +1,4 @@
-namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
+namespace HP.Utilities.RemoteDevUtilities.Editor.Connection
 {
     internal readonly struct RemoteEditorPlayerDescriptor
     {

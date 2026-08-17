@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using SAS;
+using HP;
 using UnityEngine;
 
 public class DebugRuntimeConfig : ScriptableObject

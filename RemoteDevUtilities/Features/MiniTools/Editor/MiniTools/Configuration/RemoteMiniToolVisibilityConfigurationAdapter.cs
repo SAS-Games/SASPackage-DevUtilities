@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools;
+using HP.Utilities.RemoteDevUtilities.Protocol.MiniTools;
 
-namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
+namespace HP.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
 {
     internal static class RemoteMiniToolVisibilityConfigurationAdapter
     {

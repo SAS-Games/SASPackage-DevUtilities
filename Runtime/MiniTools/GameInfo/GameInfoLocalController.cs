@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace SAS.DevUtilities
+namespace HP.DevUtilities
 {
     /// <summary>
     /// Connects the local GameInfo collector to the GameInfo view. The Editor

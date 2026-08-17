@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
-using SAS.Utilities.Presentation;
+using HP.Utilities.Presentation;
 
-namespace SAS.Utilities.DeveloperConsole
+namespace HP.Utilities.DeveloperConsole
 {
     [CreateAssetMenu(fileName = "FrameStepperCommand", menuName = DeveloperConsole.CommandBasePath + "FrameStepper")]
     public class FrameStepperCommand : ConsoleCommand

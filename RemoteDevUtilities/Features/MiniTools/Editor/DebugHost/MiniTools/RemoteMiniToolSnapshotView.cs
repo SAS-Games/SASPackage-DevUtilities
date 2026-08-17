@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using SAS.DevUtilities;
-using SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools;
+using HP.DevUtilities;
+using HP.Utilities.RemoteDevUtilities.Protocol.MiniTools;
 using UnityEngine;
 
-namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost.MiniTools
+namespace HP.Utilities.RemoteDevUtilities.Editor.DebugHost.MiniTools
 {
     /// <summary>
     /// Type-erased bridge between a remote snapshot and the matching view

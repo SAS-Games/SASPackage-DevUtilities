@@ -1,6 +1,6 @@
 using System;
 
-namespace SAS.BuildValidation
+namespace HP.BuildValidation
 {
     public static class BuildValidationUtility
     {

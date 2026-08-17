@@ -1,8 +1,8 @@
-using SAS.Utilities.RemoteDevUtilities.Commands;
+using HP.Utilities.RemoteDevUtilities.Commands;
 using UnityEngine.Scripting;
-using RuntimeConsole = SAS.Utilities.DeveloperConsole.DeveloperConsole;
+using RuntimeConsole = HP.Utilities.DeveloperConsole.DeveloperConsole;
 
-namespace SAS.Utilities.RemoteDevUtilities.MiniTools
+namespace HP.Utilities.RemoteDevUtilities.MiniTools
 {
     [Preserve]
     [RuntimeDeveloperConsoleContribution(300)]

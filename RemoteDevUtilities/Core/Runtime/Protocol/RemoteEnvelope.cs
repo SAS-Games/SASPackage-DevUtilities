@@ -1,6 +1,6 @@
 using System;
 
-namespace SAS.Utilities.RemoteDevUtilities.Protocol
+namespace HP.Utilities.RemoteDevUtilities.Protocol
 {
     [Serializable]
     public sealed class RemoteEnvelope

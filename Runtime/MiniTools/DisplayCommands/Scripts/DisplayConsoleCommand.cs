@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace SAS.Utilities.DeveloperConsole
+namespace HP.Utilities.DeveloperConsole
 {
     [CreateAssetMenu(menuName = DeveloperConsole.CommandBasePath + "Display Console Command")]
     public class DisplayConsoleCommand : CompositeConsoleCommand

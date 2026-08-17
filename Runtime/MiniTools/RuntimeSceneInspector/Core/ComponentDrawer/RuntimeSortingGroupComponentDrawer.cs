@@ -1,6 +1,6 @@
 using UnityEngine.Rendering;
 
-namespace SAS.Utilities.RuntimeSceneInspector.Core
+namespace HP.Utilities.RuntimeSceneInspector.Core
 {
     internal sealed class RuntimeSortingGroupComponentDrawer : RuntimeComponentDrawer<SortingGroup>
     {

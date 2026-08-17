@@ -1,6 +1,6 @@
 using System;
 
-namespace SAS.DevUtilities
+namespace HP.DevUtilities
 {
     /// <summary>
     /// Recoverable FrameStepper state shared by the local Player and remote

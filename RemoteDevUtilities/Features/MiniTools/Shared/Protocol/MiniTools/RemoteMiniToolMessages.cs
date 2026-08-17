@@ -1,8 +1,8 @@
 using System;
-using SAS.DevUtilities;
-using SAS.Utilities.RemoteDevUtilities.Protocol.Commands;
+using HP.DevUtilities;
+using HP.Utilities.RemoteDevUtilities.Protocol.Commands;
 
-namespace SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools
+namespace HP.Utilities.RemoteDevUtilities.Protocol.MiniTools
 {
     [Flags]
     public enum RemoteMiniToolCapabilities
@@ -142,7 +142,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools
     /// array.
     /// </summary>
     [Serializable]
-    public sealed class RemoteMiniToolStreamPayload<TEvent> where TEvent : SAS.DevUtilities.IMiniToolStreamEvent
+    public sealed class RemoteMiniToolStreamPayload<TEvent> where TEvent : HP.DevUtilities.IMiniToolStreamEvent
     {
         public TEvent[] Events = Array.Empty<TEvent>();
     }

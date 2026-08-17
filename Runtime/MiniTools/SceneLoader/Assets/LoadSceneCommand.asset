@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e53875796d74b0f9c3ec10e6ae50be1, type: 3}
+  m_Name: LoadSceneCommand
+  m_EditorClassIdentifier: 
+  m_CommandName: LoadScene
+  m_Presets: []
+  <CloseOnCompletion>k__BackingField: 1
+  m_HelpText: 'Usage: LoadScene <sceneName|scenePath|buildIndex>.
+
+    Loads the
+    specified scene from build settings.'

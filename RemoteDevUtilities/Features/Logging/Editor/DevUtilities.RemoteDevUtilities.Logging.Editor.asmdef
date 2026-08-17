@@ -1,19 +1,21 @@
 {
-  "name": "DevUtilities.RemoteDevUtilities.Logging.Editor",
-  "rootNamespace": "SAS.Utilities.RemoteDevUtilities.Editor.Logging",
-  "references": [
-    "DevUtilities",
-    "DevUtilities.RemoteDevUtilities",
-    "DevUtilities.RemoteDevUtilities.Editor",
-    "DevUtilities.RemoteDevUtilities.Logging.Protocol"
-  ],
-  "includePlatforms": ["Editor"],
-  "excludePlatforms": [],
-  "allowUnsafeCode": false,
-  "overrideReferences": false,
-  "precompiledReferences": [],
-  "autoReferenced": true,
-  "defineConstraints": [],
-  "versionDefines": [],
-  "noEngineReferences": false
+    "name": "DevUtilities.RemoteDevUtilities.Logging.Editor",
+    "rootNamespace": "HP.Utilities.RemoteDevUtilities.Editor.Logging",
+    "references": [
+        "DevUtilities",
+        "DevUtilities.RemoteDevUtilities",
+        "DevUtilities.RemoteDevUtilities.Editor",
+        "DevUtilities.RemoteDevUtilities.Logging.Protocol"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }

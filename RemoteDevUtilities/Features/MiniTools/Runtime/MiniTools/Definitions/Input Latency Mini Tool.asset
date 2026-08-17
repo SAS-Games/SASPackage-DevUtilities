@@ -18,7 +18,7 @@ MonoBehaviour:
   _updateInterval: 0.5
   _streamInterval: 0.1
   _providerScriptGuid: b6f962bc9e8fe654c88d75ea027ea7d1
-  _providerTypeName: SAS.Utilities.RemoteDevUtilities.MiniTools.Providers.RuntimeInputLatencyMiniToolProvider,
+  _providerTypeName: HP.Utilities.RemoteDevUtilities.MiniTools.Providers.RuntimeInputLatencyMiniToolProvider,
     DevUtilities.RemoteDevUtilities.MiniTools.Runtime
   _command: {fileID: 11400000, guid: a1b232dad1c982a4e945a43dcb44bb1e, type: 2}
   _commandName: InputLatencyProfiler.Overlay

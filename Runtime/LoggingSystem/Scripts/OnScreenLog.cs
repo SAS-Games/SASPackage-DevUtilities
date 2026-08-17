@@ -1,4 +1,5 @@
-namespace SAS
+
+namespace HP
 {
     public static partial class Debug
     {

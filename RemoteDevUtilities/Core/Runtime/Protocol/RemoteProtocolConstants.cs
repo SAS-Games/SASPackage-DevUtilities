@@ -1,4 +1,4 @@
-namespace SAS.Utilities.RemoteDevUtilities.Protocol
+namespace HP.Utilities.RemoteDevUtilities.Protocol
 {
     public static class RemoteProtocolConstants
     {

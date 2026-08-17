@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using SAS.DevUtilities;
+using HP.DevUtilities;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace SAS.Utilities.DeveloperConsole.InputVisualizers
+namespace HP.Utilities.DeveloperConsole.InputVisualizers
 {
     public enum InputVisualizerDeviceKind
     {

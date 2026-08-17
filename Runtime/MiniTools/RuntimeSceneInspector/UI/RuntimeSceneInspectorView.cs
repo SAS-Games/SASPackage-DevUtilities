@@ -1,9 +1,9 @@
 using System;
 using System.Linq;
-using SAS.Utilities.RuntimeSceneInspector.Core;
+using HP.Utilities.RuntimeSceneInspector.Core;
 using UnityEngine;
 
-namespace SAS.Utilities.RuntimeSceneInspector
+namespace HP.Utilities.RuntimeSceneInspector
 {
     internal enum RuntimeSceneInspectorPanel
     {

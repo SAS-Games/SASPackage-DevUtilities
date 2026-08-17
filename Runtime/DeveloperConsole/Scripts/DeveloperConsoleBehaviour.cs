@@ -2,14 +2,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
-using SAS.Utilities.Presentation;
+using HP.Utilities.Presentation;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using static UnityEngine.InputSystem.InputAction;
 
-namespace SAS.Utilities.DeveloperConsole
+namespace HP.Utilities.DeveloperConsole
 {
     public class DeveloperConsoleBehaviour : MonoBehaviour
     {

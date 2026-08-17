@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using SAS.Utilities.RemoteDevUtilities.Editor.Client;
-using SAS.Utilities.RemoteDevUtilities.Editor.Commands.Sequences;
-using SAS.Utilities.RemoteDevUtilities.Protocol.Commands;
+using HP.Utilities.RemoteDevUtilities.Editor.Client;
+using HP.Utilities.RemoteDevUtilities.Editor.Commands.Sequences;
+using HP.Utilities.RemoteDevUtilities.Protocol.Commands;
 using UnityEditor;
 using UnityEngine;
 
-namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.UI.Panels
+namespace HP.Utilities.RemoteDevUtilities.Editor.Commands.UI.Panels
 {
     internal sealed class RemoteCommandSequencePanel : IDisposable
     {

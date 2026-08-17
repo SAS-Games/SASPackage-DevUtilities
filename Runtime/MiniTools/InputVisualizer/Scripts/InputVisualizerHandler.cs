@@ -1,9 +1,9 @@
 using System;
-using SAS.DevUtilities;
+using HP.DevUtilities;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace SAS.Utilities.DeveloperConsole.InputVisualizers
+namespace HP.Utilities.DeveloperConsole.InputVisualizers
 {
     public enum ScreenPosition
     {

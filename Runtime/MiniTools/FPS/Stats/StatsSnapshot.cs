@@ -1,6 +1,6 @@
 using System;
 
-namespace SAS.DevUtilities.Stats
+namespace HP.DevUtilities.Stats
 {
     [Serializable]
     public struct StatsSnapshot : IMiniToolSnapshot

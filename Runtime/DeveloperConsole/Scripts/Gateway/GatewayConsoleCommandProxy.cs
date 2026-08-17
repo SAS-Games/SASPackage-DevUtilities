@@ -1,6 +1,6 @@
 using System;
 
-namespace SAS.Utilities.DeveloperConsole
+namespace HP.Utilities.DeveloperConsole
 {
     internal sealed class GatewayConsoleCommandProxy : IConsoleCommand
     {

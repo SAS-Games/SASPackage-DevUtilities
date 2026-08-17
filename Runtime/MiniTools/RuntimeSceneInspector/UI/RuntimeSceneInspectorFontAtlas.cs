@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using SAS.Utilities.RuntimeSceneInspector.Core;
+using HP.Utilities.RuntimeSceneInspector.Core;
 using UnityEngine;
 
-namespace SAS.Utilities.RuntimeSceneInspector
+namespace HP.Utilities.RuntimeSceneInspector
 {
     /// <summary>
     /// Validates that strings used by the runtime scene inspector exist in the

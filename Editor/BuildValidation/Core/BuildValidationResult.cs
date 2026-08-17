@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace SAS.BuildValidation
+namespace HP.BuildValidation
 {
     public class BuildValidationResult
     {
@@ -14,7 +14,7 @@ namespace SAS.BuildValidation
         {
             return new BuildValidationResult();
         }
-
+        
         public void AddIssue(string message, ValidationSeverity severity = ValidationSeverity.Error, Object context = null)
         {
             Issues.Add(new ValidationIssue

@@ -1,8 +1,8 @@
 using System;
-using SAS.Utilities.RuntimeSceneInspector.Core;
+using HP.Utilities.RuntimeSceneInspector.Core;
 using UnityEngine;
 
-namespace SAS.Utilities.RuntimeSceneInspector
+namespace HP.Utilities.RuntimeSceneInspector
 {
     /// <summary>IMGUI renderer for the keyboard-navigable material/shader inspector extension.</summary>
     internal sealed class RuntimeMaterialShaderInspectorView

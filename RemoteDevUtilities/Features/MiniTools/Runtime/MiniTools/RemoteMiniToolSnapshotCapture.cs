@@ -1,9 +1,9 @@
 using System;
 using System.Reflection;
-using SAS.DevUtilities;
+using HP.DevUtilities;
 using UnityEngine;
 
-namespace SAS.Utilities.RemoteDevUtilities.MiniTools
+namespace HP.Utilities.RemoteDevUtilities.MiniTools
 {
     /// <summary>
     /// Type-erased snapshot bridge between a registered provider and the remote

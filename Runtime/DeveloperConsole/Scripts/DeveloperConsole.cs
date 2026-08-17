@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace SAS.Utilities.DeveloperConsole
+namespace HP.Utilities.DeveloperConsole
 {
     public class DeveloperConsole
     {
-        public const string CommandBasePath = "SAS/DeveloperConsole/Commands/";
+        public const string CommandBasePath = "HP/DeveloperConsole/Commands/";
         public readonly string _prefix;
         private readonly CommandSuggester _commandSuggester = new();
         private readonly CommandHistory _commandHistory = new();
@@ -77,7 +77,7 @@ namespace SAS.Utilities.DeveloperConsole
                     if (!command.Process(developerConsole, commandInput, args))
                     {
                         developerConsole.DisplayHelpText($"Failed to execute the Command '{commandInput}'  \n{message}");
-                        Debug.LogError($"Failed to execute the Command '{commandInput}' \n{message}");
+                        Debug.LogWarning($"Failed to execute the Command '{commandInput}' \n{message}");
                         return false;
                     }
                 }
@@ -87,7 +87,7 @@ namespace SAS.Utilities.DeveloperConsole
                 return true;
             }
 
-            Debug.LogError($"No command found for '{commandInput}'");
+            Debug.LogWarning($"No command found for '{commandInput}'");
             return false;
         }
 

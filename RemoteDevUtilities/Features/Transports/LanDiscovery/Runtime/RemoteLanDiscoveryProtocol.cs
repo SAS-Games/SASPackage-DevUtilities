@@ -1,9 +1,9 @@
 using System;
 using System.Text;
-using SAS.Utilities.RemoteDevUtilities.Protocol.Connection;
+using HP.Utilities.RemoteDevUtilities.Protocol.Connection;
 using UnityEngine;
 
-namespace SAS.Utilities.RemoteDevUtilities.Protocol
+namespace HP.Utilities.RemoteDevUtilities.Protocol
 {
     [Serializable]
     internal sealed class RemoteLanDiscoveryBeacon

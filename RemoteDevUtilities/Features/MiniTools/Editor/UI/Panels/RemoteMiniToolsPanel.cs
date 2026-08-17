@@ -1,12 +1,12 @@
 using System;
-using SAS.Utilities.RemoteDevUtilities.Editor.Client;
-using SAS.Utilities.RemoteDevUtilities.Editor.MiniTools;
-using SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration;
-using SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools;
+using HP.Utilities.RemoteDevUtilities.Editor.Client;
+using HP.Utilities.RemoteDevUtilities.Editor.MiniTools;
+using HP.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration;
+using HP.Utilities.RemoteDevUtilities.Protocol.MiniTools;
 using UnityEditor;
 using UnityEngine;
 
-namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
+namespace HP.Utilities.RemoteDevUtilities.Editor.UI.Panels
 {
     [RemoteWorkspacePanel("mini-tools", "Mini Tools", 300)]
     internal sealed class RemoteMiniToolsPanel : IRemoteWorkspacePanel

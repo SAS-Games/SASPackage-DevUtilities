@@ -6,7 +6,7 @@ using System.Reflection;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace SAS.Utilities.RuntimeSceneInspector.Core
+namespace HP.Utilities.RuntimeSceneInspector.Core
 {
     /// <summary>
     /// Cached reflection fallback for components that do not have a curated drawer. Public

@@ -1,18 +1,18 @@
 {
-  "name": "DevUtilities.RemoteDevUtilities.SceneInspector.Runtime",
-  "rootNamespace": "SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector",
-  "references": [
-    "DevUtilities",
-    "DevUtilities.RemoteDevUtilities",
-    "DevUtilities.RemoteDevUtilities.SceneInspector.Protocol"
-  ],
-  "includePlatforms": [],
-  "excludePlatforms": [],
-  "allowUnsafeCode": false,
-  "overrideReferences": false,
-  "precompiledReferences": [],
-  "autoReferenced": true,
-  "defineConstraints": [],
-  "versionDefines": [],
-  "noEngineReferences": false
+    "name": "DevUtilities.RemoteDevUtilities.SceneInspector.Runtime",
+    "rootNamespace": "HP.Utilities.RemoteDevUtilities.RuntimeSceneInspector",
+    "references": [
+        "DevUtilities",
+        "DevUtilities.RemoteDevUtilities",
+        "DevUtilities.RemoteDevUtilities.SceneInspector.Protocol"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }

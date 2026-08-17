@@ -1,7 +1,7 @@
 using System;
-using SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools;
+using HP.Utilities.RemoteDevUtilities.Protocol.MiniTools;
 
-namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
+namespace HP.Utilities.RemoteDevUtilities.MiniTools.Providers
 {
     [UnityEngine.Scripting.Preserve]
     internal sealed class RuntimeInputLatencyMiniToolProvider : MiniToolStreamingDataProvider<InputLatencySnapshot, InputLatencySampleEvent>, IMiniToolFieldProvider

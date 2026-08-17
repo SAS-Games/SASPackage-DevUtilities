@@ -1,9 +1,9 @@
 using System;
 using UnityEngine;
 
-namespace SAS.Utilities.RuntimeSceneInspector
+namespace HP.Utilities.RuntimeSceneInspector
 {
-    [CreateAssetMenu(fileName = "RuntimeSceneInspectorSettings", menuName = "SAS/Dev Utilities/Runtime Scene Inspector Settings")]
+    [CreateAssetMenu(fileName = "RuntimeSceneInspectorSettings", menuName = "HP/Dev Utilities/Runtime Scene Inspector Settings")]
     public sealed class RuntimeSceneInspectorSettings : ScriptableObject
     {
         [Header("Availability")] [SerializeField] private bool m_EnableInspector = true;

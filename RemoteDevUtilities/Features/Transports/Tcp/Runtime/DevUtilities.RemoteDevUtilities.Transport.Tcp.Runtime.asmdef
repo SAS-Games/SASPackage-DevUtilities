@@ -1,14 +1,17 @@
 {
-  "name": "DevUtilities.RemoteDevUtilities.Transport.Tcp.Runtime",
-  "rootNamespace": "SAS.Utilities.RemoteDevUtilities.Transport.Tcp",
-  "references": ["DevUtilities", "DevUtilities.RemoteDevUtilities"],
-  "includePlatforms": [],
-  "excludePlatforms": [],
-  "allowUnsafeCode": false,
-  "overrideReferences": false,
-  "precompiledReferences": [],
-  "autoReferenced": true,
-  "defineConstraints": [],
-  "versionDefines": [],
-  "noEngineReferences": false
+    "name": "DevUtilities.RemoteDevUtilities.Transport.Tcp.Runtime",
+    "rootNamespace": "HP.Utilities.RemoteDevUtilities.Transport.Tcp",
+    "references": [
+        "DevUtilities",
+        "DevUtilities.RemoteDevUtilities"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }

@@ -4,7 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace SAS
+namespace HP
 {
     public class OnScreenLogController : MonoBehaviour
     {

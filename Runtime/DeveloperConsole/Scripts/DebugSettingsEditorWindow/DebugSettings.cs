@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 #if UNITY_EDITOR
-using SAS.Utilities.DeveloperConsole.Editor;
+using HP.Utilities.DeveloperConsole.Editor;
 #endif
 using UnityEngine;
 
 
-namespace SAS.Utilities.DeveloperConsole
+namespace HP.Utilities.DeveloperConsole
 {
     public static class DebugSettings
     {
@@ -59,7 +59,7 @@ namespace SAS.Utilities.DeveloperConsole
             Debug.SetLogLevel((int)LogLevel);
             Debug.SetAllowedTags(_allowedTags);
         }
-
+        
 #if UNITY_EDITOR
         public static void ApplyFromEditor()
         {

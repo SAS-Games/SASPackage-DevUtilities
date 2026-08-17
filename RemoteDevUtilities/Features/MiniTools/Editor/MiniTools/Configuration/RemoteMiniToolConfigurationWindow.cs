@@ -1,15 +1,15 @@
 using System;
 using System.Collections.Generic;
-using SAS.Utilities.RemoteDevUtilities.Editor.Client;
-using SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation;
-using SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry;
-using SAS.Utilities.RemoteDevUtilities.MiniTools;
-using SAS.Utilities.RemoteDevUtilities.Protocol.Commands;
-using SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools;
+using HP.Utilities.RemoteDevUtilities.Editor.Client;
+using HP.Utilities.RemoteDevUtilities.Editor.Commands.Presentation;
+using HP.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry;
+using HP.Utilities.RemoteDevUtilities.MiniTools;
+using HP.Utilities.RemoteDevUtilities.Protocol.Commands;
+using HP.Utilities.RemoteDevUtilities.Protocol.MiniTools;
 using UnityEditor;
 using UnityEngine;
 
-namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
+namespace HP.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration
 {
     internal sealed class RemoteMiniToolConfigurationWindow : EditorWindow
     {

@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 
-namespace SAS.Utilities.DeveloperConsole
+namespace HP.Utilities.DeveloperConsole
 {
-    [CreateAssetMenu(fileName = "New Log Command", menuName = DeveloperConsole.CommandBasePath + "Log Command")]
+    [CreateAssetMenu(fileName = "New Log Command", menuName =  DeveloperConsole.CommandBasePath + "Log Command")]
     public class LogCommand : ConsoleCommand
     {
         public override string HelpText => "Usage: Log <value>.\n Print the provided value on console.";

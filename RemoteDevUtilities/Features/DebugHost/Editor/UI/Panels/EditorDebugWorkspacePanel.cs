@@ -1,10 +1,10 @@
-using SAS.Utilities.RemoteDevUtilities.Editor.Client;
-using SAS.Utilities.RemoteDevUtilities.Editor.DebugHost;
-using SAS.Utilities.RemoteDevUtilities.Editor.UI;
+using HP.Utilities.RemoteDevUtilities.Editor.Client;
+using HP.Utilities.RemoteDevUtilities.Editor.DebugHost;
+using HP.Utilities.RemoteDevUtilities.Editor.UI;
 using UnityEditor;
 using UnityEngine;
 
-namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
+namespace HP.Utilities.RemoteDevUtilities.Editor.UI.Panels
 {
     [RemoteWorkspaceHeader(400)]
     internal sealed class EditorDebugWorkspacePanel : IRemoteWorkspaceHeader

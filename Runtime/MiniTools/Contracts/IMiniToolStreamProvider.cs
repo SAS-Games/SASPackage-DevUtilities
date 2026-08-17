@@ -1,4 +1,4 @@
-namespace SAS.DevUtilities
+namespace HP.DevUtilities
 {
     /// <summary>
     /// Supplies bounded batches of changes that occurred after the previous

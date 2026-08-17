@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using SAS.DevUtilities;
-using SAS.Utilities.RemoteDevUtilities.MiniTools;
-using SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools;
+using HP.DevUtilities;
+using HP.Utilities.RemoteDevUtilities.MiniTools;
+using HP.Utilities.RemoteDevUtilities.Protocol.MiniTools;
 using UnityEngine;
 using UnityEngine.Scripting;
 
-namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
+namespace HP.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
 {
     internal static class MiniToolSnapshotContractDiscovery
     {

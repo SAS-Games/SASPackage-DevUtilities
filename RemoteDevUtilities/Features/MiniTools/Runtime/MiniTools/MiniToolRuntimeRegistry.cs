@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using SAS.Utilities.DeveloperConsole;
-using SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools;
+using HP.Utilities.DeveloperConsole;
+using HP.Utilities.RemoteDevUtilities.Protocol.MiniTools;
 using UnityEngine;
-using RuntimeConsole = SAS.Utilities.DeveloperConsole.DeveloperConsole;
+using RuntimeConsole = HP.Utilities.DeveloperConsole.DeveloperConsole;
 
-namespace SAS.Utilities.RemoteDevUtilities.MiniTools
+namespace HP.Utilities.RemoteDevUtilities.MiniTools
 {
     internal sealed class MiniToolProviderRegistration : IDisposable
     {

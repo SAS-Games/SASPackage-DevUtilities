@@ -1,4 +1,4 @@
-namespace SAS.DevUtilities
+namespace HP.DevUtilities
 {
     /// <summary>
     /// Marks the controller that connects a mini-tool's local Player data

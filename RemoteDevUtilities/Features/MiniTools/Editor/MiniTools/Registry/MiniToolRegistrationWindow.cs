@@ -2,16 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using SAS.Utilities.DeveloperConsole;
-using SAS.Utilities.Presentation;
-using SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Scaffolding;
-using SAS.Utilities.RemoteDevUtilities.MiniTools;
-using SAS.Utilities.RemoteDevUtilities.Protocol.Commands;
+using HP.Utilities.DeveloperConsole;
+using HP.Utilities.Presentation;
+using HP.Utilities.RemoteDevUtilities.Editor.MiniTools.Scaffolding;
+using HP.Utilities.RemoteDevUtilities.MiniTools;
+using HP.Utilities.RemoteDevUtilities.Protocol.Commands;
 using UnityEditor;
 using UnityEditor.Compilation;
 using UnityEngine;
 
-namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
+namespace HP.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
 {
     internal sealed class MiniToolRegistrationWindow : EditorWindow
     {

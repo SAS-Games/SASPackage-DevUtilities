@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using SAS.Utilities.RemoteDevUtilities.Protocol;
-using SAS.Utilities.RemoteDevUtilities.Protocol.Connection;
+using HP.Utilities.RemoteDevUtilities.Protocol;
+using HP.Utilities.RemoteDevUtilities.Protocol.Connection;
 
-namespace SAS.Utilities.RemoteDevUtilities.Transport
+namespace HP.Utilities.RemoteDevUtilities.Transport
 {
     internal sealed class RuntimeMultiplexedTransport : IRuntimeRemoteTransport
     {

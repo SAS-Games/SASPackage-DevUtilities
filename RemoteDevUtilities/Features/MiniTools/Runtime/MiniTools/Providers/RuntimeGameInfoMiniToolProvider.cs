@@ -1,9 +1,9 @@
-using SAS.DevUtilities;
-using SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools;
+using HP.DevUtilities;
+using HP.Utilities.RemoteDevUtilities.Protocol.MiniTools;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
+namespace HP.Utilities.RemoteDevUtilities.MiniTools.Providers
 {
     [UnityEngine.Scripting.Preserve]
     internal sealed class RuntimeGameInfoMiniToolProvider : MiniToolDataProvider<GameInfoSnapshot>, IMiniToolFieldProvider

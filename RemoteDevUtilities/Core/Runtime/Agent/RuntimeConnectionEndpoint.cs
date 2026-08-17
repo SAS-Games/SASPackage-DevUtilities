@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using SAS.Utilities.RemoteDevUtilities.Protocol;
-using SAS.Utilities.RemoteDevUtilities.Protocol.Connection;
-using SAS.Utilities.RemoteDevUtilities.Protocol.Serialization;
+using HP.Utilities.RemoteDevUtilities.Protocol;
+using HP.Utilities.RemoteDevUtilities.Protocol.Connection;
+using HP.Utilities.RemoteDevUtilities.Protocol.Serialization;
 using UnityEngine;
 
-namespace SAS.Utilities.RemoteDevUtilities.Agent
+namespace HP.Utilities.RemoteDevUtilities.Agent
 {
     internal sealed class RuntimeConnectionEndpoint : IRuntimeRemoteEndpoint
     {

@@ -1,10 +1,10 @@
 using System;
 using System.Reflection;
-using SAS.DevUtilities;
-using SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools;
+using HP.DevUtilities;
+using HP.Utilities.RemoteDevUtilities.Protocol.MiniTools;
 using UnityEngine;
 
-namespace SAS.Utilities.RemoteDevUtilities.MiniTools
+namespace HP.Utilities.RemoteDevUtilities.MiniTools
 {
     /// <summary>
     /// Type-erased bridge between an optional incremental provider and the

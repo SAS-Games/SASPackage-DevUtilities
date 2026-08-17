@@ -1,9 +1,9 @@
 using System;
 using System.Linq;
-using SAS.Utilities.Presentation;
+using HP.Utilities.Presentation;
 using UnityEngine;
 
-namespace SAS.Utilities.DeveloperConsole
+namespace HP.Utilities.DeveloperConsole
 {
     [CreateAssetMenu(menuName = DeveloperConsole.CommandBasePath + "Logging Console Command")]
     public class LoggingConsoleCommand : CompositeConsoleCommand
@@ -19,13 +19,13 @@ namespace SAS.Utilities.DeveloperConsole
             if (args.Length < 2)
                 return false;
 
-            LogLevel logLevel = SAS.LogLevel.None;
-            if (args.Contains(SAS.LogLevel.Info.ToString()))
-                logLevel = SAS.LogLevel.Info;
-            if (args.Contains(SAS.LogLevel.Warning.ToString()))
-                logLevel = SAS.LogLevel.Warning;
-            if (args.Contains(SAS.LogLevel.Error.ToString()))
-                logLevel = SAS.LogLevel.Error;
+            LogLevel logLevel = HP.LogLevel.None;
+            if (args.Contains(HP.LogLevel.Info.ToString()))
+                logLevel = HP.LogLevel.Info;
+            if (args.Contains(HP.LogLevel.Warning.ToString()))
+                logLevel = HP.LogLevel.Warning;
+            if (args.Contains(HP.LogLevel.Error.ToString()))
+                logLevel = HP.LogLevel.Error;
 
             bool enable = args[1].Equals("On", StringComparison.OrdinalIgnoreCase);
             Debug.SetLogLevel(logLevel, enable);

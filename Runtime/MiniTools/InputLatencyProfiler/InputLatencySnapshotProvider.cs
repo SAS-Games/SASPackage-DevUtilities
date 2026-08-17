@@ -1,5 +1,5 @@
 using System;
-using SAS.DevUtilities;
+using HP.DevUtilities;
 
 /// <summary>
 /// Publishes Input Latency snapshots and incremental samples for the local Player

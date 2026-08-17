@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
-using SAS.Utilities.DeveloperConsole;
-using SAS.Utilities.RemoteDevUtilities.Editor.Client;
+using HP.Utilities.DeveloperConsole;
+using HP.Utilities.RemoteDevUtilities.Editor.Client;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
+namespace HP.Utilities.RemoteDevUtilities.Editor.DebugHost
 {
     [InitializeOnLoad]
     internal static class RemoteDebugHostLauncher

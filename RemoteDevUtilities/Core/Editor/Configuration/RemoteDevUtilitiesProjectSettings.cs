@@ -1,10 +1,10 @@
 using System.Collections.Generic;
-using SAS.Utilities.RemoteDevUtilities;
-using SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration;
+using HP.Utilities.RemoteDevUtilities;
+using HP.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration;
 using UnityEditor;
 using UnityEngine;
 
-namespace SAS.Utilities.RemoteDevUtilities.Editor.Configuration
+namespace HP.Utilities.RemoteDevUtilities.Editor.Configuration
 {
     [FilePath("ProjectSettings/RemoteDevUtilitiesSettings.asset", FilePathAttribute.Location.ProjectFolder)]
     internal sealed class RemoteDevUtilitiesProjectSettings : ScriptableSingleton<RemoteDevUtilitiesProjectSettings>
@@ -88,7 +88,20 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Configuration
             SerializedProperty runtime = serializedSettings.FindProperty("_runtime");
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(runtime, new GUIContent("Runtime Build Settings"), true);
-            if (!EditorGUI.EndChangeCheck())
+            bool changed = EditorGUI.EndChangeCheck();
+
+            RemoteDevUtilitiesRuntimeConfiguration configuration = settings.Runtime;
+            if (configuration.EnableLanDiscovery &&
+                (!configuration.AllowTcpConnectionsFromOtherMachines ||
+                 string.IsNullOrWhiteSpace(configuration.TcpAccessToken)))
+            {
+                EditorGUILayout.HelpBox(
+                    "LAN discovery is enabled but will not run in the Player. Enable TCP connections from other " +
+                    "machines and set a non-empty TCP access token.",
+                    MessageType.Warning);
+            }
+
+            if (!changed)
                 return;
 
             serializedSettings.ApplyModifiedProperties();

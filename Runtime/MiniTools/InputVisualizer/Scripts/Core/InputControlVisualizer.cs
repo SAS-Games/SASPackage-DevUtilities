@@ -15,7 +15,7 @@ using UnityEngine.InputSystem.LowLevel;
 // Some fields assigned through only through serialization.
 #pragma warning disable CS0649
 
-namespace SAS.Utilities.DeveloperConsole.InputVisualizers
+namespace HP.Utilities.DeveloperConsole.InputVisualizers
 {
     /// <summary>
     /// A component for debugging purposes that adds an on-screen display which shows

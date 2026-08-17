@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
-using SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation;
-using SAS.Utilities.RemoteDevUtilities.MiniTools;
-using SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools;
+using HP.Utilities.RemoteDevUtilities.Editor.Commands.Presentation;
+using HP.Utilities.RemoteDevUtilities.MiniTools;
+using HP.Utilities.RemoteDevUtilities.Protocol.MiniTools;
 using UnityEditor;
 using UnityEngine;
 
-namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
+namespace HP.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
 {
     internal sealed class MiniToolRegistration
     {

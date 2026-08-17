@@ -1,18 +1,18 @@
 {
-  "name": "DevUtilities.RemoteDevUtilities.Logging.Runtime",
-  "rootNamespace": "SAS.Utilities.RemoteDevUtilities.Logging",
-  "references": [
-    "DevUtilities",
-    "DevUtilities.RemoteDevUtilities",
-    "DevUtilities.RemoteDevUtilities.Logging.Protocol"
-  ],
-  "includePlatforms": [],
-  "excludePlatforms": [],
-  "allowUnsafeCode": false,
-  "overrideReferences": false,
-  "precompiledReferences": [],
-  "autoReferenced": true,
-  "defineConstraints": [],
-  "versionDefines": [],
-  "noEngineReferences": false
+    "name": "DevUtilities.RemoteDevUtilities.Logging.Runtime",
+    "rootNamespace": "HP.Utilities.RemoteDevUtilities.Logging",
+    "references": [
+        "DevUtilities",
+        "DevUtilities.RemoteDevUtilities",
+        "DevUtilities.RemoteDevUtilities.Logging.Protocol"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }

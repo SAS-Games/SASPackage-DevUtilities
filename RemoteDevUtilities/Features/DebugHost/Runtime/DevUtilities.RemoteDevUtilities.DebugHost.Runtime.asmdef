@@ -1,6 +1,6 @@
 {
     "name": "DevUtilities.RemoteDevUtilities.DebugHost.Runtime",
-    "rootNamespace": "SAS.Utilities.RemoteDevUtilities.DebugHost",
+    "rootNamespace": "HP.Utilities.RemoteDevUtilities.DebugHost",
     "references": [
         "GUID:cfbcb856ed571e04480857f2fe81e499",
         "GUID:a891377085b3492d8872e92be37704e7",

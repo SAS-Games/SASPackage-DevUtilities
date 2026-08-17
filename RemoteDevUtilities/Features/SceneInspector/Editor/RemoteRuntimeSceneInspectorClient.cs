@@ -1,12 +1,12 @@
 using System.Collections.Generic;
-using SAS.Utilities.RemoteDevUtilities.Editor.Client;
-using SAS.Utilities.RemoteDevUtilities.Protocol;
-using SAS.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector;
-using SAS.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector.Capture;
-using SAS.Utilities.RemoteDevUtilities.Protocol.Serialization;
-using RemoteMessageTypes = SAS.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector.RemoteSceneInspectorMessageTypes;
+using HP.Utilities.RemoteDevUtilities.Editor.Client;
+using HP.Utilities.RemoteDevUtilities.Protocol;
+using HP.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector;
+using HP.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector.Capture;
+using HP.Utilities.RemoteDevUtilities.Protocol.Serialization;
+using RemoteMessageTypes = HP.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector.RemoteSceneInspectorMessageTypes;
 
-namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
+namespace HP.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
 {
     [RemoteEditorFeature("runtime-scene-inspector", 400)]
     internal sealed class RemoteRuntimeSceneInspectorClient : IRemoteEditorFeatureClient

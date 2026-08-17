@@ -1,7 +1,7 @@
-using SAS.Utilities.Presentation;
+using HP.Utilities.Presentation;
 using UnityEngine;
 
-namespace SAS.Utilities.DeveloperConsole
+namespace HP.Utilities.DeveloperConsole
 {
     [CreateAssetMenu(fileName = "New Show FPS Command", menuName = DeveloperConsole.CommandBasePath + "Show FPS Command")]
     public class ShowFPSCommand : CompositeConsoleCommand

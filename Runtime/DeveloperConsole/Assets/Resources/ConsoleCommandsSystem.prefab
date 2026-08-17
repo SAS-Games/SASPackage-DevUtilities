@@ -1379,6 +1379,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: cc6c8d83ca8c7af4a8eb9537a94c05f3, type: 2}
   - {fileID: 11400000, guid: a1b232dad1c982a4e945a43dcb44bb1e, type: 2}
   - {fileID: 11400000, guid: a8f4c2e7132d4f88a6f5a774b92c1032, type: 2}
+  - {fileID: 11400000, guid: abd94a4eb70f4084b86fc794f8055e24, type: 2}
+  - {fileID: 11400000, guid: 0df5eb144017ac043a297a9718cb98ef, type: 2}
   m_PlatformCommands:
   - platform: 0
     commands:

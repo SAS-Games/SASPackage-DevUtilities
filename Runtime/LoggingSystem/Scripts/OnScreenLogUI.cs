@@ -4,7 +4,7 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 
-namespace SAS
+namespace HP
 {
     public class OnScreenLogUI : MonoBehaviour
     {
@@ -75,6 +75,7 @@ namespace SAS
             // Remove expired slot logs from dictionary
             foreach (var key in expiredSlots)
                 _slotLogs.Remove(key);
+
         }
 
 
@@ -174,6 +175,7 @@ namespace SAS
                 ReturnToPool(kvp.Value);
             _slotLogs.Clear();
         }
+
 
 
         public void SetLifetime(float value)

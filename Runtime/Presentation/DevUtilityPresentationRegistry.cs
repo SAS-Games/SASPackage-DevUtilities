@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace SAS.Utilities.Presentation
+namespace HP.Utilities.Presentation
 {
     /// <summary>
     /// Coordinates presentation suppression without knowing why a presentation

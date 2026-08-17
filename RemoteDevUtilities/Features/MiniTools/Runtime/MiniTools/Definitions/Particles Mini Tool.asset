@@ -18,7 +18,7 @@ MonoBehaviour:
   _updateInterval: 1
   _streamInterval: 0.1
   _providerScriptGuid: 529d95f9f13b4fb40b4bbad182b16b31
-  _providerTypeName: SAS.Utilities.RemoteDevUtilities.MiniTools.Providers.RuntimeParticleMiniToolProvider,
+  _providerTypeName: HP.Utilities.RemoteDevUtilities.MiniTools.Providers.RuntimeParticleMiniToolProvider,
     DevUtilities.RemoteDevUtilities.MiniTools.Runtime
   _command: {fileID: 11400000, guid: 0446de86b4ca04040b2855e11d9e920b, type: 2}
   _commandName: Particle.ShowStats

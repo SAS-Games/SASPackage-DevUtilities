@@ -1,15 +1,15 @@
 using System.Collections.Generic;
-using SAS.Utilities.RemoteDevUtilities.Agent;
-using SAS.Utilities.RemoteDevUtilities.Protocol;
-using SAS.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector;
-using SAS.Utilities.RemoteDevUtilities.Protocol.Serialization;
-using SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector.Capture;
-using SAS.Utilities.RuntimeSceneInspector;
-using SAS.Utilities.RuntimeSceneInspector.Core;
+using HP.Utilities.RemoteDevUtilities.Agent;
+using HP.Utilities.RemoteDevUtilities.Protocol;
+using HP.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector;
+using HP.Utilities.RemoteDevUtilities.Protocol.Serialization;
+using HP.Utilities.RemoteDevUtilities.RuntimeSceneInspector.Capture;
+using HP.Utilities.RuntimeSceneInspector;
+using HP.Utilities.RuntimeSceneInspector.Core;
 using UnityEngine.Scripting;
-using RemoteMessageTypes = SAS.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector.RemoteSceneInspectorMessageTypes;
+using RemoteMessageTypes = HP.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector.RemoteSceneInspectorMessageTypes;
 
-namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector
+namespace HP.Utilities.RemoteDevUtilities.RuntimeSceneInspector
 {
     [Preserve]
     [RuntimeRemoteEndpoint("runtime-scene-inspector", 400)]

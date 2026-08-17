@@ -3,7 +3,7 @@ using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
 
-namespace SAS.BuildValidation
+namespace HP.BuildValidation
 {
     public class BuildValidationPreprocessor : IPreprocessBuildWithReport
     {

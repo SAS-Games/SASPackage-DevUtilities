@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using SAS.Utilities.RemoteDevUtilities.Editor.Commands;
+using HP.Utilities.RemoteDevUtilities.Editor.Commands;
 using UnityEngine;
 
-namespace SAS.Utilities.RemoteDevUtilities.Editor.Logging.Settings
+namespace HP.Utilities.RemoteDevUtilities.Editor.Logging.Settings
 {
     internal enum RemoteLoggingLevel
     {

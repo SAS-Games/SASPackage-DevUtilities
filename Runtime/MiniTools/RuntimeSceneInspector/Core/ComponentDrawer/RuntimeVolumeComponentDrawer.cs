@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using Object = UnityEngine.Object;
 
-namespace SAS.Utilities.RuntimeSceneInspector.Core
+namespace HP.Utilities.RuntimeSceneInspector.Core
 {
     /// <summary>
     /// Exposes both the Volume behaviour and the parameters stored by its profile. Reading never

@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using SAS.Utilities.RemoteDevUtilities.Editor.Client;
-using SAS.Utilities.RemoteDevUtilities.Protocol;
-using SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools;
-using SAS.Utilities.RemoteDevUtilities.Protocol.Serialization;
+using HP.Utilities.RemoteDevUtilities.Editor.Client;
+using HP.Utilities.RemoteDevUtilities.Protocol;
+using HP.Utilities.RemoteDevUtilities.Protocol.MiniTools;
+using HP.Utilities.RemoteDevUtilities.Protocol.Serialization;
 
-namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools
+namespace HP.Utilities.RemoteDevUtilities.Editor.MiniTools
 {
     internal enum RemoteMiniToolSubscriptionOwner
     {

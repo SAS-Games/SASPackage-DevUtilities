@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using SAS.Utilities.RemoteDevUtilities.Protocol;
+using HP.Utilities.RemoteDevUtilities.Protocol;
 
-namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
+namespace HP.Utilities.RemoteDevUtilities.Editor.Connection
 {
     internal sealed class RemoteLanDiscoveryRegistry
     {

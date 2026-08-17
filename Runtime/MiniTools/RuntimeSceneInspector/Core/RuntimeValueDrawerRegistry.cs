@@ -4,7 +4,7 @@ using System.Globalization;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace SAS.Utilities.RuntimeSceneInspector.Core
+namespace HP.Utilities.RuntimeSceneInspector.Core
 {
     public interface IRuntimeValueDrawer
     {

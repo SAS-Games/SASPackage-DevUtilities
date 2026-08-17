@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
-using SAS.Utilities.RemoteDevUtilities.Editor.Client;
-using SAS.Utilities.RemoteDevUtilities.Editor.Commands;
-using SAS.Utilities.RemoteDevUtilities.Editor.Logging;
-using SAS.Utilities.RemoteDevUtilities.Editor.Logging.Settings;
-using SAS.Utilities.RemoteDevUtilities.Protocol.Logging;
+using HP.Utilities.RemoteDevUtilities.Editor.Client;
+using HP.Utilities.RemoteDevUtilities.Editor.Commands;
+using HP.Utilities.RemoteDevUtilities.Editor.Logging;
+using HP.Utilities.RemoteDevUtilities.Editor.Logging.Settings;
+using HP.Utilities.RemoteDevUtilities.Protocol.Logging;
 using UnityEditor;
 using UnityEngine;
 
-namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
+namespace HP.Utilities.RemoteDevUtilities.Editor.UI.Panels
 {
     [RemoteWorkspacePanel("logging", "Logs", 200)]
     internal sealed class RemoteLogPanel : IRemoteWorkspacePanel

@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using UnityEngine;
 
-namespace SAS.DevUtilities
+namespace HP.DevUtilities
 {
     /// <summary>
     /// Runs the original FrameStepper coroutine sequence for both local and

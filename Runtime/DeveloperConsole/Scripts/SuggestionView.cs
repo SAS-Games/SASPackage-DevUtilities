@@ -2,7 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace SAS.Utilities.DeveloperConsole
+namespace HP.Utilities.DeveloperConsole
 {
     public abstract class SuggestionView : MonoBehaviour
     {

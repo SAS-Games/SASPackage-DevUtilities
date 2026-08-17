@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Sequences
+namespace HP.Utilities.RemoteDevUtilities.Editor.Commands.Sequences
 {
     public enum RemoteCommandUnavailablePolicy
     {
@@ -44,7 +44,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Sequences
     /// Editor-owned, ordered set of commands that can be executed against any
     /// connected Player exposing the required runtime command catalog.
     /// </summary>
-    [CreateAssetMenu(fileName = "Remote Command Sequence", menuName = "SAS/Dev Utilities/Remote Command Sequence")]
+    [CreateAssetMenu(fileName = "Remote Command Sequence", menuName = "HP/Dev Utilities/Remote Command Sequence")]
     public sealed class RemoteCommandSequence : ScriptableObject
     {
         [SerializeField, TextArea(2, 4)] private string m_Description = string.Empty;

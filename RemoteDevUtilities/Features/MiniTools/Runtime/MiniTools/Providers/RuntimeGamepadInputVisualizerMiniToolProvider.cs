@@ -1,6 +1,6 @@
-using SAS.Utilities.DeveloperConsole.InputVisualizers;
+using HP.Utilities.DeveloperConsole.InputVisualizers;
 
-namespace SAS.Utilities.RemoteDevUtilities.MiniTools.Providers
+namespace HP.Utilities.RemoteDevUtilities.MiniTools.Providers
 {
     [UnityEngine.Scripting.Preserve]
     internal sealed class RuntimeGamepadInputVisualizerMiniToolProvider : RuntimeInputVisualizerMiniToolProvider

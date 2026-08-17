@@ -7,7 +7,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
-namespace SAS.Utilities.RuntimeSceneInspector.Core
+namespace HP.Utilities.RuntimeSceneInspector.Core
 {
     public sealed class RuntimeSceneInspectorService : IRuntimeSceneInspector, IRuntimeSceneObjectResolver, IDisposable
     {

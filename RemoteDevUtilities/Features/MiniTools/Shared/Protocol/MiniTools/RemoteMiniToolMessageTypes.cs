@@ -1,4 +1,4 @@
-namespace SAS.Utilities.RemoteDevUtilities.Protocol.MiniTools
+namespace HP.Utilities.RemoteDevUtilities.Protocol.MiniTools
 {
     public static class RemoteMiniToolMessageTypes
     {

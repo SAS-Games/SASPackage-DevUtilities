@@ -6,7 +6,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 #endif
 
-namespace SAS.Utilities.DeveloperConsole
+namespace HP.Utilities.DeveloperConsole
 {
     [CreateAssetMenu(menuName = DeveloperConsole.CommandBasePath + "HDRP Upscale Command")]
     public class HDRPQualityCommand : CompositeConsoleCommand

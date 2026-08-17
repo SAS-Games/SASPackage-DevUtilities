@@ -1,7 +1,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace SAS.BuildValidation
+namespace HP.BuildValidation
 {
     internal static class BuildValidationReferenceUtility
     {

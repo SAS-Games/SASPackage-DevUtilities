@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace SAS.DevUtilities.Stats
+namespace HP.DevUtilities.Stats
 {
     /// <summary>
     /// Samples performance data and publishes Stats snapshots for the local Player

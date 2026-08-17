@@ -2,7 +2,7 @@ using System;
 using Unity.Profiling;
 using UnityEngine;
 
-namespace SAS.DevUtilities
+namespace HP.DevUtilities
 {
     /// <summary>
     /// Particle-system statistics shared by the Player overlay and Editor

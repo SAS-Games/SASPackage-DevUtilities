@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using SAS.Utilities.RemoteDevUtilities.Protocol.Commands;
+using HP.Utilities.RemoteDevUtilities.Protocol.Commands;
 using UnityEngine;
 
-namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Scaffolding
+namespace HP.Utilities.RemoteDevUtilities.Editor.MiniTools.Scaffolding
 {
     [Serializable]
     internal sealed class MiniToolScaffoldRequest
