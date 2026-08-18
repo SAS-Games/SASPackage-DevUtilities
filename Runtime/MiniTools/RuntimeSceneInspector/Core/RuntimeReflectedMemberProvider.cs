@@ -310,7 +310,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                         Name = Id,
                         DisplayName = DisplayName,
                         TypeName = ValueType.FullName,
-                        Value = Format(value, ValueType, drawer),
+                        Value = Format(value, ValueType, drawer, DisplayName, Id),
                         ReadOnly = !CanSet || drawer == null
                     };
                 }
@@ -337,8 +337,11 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                 IRuntimeValueDrawer drawer = valueDrawers.Resolve(ValueType);
                 if (drawer == null)
                     return RuntimeCommandResult.Fail("Unsupported value type.");
-                if (!drawer.TryParse(text, ValueType, out object value, out string error))
+
+                if (!TryParseNamedUnityValue(text, ValueType, Id, DisplayName, out object value, out string error) &&
+                    !drawer.TryParse(text, ValueType, out value, out error))
                     return RuntimeCommandResult.Fail(error ?? "Invalid value.");
+
                 if (!ValidateRange(value, out error))
                     return RuntimeCommandResult.Fail(error);
 
@@ -353,9 +356,9 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                         return RuntimeCommandResult.Ok();
 
                     return RuntimeCommandResult.Ok("Unity applied " +
-                                                   Format(appliedValue, ValueType, drawer) +
+                                                   Format(appliedValue, ValueType, drawer, DisplayName, Id) +
                                                    " instead of the requested " +
-                                                   Format(value, ValueType, drawer) + ".");
+                                                   Format(value, ValueType, drawer, DisplayName, Id) + ".");
                 }
                 catch (Exception exception)
                 {
@@ -391,8 +394,11 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                 }
             }
 
-            private static string Format(object value, Type valueType, IRuntimeValueDrawer drawer)
+            private static string Format(object value, Type valueType, IRuntimeValueDrawer drawer,
+                string displayName, string memberId)
             {
+                if (TryFormatUnityNamedValue(value, valueType, displayName, memberId, out string namedValue))
+                    return namedValue;
                 if (drawer != null)
                     return drawer.Format(value, valueType);
                 if (value == null)
@@ -402,6 +408,97 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                 if (value is ICollection collection)
                     return valueType.Name + " (Count = " + collection.Count + ")";
                 return value.ToString();
+            }
+
+            private static bool TryFormatUnityNamedValue(object value, Type valueType, string displayName,
+                string memberId, out string formatted)
+            {
+                formatted = null;
+                if (value is null || valueType != typeof(int))
+                    return false;
+
+                int numericValue = System.Convert.ToInt32(value, System.Globalization.CultureInfo.InvariantCulture);
+                if (IsLayerIdentifier(displayName, memberId))
+                {
+                    string layerName = LayerMask.LayerToName(numericValue);
+                    formatted = string.IsNullOrEmpty(layerName) ? ("Layer " + numericValue) : layerName;
+                    return true;
+                }
+
+                if (IsSortingLayerIdentifier(displayName, memberId))
+                {
+                    string layerName = SortingLayer.IDToName(numericValue);
+                    formatted = string.IsNullOrEmpty(layerName) ? (numericValue.ToString(System.Globalization.CultureInfo.InvariantCulture)) : layerName;
+                    return true;
+                }
+
+                return false;
+            }
+
+            private static bool TryParseNamedUnityValue(string text, Type valueType, string memberId,
+                string displayName, out object value, out string error)
+            {
+                value = null;
+                error = null;
+                if (valueType != typeof(int) || string.IsNullOrWhiteSpace(text))
+                    return false;
+
+                if (IsLayerIdentifier(displayName, memberId))
+                {
+                    if (int.TryParse(text, System.Globalization.NumberStyles.Integer,
+                            System.Globalization.CultureInfo.InvariantCulture, out int numeric))
+                    {
+                        value = numeric;
+                        return true;
+                    }
+
+                    int resolved = LayerMask.NameToLayer(text);
+                    if (resolved >= 0)
+                    {
+                        value = resolved;
+                        return true;
+                    }
+
+                    error = "The layer name is not valid.";
+                    return false;
+                }
+
+                if (IsSortingLayerIdentifier(displayName, memberId))
+                {
+                    if (int.TryParse(text, System.Globalization.NumberStyles.Integer,
+                            System.Globalization.CultureInfo.InvariantCulture, out int numeric))
+                    {
+                        value = numeric;
+                        return true;
+                    }
+
+                    int resolved = SortingLayer.NameToID(text);
+                    if (resolved >= 0)
+                    {
+                        value = resolved;
+                        return true;
+                    }
+
+                    error = "The sorting layer name is not valid.";
+                    return false;
+                }
+
+                return false;
+            }
+
+            private static bool IsLayerIdentifier(string displayName, string memberId)
+            {
+                string target = (displayName ?? memberId ?? string.Empty).Replace(" ", string.Empty);
+                return target.IndexOf("Layer", StringComparison.OrdinalIgnoreCase) >= 0 &&
+                       target.IndexOf("Sorting", StringComparison.OrdinalIgnoreCase) < 0;
+            }
+
+            private static bool IsSortingLayerIdentifier(string displayName, string memberId)
+            {
+                string target = (displayName ?? memberId ?? string.Empty).Replace(" ", string.Empty);
+                return target.IndexOf("SortingLayer", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                       target.IndexOf("Sorting", StringComparison.OrdinalIgnoreCase) >= 0 &&
+                       target.IndexOf("Layer", StringComparison.OrdinalIgnoreCase) >= 0;
             }
 
             private static Exception Unwrap(Exception exception)

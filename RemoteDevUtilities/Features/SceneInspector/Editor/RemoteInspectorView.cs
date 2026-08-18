@@ -50,8 +50,14 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
             }
 
             EditorGUILayout.LabelField("Tag", details.Tag ?? string.Empty);
-            EditorGUILayout.LabelField("Layer", details.Layer.ToString());
+            EditorGUILayout.LabelField("Layer", GetLayerName(details.Layer));
             EditorGUILayout.EndVertical();
+        }
+
+        private static string GetLayerName(int layer)
+        {
+            string name = LayerMask.LayerToName(layer);
+            return string.IsNullOrEmpty(name) ? ("Layer " + layer) : name;
         }
     }
 }

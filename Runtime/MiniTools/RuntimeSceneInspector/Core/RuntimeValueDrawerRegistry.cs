@@ -43,7 +43,16 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
     {
         public bool CanDraw(Type t) => t == typeof(bool) || t == typeof(string) || t.IsEnum || t == typeof(byte) || t == typeof(short) || t == typeof(int) || t == typeof(long) || t == typeof(float) || t == typeof(double) || t == typeof(LayerMask);
 
-        public string Format(object value, Type type) => type == typeof(LayerMask) ? ((LayerMask)value).value.ToString(CultureInfo.InvariantCulture) : Convert.ToString(value, CultureInfo.InvariantCulture);
+        public string Format(object value, Type type)
+        {
+            if (value == null)
+                return "null";
+            if (type == typeof(LayerMask))
+                return ((LayerMask)value).value.ToString(CultureInfo.InvariantCulture);
+            if (type.IsEnum)
+                return Enum.Format(type, value, "G");
+            return Convert.ToString(value, CultureInfo.InvariantCulture);
+        }
 
         public bool TryParse(string text, Type type, out object value, out string error)
         {
@@ -54,7 +63,12 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                 else if (type == typeof(bool))
                     value = bool.Parse(text);
                 else if (type.IsEnum)
-                    value = Enum.Parse(type, text, true);
+                {
+                    if (int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int numeric))
+                        value = Enum.ToObject(type, numeric);
+                    else
+                        value = Enum.Parse(type, text, true);
+                }
                 else if (type == typeof(LayerMask))
                     value = (LayerMask)int.Parse(text, CultureInfo.InvariantCulture);
                 else

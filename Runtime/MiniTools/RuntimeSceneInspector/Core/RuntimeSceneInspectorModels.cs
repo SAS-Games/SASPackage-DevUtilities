@@ -16,6 +16,8 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
         public RuntimeObjectId(long value) => Value = value;
         public bool IsValid => Value > 0;
         public bool Equals(RuntimeObjectId other) => Value == other.Value;
+        public static bool operator ==(RuntimeObjectId left, RuntimeObjectId right) => left.Equals(right);
+        public static bool operator !=(RuntimeObjectId left, RuntimeObjectId right) => !left.Equals(right);
         public override bool Equals(object obj) => obj is RuntimeObjectId other && Equals(other);
         public override int GetHashCode() => Value.GetHashCode();
         public override string ToString() => Value.ToString();

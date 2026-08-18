@@ -128,10 +128,11 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
                     if (RemoteProtocolSerializer.TryDeserializePayload(envelope, out RemoteSceneInspectorCommandResponse commandResult, out _))
                     {
                         LastCommandResult = commandResult;
-                        if (commandResult.Success && Inspection?.Details != null)
+                        if (commandResult.Success)
                         {
                             RequestHierarchy(false);
-                            Inspect(Inspection.Details.Id);
+                            if (Inspection?.Details != null)
+                                Inspect(Inspection.Details.Id);
                         }
                     }
 
