@@ -6,8 +6,11 @@ using SAS.Utilities.RemoteDevUtilities.Protocol.Serialization;
 using SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector.Capture;
 using SAS.Utilities.RuntimeSceneInspector;
 using SAS.Utilities.RuntimeSceneInspector.Core;
+using UnityEngine;
 using UnityEngine.Scripting;
 using RemoteMessageTypes = SAS.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector.RemoteSceneInspectorMessageTypes;
+
+[assembly: AlwaysLinkAssembly]
 
 namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector
 {
@@ -15,6 +18,11 @@ namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector
     [RuntimeRemoteEndpoint("runtime-scene-inspector", 400)]
     internal sealed class RemoteRuntimeSceneInspectorEndpoint : IRuntimeRemoteEndpoint, IRuntimeRemoteSessionListener
     {
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
+        private static void EnsureRuntimeAssemblyIsLoaded()
+        {
+        }
+
         private static readonly string[] SupportedMessages =
         {
             RemoteSceneInspectorMessageTypes.SceneInspectorHierarchyRequest,

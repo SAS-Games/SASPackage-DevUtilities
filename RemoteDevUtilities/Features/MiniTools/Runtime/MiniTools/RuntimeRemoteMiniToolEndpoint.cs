@@ -7,12 +7,19 @@ using SAS.Utilities.RemoteDevUtilities.Protocol.Serialization;
 using UnityEngine;
 using UnityEngine.Scripting;
 
+[assembly: AlwaysLinkAssembly]
+
 namespace SAS.Utilities.RemoteDevUtilities.MiniTools
 {
     [Preserve]
     [RuntimeRemoteEndpoint("mini-tools", 300)]
     internal sealed class RuntimeRemoteMiniToolEndpoint : IRuntimeRemoteEndpoint, IRuntimeRemoteSessionListener
     {
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
+        private static void EnsureRuntimeAssemblyIsLoaded()
+        {
+        }
+
         private sealed class ProviderState
         {
             public MiniToolProviderRegistration Registration;

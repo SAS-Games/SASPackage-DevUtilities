@@ -6,7 +6,10 @@ using SAS.Utilities.RemoteDevUtilities.Protocol;
 using SAS.Utilities.RemoteDevUtilities.Protocol.Commands;
 using SAS.Utilities.RemoteDevUtilities.Protocol.Serialization;
 using RuntimeConsole = SAS.Utilities.DeveloperConsole.DeveloperConsole;
+using UnityEngine;
 using UnityEngine.Scripting;
+
+[assembly: AlwaysLinkAssembly]
 
 namespace SAS.Utilities.RemoteDevUtilities.Commands
 {
@@ -14,6 +17,11 @@ namespace SAS.Utilities.RemoteDevUtilities.Commands
     [RuntimeRemoteEndpoint("commands", 100)]
     internal sealed class RuntimeRemoteCommandEndpoint : IRuntimeRemoteEndpoint, IRuntimeRemoteSessionListener
     {
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
+        private static void EnsureRuntimeAssemblyIsLoaded()
+        {
+        }
+
         private static readonly string[] SupportedMessages =
         {
             RemoteCommandMessageTypes.CatalogRequest,

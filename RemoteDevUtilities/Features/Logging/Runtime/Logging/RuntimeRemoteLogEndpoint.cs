@@ -7,12 +7,19 @@ using SAS.Utilities.RemoteDevUtilities.Protocol.Logging;
 using UnityEngine;
 using UnityEngine.Scripting;
 
+[assembly: AlwaysLinkAssembly]
+
 namespace SAS.Utilities.RemoteDevUtilities.Logging
 {
     [Preserve]
     [RuntimeRemoteEndpoint("logging", 200)]
     internal sealed class RuntimeRemoteLogEndpoint : IRuntimeRemoteEndpoint, IRuntimeRemoteSessionListener
     {
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
+        private static void EnsureRuntimeAssemblyIsLoaded()
+        {
+        }
+
         private static readonly string[] SupportedMessages =
         {
             RemoteLoggingMessageTypes.SettingsRequest
