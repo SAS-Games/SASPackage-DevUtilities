@@ -121,31 +121,24 @@ namespace SAS.Utilities.RuntimeSceneInspector
         private void AddPhysicsCandidates(Camera camera, Ray ray, List<RuntimeScenePickCandidate> candidates)
         {
             float maximumDistance = Mathf.Max(camera.farClipPlane, 0f);
-            QueryTriggerInteraction triggerInteraction = _settings.PickTriggerColliders
-                ? QueryTriggerInteraction.Collide
-                : QueryTriggerInteraction.Ignore;
+            QueryTriggerInteraction triggerInteraction = _settings.PickTriggerColliders ? QueryTriggerInteraction.Collide : QueryTriggerInteraction.Ignore;
 
-            RaycastHit[] hits3D = Physics.RaycastAll(ray, maximumDistance, _settings.ObjectPickingLayerMask,
-                triggerInteraction);
+            RaycastHit[] hits3D = Physics.RaycastAll(ray, maximumDistance, _settings.ObjectPickingLayerMask, triggerInteraction);
             Array.Sort(hits3D, (left, right) => left.distance.CompareTo(right.distance));
             foreach (RaycastHit hit in hits3D)
-                AddCandidate(hit.collider != null ? hit.collider.gameObject : null,
-                    RuntimeScenePickSource.Collider3D, candidates);
+                AddCandidate(hit.collider != null ? hit.collider.gameObject : null, RuntimeScenePickSource.Collider3D, candidates);
 
-            RaycastHit2D[] hits2D = Physics2D.GetRayIntersectionAll(ray, maximumDistance,
-                _settings.ObjectPickingLayerMask);
+            RaycastHit2D[] hits2D = Physics2D.GetRayIntersectionAll(ray, maximumDistance, _settings.ObjectPickingLayerMask);
             Array.Sort(hits2D, Compare2DHits);
             foreach (RaycastHit2D hit in hits2D)
             {
                 if (!_settings.PickTriggerColliders && hit.collider != null && hit.collider.isTrigger)
                     continue;
-                AddCandidate(hit.collider != null ? hit.collider.gameObject : null,
-                    RuntimeScenePickSource.Collider2D, candidates);
+                AddCandidate(hit.collider != null ? hit.collider.gameObject : null, RuntimeScenePickSource.Collider2D, candidates);
             }
         }
 
-        private void AddCandidate(GameObject candidate, RuntimeScenePickSource source,
-            List<RuntimeScenePickCandidate> candidates)
+        private void AddCandidate(GameObject candidate, RuntimeScenePickSource source, List<RuntimeScenePickCandidate> candidates)
         {
             if (!IsAllowed(candidate) || !_resolver.TryGetObjectId(candidate, out RuntimeObjectId objectId) ||
                 !_candidateIds.Add(objectId.Value))
