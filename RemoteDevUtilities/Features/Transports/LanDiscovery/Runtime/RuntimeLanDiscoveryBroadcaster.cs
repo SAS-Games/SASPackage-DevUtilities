@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using System.Text;
 using SAS.Utilities.RemoteDevUtilities.Agent;
 using SAS.Utilities.RemoteDevUtilities.Protocol;
 using UnityEngine;
@@ -16,6 +17,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Transport
     [RuntimeRemoteConnectionService("lan-discovery", 300)]
     internal sealed class RuntimeLanDiscoveryBroadcaster : IRuntimeRemoteConnectionService
     {
+        private const double DiagnosticLogIntervalSeconds = 30d;
+
         // Ensure this optional service assembly is loaded before the core scans
         // AppDomain assemblies. Without a runtime root, console IL2CPP players
         // can omit the broadcaster even though its type has [Preserve].
@@ -27,7 +30,10 @@ namespace SAS.Utilities.RemoteDevUtilities.Transport
         private byte[] _payload;
         private List<IPEndPoint> _destinations;
         private UdpClient _client;
+        private int _advertisedTcpPort;
         private double _nextBeaconTime;
+        private double _nextDiagnosticLogTime;
+        private long _beaconSequence;
         private bool _reportedSendFailure;
 
         public void Initialize(RuntimeRemoteConnectionServiceContext context)
@@ -45,17 +51,38 @@ namespace SAS.Utilities.RemoteDevUtilities.Transport
             }
 
             RemoteDevUtilitiesRuntimeSettings settings = context?.Settings;
-            if (tcpEndpoint?.IsListening != true || settings == null || !settings.EnableLanDiscovery ||
-                !settings.AllowTcpConnectionsFromOtherMachines || string.IsNullOrWhiteSpace(settings.TcpAccessToken))
+            if (settings == null || !settings.EnableLanDiscovery)
                 return;
 
+            if (tcpEndpoint?.IsListening != true)
+            {
+                Debug.LogWarning("[RemoteDevUtilities] LAN discovery is enabled, but the TCP endpoint is not listening. " +
+                                 "No UDP discovery beacons will be sent.");
+                return;
+            }
+
+            if (!settings.AllowTcpConnectionsFromOtherMachines)
+            {
+                Debug.LogWarning("[RemoteDevUtilities] LAN discovery is enabled, but LAN TCP access is disabled. " +
+                                 "No UDP discovery beacons will be sent.");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(settings.TcpAccessToken))
+            {
+                Debug.LogWarning("[RemoteDevUtilities] LAN discovery is enabled, but the TCP access token is empty. " +
+                                 "No UDP discovery beacons will be sent.");
+                return;
+            }
+
+            _advertisedTcpPort = tcpEndpoint.BoundPort;
             _payload = RemoteLanDiscoveryProtocol.Serialize(new RemoteLanDiscoveryBeacon
             {
                 Signature = RemoteLanDiscoveryConstants.Signature,
                 ProtocolVersion = RemoteProtocolConstants.Version,
                 PackageVersion = RemoteProtocolConstants.PackageVersion,
                 RuntimeSessionId = context.RuntimeSessionId,
-                TcpPort = tcpEndpoint.BoundPort,
+                TcpPort = _advertisedTcpPort,
                 Target = RuntimeConnectionEndpoint.CreateTargetDescriptor()
             });
             _destinations = BuildDestinations();
@@ -69,6 +96,12 @@ namespace SAS.Utilities.RemoteDevUtilities.Transport
             {
                 _client = new UdpClient(AddressFamily.InterNetwork) { EnableBroadcast = true };
                 _nextBeaconTime = 0d;
+                _nextDiagnosticLogTime = 0d;
+                _beaconSequence = 0;
+                Debug.Log($"[RemoteDevUtilities] LAN discovery broadcaster started. " +
+                          $"UDP port={RemoteLanDiscoveryConstants.Port}, TCP port={_advertisedTcpPort}, " +
+                          $"interval={RemoteLanDiscoveryConstants.BeaconIntervalSeconds:0.###}s, " +
+                          $"destinations=[{FormatDestinations()}].");
             }
             catch (Exception exception) when (exception is SocketException || exception is ObjectDisposedException)
             {
@@ -82,27 +115,39 @@ namespace SAS.Utilities.RemoteDevUtilities.Transport
             if (_client == null || _payload == null || _destinations == null || Time.realtimeSinceStartupAsDouble < _nextBeaconTime)
                 return;
 
-            _nextBeaconTime = Time.realtimeSinceStartupAsDouble + RemoteLanDiscoveryConstants.BeaconIntervalSeconds;
-            bool sent = false;
+            double now = Time.realtimeSinceStartupAsDouble;
+            _nextBeaconTime = now + RemoteLanDiscoveryConstants.BeaconIntervalSeconds;
+            _beaconSequence++;
+            int successfulDestinations = 0;
             for (int i = 0; i < _destinations.Count; i++)
             {
                 try
                 {
                     _client.Send(_payload, _payload.Length, _destinations[i]);
-                    sent = true;
+                    successfulDestinations++;
                 }
                 catch (Exception exception) when (exception is SocketException || exception is ObjectDisposedException)
                 {
                     if (!_reportedSendFailure)
                     {
                         _reportedSendFailure = true;
-                        Debug.LogWarning("[RemoteDevUtilities] LAN discovery beacon could not be sent: " + exception.Message);
+                        Debug.LogWarning($"[RemoteDevUtilities] LAN discovery beacon could not be sent to " +
+                                         $"{_destinations[i]}: {exception.Message}");
                     }
                 }
             }
 
-            if (sent)
+            if (successfulDestinations > 0)
+            {
                 _reportedSendFailure = false;
+                if (now >= _nextDiagnosticLogTime)
+                {
+                    _nextDiagnosticLogTime = now + DiagnosticLogIntervalSeconds;
+                    Debug.Log($"[RemoteDevUtilities] LAN discovery beacon #{_beaconSequence} sent to " +
+                              $"{successfulDestinations}/{_destinations.Count} destination(s). " +
+                              $"UDP bytes={_payload.Length}, advertised TCP port={_advertisedTcpPort}.");
+                }
+            }
         }
 
         public void Dispose()
@@ -151,6 +196,21 @@ namespace SAS.Utilities.RemoteDevUtilities.Transport
             string key = address.ToString();
             if (addresses.Add(key))
                 destinations.Add(new IPEndPoint(address, RemoteLanDiscoveryConstants.Port));
+        }
+
+        private string FormatDestinations()
+        {
+            if (_destinations == null || _destinations.Count == 0)
+                return "none";
+
+            var result = new StringBuilder();
+            for (int i = 0; i < _destinations.Count; i++)
+            {
+                if (i > 0)
+                    result.Append(", ");
+                result.Append(_destinations[i]);
+            }
+            return result.ToString();
         }
     }
 }

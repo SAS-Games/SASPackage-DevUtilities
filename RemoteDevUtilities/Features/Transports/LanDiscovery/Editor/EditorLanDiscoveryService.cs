@@ -5,12 +5,15 @@ using System.Net.Sockets;
 using System.Threading;
 using SAS.Utilities.RemoteDevUtilities.Editor.Client;
 using SAS.Utilities.RemoteDevUtilities.Protocol;
+using UnityEngine;
 
 namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
 {
     [RemoteEditorConnectionService("lan-discovery", 300)]
     internal sealed class EditorLanDiscoveryService : IRemoteLanDiscoveryService
     {
+        private const double DiagnosticLogIntervalSeconds = 30d;
+
         private readonly struct Datagram
         {
             public Datagram(string host, byte[] data)
@@ -29,6 +32,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
         private UdpClient _listener;
         private Thread _worker;
         private volatile bool _running;
+        private double _nextReceiveDiagnosticLogTime;
+        private double _nextRejectedDiagnosticLogTime;
 
         public IReadOnlyList<RemoteLanPlayerDescriptor> Players => _registry.Players;
         public string Error { get; private set; }
@@ -56,6 +61,10 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
                 };
                 _worker.Start();
                 Error = null;
+                _nextReceiveDiagnosticLogTime = 0d;
+                _nextRejectedDiagnosticLogTime = 0d;
+                Debug.Log($"[RemoteDevUtilities] LAN discovery listener started on 0.0.0.0:" +
+                          $"{RemoteLanDiscoveryConstants.Port}/UDP. Waiting for Player beacons.");
             }
             catch (Exception exception) when (exception is SocketException || exception is ObjectDisposedException)
             {
@@ -70,13 +79,38 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
             while (TryDequeue(out Datagram datagram))
             {
                 if (RemoteLanDiscoveryProtocol.TryDeserialize(datagram.Data, out RemoteLanDiscoveryBeacon beacon))
-                    changed |= _registry.Accept(datagram.Host, beacon, now);
+                {
+                    bool beaconChanged = _registry.Accept(datagram.Host, beacon, now);
+                    changed |= beaconChanged;
+                    if (beaconChanged || now >= _nextReceiveDiagnosticLogTime)
+                    {
+                        _nextReceiveDiagnosticLogTime = now + DiagnosticLogIntervalSeconds;
+                        Debug.Log($"[RemoteDevUtilities] LAN discovery beacon received from " +
+                                  $"{datagram.Host}. UDP bytes={datagram.Data.Length}, " +
+                                  $"advertised TCP port={beacon.TcpPort}, session={beacon.RuntimeSessionId}, " +
+                                  $"protocol={beacon.ProtocolVersion}, package={beacon.PackageVersion}, " +
+                                  $"device={beacon.Target?.DeviceName ?? "unknown"}.");
+                    }
+                }
+                else if (now >= _nextRejectedDiagnosticLogTime)
+                {
+                    _nextRejectedDiagnosticLogTime = now + DiagnosticLogIntervalSeconds;
+                    Debug.LogWarning($"[RemoteDevUtilities] UDP datagram received on discovery port from " +
+                                     $"{datagram.Host}, but it was not a valid Remote Dev Utilities beacon. " +
+                                     $"UDP bytes={datagram.Data?.Length ?? 0}.");
+                }
             }
 
             return _registry.RemoveExpired(now) || changed;
         }
 
-        public bool Clear() => _registry.Clear();
+        public bool Clear()
+        {
+            bool changed = _registry.Clear();
+            Debug.Log("[RemoteDevUtilities] LAN discovery results cleared. The UDP listener remains active; " +
+                      "Search Again is passive and waits for the Player's next beacon.");
+            return changed;
+        }
 
         public void Dispose()
         {
