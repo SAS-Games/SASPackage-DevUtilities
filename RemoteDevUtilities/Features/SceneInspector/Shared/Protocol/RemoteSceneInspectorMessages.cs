@@ -63,8 +63,10 @@ namespace SAS.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector
         public long Id;
         public string Name;
         public bool Active;
+        public bool ActiveReadOnly;
         public string Tag;
         public int Layer;
+        public bool LayerReadOnly;
         public RemoteComponentDescriptor[] Components = Array.Empty<RemoteComponentDescriptor>();
         public RemoteMaterialShaderSection MaterialsAndShaders;
     }
@@ -76,6 +78,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector
         public string TypeName;
         public bool HasEnabledState;
         public bool Enabled;
+        public bool EnabledReadOnly;
         public bool Missing;
         public string StatusMessage;
         public RemoteMemberDescriptor[] Members = Array.Empty<RemoteMemberDescriptor>();
@@ -152,7 +155,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector
         SetMemberValue,
         SetShaderProperty,
         RestoreShaderProperty,
-        RestoreMaterial
+        RestoreMaterial,
+        SetGameObjectLayer
     }
 
     [Serializable]
@@ -163,6 +167,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector
         public long ComponentId;
         public long RendererId;
         public bool BooleanValue;
+        public int IntegerValue;
         public string MemberName;
         public string Value;
         public int MaterialIndex;

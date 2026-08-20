@@ -151,6 +151,13 @@ namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector
                         Active = request.BooleanValue
                     };
                     break;
+                case RemoteSceneInspectorCommandKind.SetGameObjectLayer:
+                    command = new SetGameObjectLayerCommand
+                    {
+                        ObjectId = new RuntimeObjectId(request.ObjectId),
+                        Layer = request.IntegerValue
+                    };
+                    break;
                 case RemoteSceneInspectorCommandKind.SetComponentEnabled:
                     command = new SetComponentEnabledCommand
                     {

@@ -52,8 +52,10 @@ namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector
                 Id = details.Id.Value,
                 Name = details.Name,
                 Active = details.Active,
+                ActiveReadOnly = details.ActiveReadOnly,
                 Tag = details.Tag,
                 Layer = details.Layer,
+                LayerReadOnly = details.LayerReadOnly,
                 Components = components,
                 MaterialsAndShaders = ToRemote(details.MaterialsAndShaders)
             };
@@ -83,6 +85,7 @@ namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector
                 TypeName = component.TypeName,
                 HasEnabledState = component.HasEnabledState,
                 Enabled = component.Enabled,
+                EnabledReadOnly = component.EnabledReadOnly,
                 Missing = component.Missing,
                 StatusMessage = component.StatusMessage,
                 Members = members

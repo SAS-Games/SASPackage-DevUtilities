@@ -131,7 +131,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                     components.Add(new RuntimeComponentDescriptor
                     {
                         Id = _registry.GetOrCreate(component), TypeName = type.FullName, HasEnabledState = hasEnabled,
-                        Enabled = enabled,
+                        Enabled = enabled, EnabledReadOnly = !_settings.AllowComponentEnableChanges,
                         StatusMessage = members.Count == 0 ? "No supported runtime properties." : null,
                         Members = members
                     });
@@ -149,8 +149,10 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
 
                 var details = new RuntimeObjectDetails
                 {
-                    Id = objectId, Name = gameObject.name, Active = gameObject.activeSelf, Tag = tag,
-                    Layer = gameObject.layer, Components = components
+                    Id = objectId, Name = gameObject.name, Active = gameObject.activeSelf,
+                    ActiveReadOnly = !_settings.AllowActivationChanges, Tag = tag,
+                    Layer = gameObject.layer, LayerReadOnly = !_settings.AllowValueChanges,
+                    Components = components
                 };
                 foreach (IRuntimeSceneInspectorExtension extension in _inspectorExtensions)
                     extension.Inspect(gameObject, _registry, details);
@@ -186,6 +188,19 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                     if (!active.Active && IsRuntimeSceneInspectorHost(target))
                         return RuntimeCommandResult.Fail("The runtime scene inspector cannot disable its own host.");
                     target.SetActive(active.Active);
+                    RefreshHierarchy();
+                    return RuntimeCommandResult.Ok();
+                }
+
+                if (command is SetGameObjectLayerCommand layer)
+                {
+                    if (!_settings.AllowValueChanges)
+                        return RuntimeCommandResult.Fail("Value changes are disabled.");
+                    if (layer.Layer < 0 || layer.Layer > 31)
+                        return RuntimeCommandResult.Fail("GameObject layer must be between 0 and 31.");
+                    if (!_registry.TryResolve(layer.ObjectId, out GameObject target))
+                        return RuntimeCommandResult.Fail("The GameObject no longer exists.");
+                    target.layer = layer.Layer;
                     RefreshHierarchy();
                     return RuntimeCommandResult.Ok();
                 }

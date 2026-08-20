@@ -164,12 +164,18 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                     {
                         value = ReadMaterial(material, property);
                         source = "Material";
+                        Texture rendererTexture = ResolveRendererTexture(renderer, property);
+                        if (rendererTexture != null)
+                        {
+                            value = RuntimeShaderPropertyValue.Texture(rendererTexture);
+                            source = "Sprite renderer";
+                        }
                     }
 
                     properties.Add(new RuntimeShaderPropertyView
                     {
                         Property = property,
-                        Value = Format(value),
+                        Value = Format(value, property),
                         ValueSource = source,
                         HasInspectorOverride = inspectorOverride,
                         ReadOnly = !CanEdit(property)
@@ -866,7 +872,19 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             }
         }
 
-        private static string Format(RuntimeShaderPropertyValue value)
+        private static Texture ResolveRendererTexture(Renderer renderer,
+            RuntimeShaderPropertyDescriptor property)
+        {
+            if (property.Type != RuntimeShaderPropertyType.Texture ||
+                renderer is not SpriteRenderer spriteRenderer || spriteRenderer.sprite == null ||
+                (!property.IsMainTexture && !string.Equals(property.Name, "_MainTex", StringComparison.Ordinal)))
+                return null;
+
+            return spriteRenderer.sprite.texture;
+        }
+
+        private static string Format(RuntimeShaderPropertyValue value,
+            RuntimeShaderPropertyDescriptor property = null)
         {
             switch (value.Type)
             {
@@ -881,7 +899,11 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                     return Join(value.VectorValue.x, value.VectorValue.y, value.VectorValue.z, value.VectorValue.w);
                 case RuntimeShaderPropertyType.Texture:
                     Texture texture = value.TextureValue;
-                    return texture == null ? "null" : $"{texture.name} ({texture.width}x{texture.height}, {texture.GetType().Name})";
+                    if (texture != null)
+                        return $"{texture.name} ({texture.width}x{texture.height}, {texture.GetType().Name})";
+                    return string.IsNullOrWhiteSpace(property?.DefaultTextureName)
+                        ? "None (Texture)"
+                        : $"Default: {property.DefaultTextureName}";
                 default:
                     return "<unsupported>";
             }

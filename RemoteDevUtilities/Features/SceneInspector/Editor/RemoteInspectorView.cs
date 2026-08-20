@@ -38,7 +38,9 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
         {
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             EditorGUILayout.LabelField(details.Name, EditorStyles.boldLabel);
-            bool active = EditorGUILayout.Toggle("Active", details.Active);
+            bool active;
+            using (new EditorGUI.DisabledScope(details.ActiveReadOnly))
+                active = EditorGUILayout.Toggle("Active", details.Active);
             if (active != details.Active)
             {
                 client.Execute(new RemoteSceneInspectorCommandRequest
@@ -49,15 +51,21 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
                 });
             }
 
-            EditorGUILayout.LabelField("Tag", details.Tag ?? string.Empty);
-            EditorGUILayout.LabelField("Layer", GetLayerName(details.Layer));
+            using (new EditorGUI.DisabledScope(true))
+                EditorGUILayout.TagField("Tag", details.Tag ?? string.Empty);
+            int layer;
+            using (new EditorGUI.DisabledScope(details.LayerReadOnly))
+                layer = EditorGUILayout.LayerField("Layer", details.Layer);
+            if (layer != details.Layer)
+            {
+                client.Execute(new RemoteSceneInspectorCommandRequest
+                {
+                    Kind = RemoteSceneInspectorCommandKind.SetGameObjectLayer,
+                    ObjectId = details.Id,
+                    IntegerValue = layer
+                });
+            }
             EditorGUILayout.EndVertical();
-        }
-
-        private static string GetLayerName(int layer)
-        {
-            string name = LayerMask.LayerToName(layer);
-            return string.IsNullOrEmpty(name) ? ("Layer " + layer) : name;
         }
     }
 }

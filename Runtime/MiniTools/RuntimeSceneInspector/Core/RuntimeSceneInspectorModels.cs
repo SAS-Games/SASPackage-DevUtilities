@@ -67,6 +67,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
         public string TypeName;
         public bool HasEnabledState;
         public bool Enabled;
+        public bool EnabledReadOnly;
         public bool Missing;
         public string StatusMessage;
         public IReadOnlyList<RuntimeMemberDescriptor> Members;
@@ -78,8 +79,10 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
         public RuntimeObjectId Id;
         public string Name;
         public bool Active;
+        public bool ActiveReadOnly;
         public string Tag;
         public int Layer;
+        public bool LayerReadOnly;
         public IReadOnlyList<RuntimeComponentDescriptor> Components;
         public RuntimeMaterialShaderSection MaterialsAndShaders;
     }
@@ -100,6 +103,12 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
     {
         public RuntimeObjectId ObjectId;
         public bool Active;
+    }
+
+    public sealed class SetGameObjectLayerCommand : RuntimeSceneInspectorCommand
+    {
+        public RuntimeObjectId ObjectId;
+        public int Layer;
     }
 
     public sealed class SetComponentEnabledCommand : RuntimeSceneInspectorCommand

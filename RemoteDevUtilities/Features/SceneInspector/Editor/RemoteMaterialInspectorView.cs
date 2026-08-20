@@ -72,9 +72,12 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
 
         private void DrawSlotMetadata(RemoteMaterialSlotDescriptor slot, string slotKey, out int scope)
         {
-            EditorGUILayout.LabelField("Shader", slot.ShaderName ?? "<missing>");
-            EditorGUILayout.LabelField("Render Queue", slot.RenderQueue.ToString());
-            EditorGUILayout.LabelField("GPU Instancing", slot.EnableInstancing.ToString());
+            using (new EditorGUI.DisabledScope(true))
+            {
+                EditorGUILayout.TextField("Shader", slot.ShaderName ?? "<missing>");
+                EditorGUILayout.IntField("Render Queue", slot.RenderQueue);
+                EditorGUILayout.Toggle("GPU Instancing", slot.EnableInstancing);
+            }
 
             if (!_materialScopes.TryGetValue(slotKey, out scope))
                 scope = 0;
@@ -123,7 +126,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
 
             if (property.ReadOnly)
             {
-                EditorGUILayout.SelectableLabel(property.Value ?? string.Empty, EditorStyles.textField, GUILayout.Height(EditorGUIUtility.singleLineHeight));
+                using (new EditorGUI.DisabledScope(true))
+                    EditorGUILayout.TextField(property.Value ?? string.Empty);
             }
             else
             {
