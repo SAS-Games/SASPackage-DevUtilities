@@ -13,7 +13,9 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             Add("@unity.reflectionProbeUsage", "Reflection Probe Usage", renderer => renderer.reflectionProbeUsage, (renderer, value) => renderer.reflectionProbeUsage = value);
             Add("@unity.motionVectorGenerationMode", "Motion Vector Mode", renderer => renderer.motionVectorGenerationMode, (renderer, value) => renderer.motionVectorGenerationMode = value);
             Add("@unity.allowOcclusionWhenDynamic", "Allow Dynamic Occlusion", renderer => renderer.allowOcclusionWhenDynamic, (renderer, value) => renderer.allowOcclusionWhenDynamic = value);
-            Add("@unity.sortingLayerId", "Sorting Layer ID", renderer => renderer.sortingLayerID, (renderer, value) => renderer.sortingLayerID = value);
+            Add("@unity.sortingLayerId", "Sorting Layer ID", renderer => renderer.sortingLayerID,
+                (renderer, value) => renderer.sortingLayerID = value,
+                controlKind: RuntimeInspectorControlKind.SortingLayer);
             Add("@unity.sortingOrder", "Sorting Order", renderer => renderer.sortingOrder, (renderer, value) => renderer.sortingOrder = value);
             AddReadOnly("@unity.bounds", "World Bounds", renderer => renderer.bounds);
             AddReadOnly("@unity.localBounds", "Local Bounds", renderer => renderer.localBounds);

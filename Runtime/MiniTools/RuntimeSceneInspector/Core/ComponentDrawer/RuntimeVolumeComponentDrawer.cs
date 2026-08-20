@@ -134,7 +134,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             IRuntimeValueDrawer drawer = _valueDrawers.Resolve(valueType);
             try
             {
-                return new RuntimeMemberDescriptor
+                var descriptor = new RuntimeMemberDescriptor
                 {
                     Name = id,
                     DisplayName = displayName,
@@ -142,6 +142,8 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                     Value = drawer?.Format(value, valueType) ?? value?.ToString() ?? "null",
                     ReadOnly = !editable || drawer == null || typeof(Object).IsAssignableFrom(valueType)
                 };
+                RuntimeInspectorControlMetadata.Populate(descriptor, valueType, displayName, id);
+                return descriptor;
             }
             catch (Exception ex)
             {
@@ -151,14 +153,20 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
 
         private RuntimeMemberDescriptor BuildReadOnly(string id, string displayName, object value, Type valueType) => BuildValue(id, displayName, value, valueType, false);
 
-        private static RuntimeMemberDescriptor Error(string id, string displayName, Type valueType, string message) => new()
+        private static RuntimeMemberDescriptor Error(string id, string displayName, Type valueType,
+            string message)
         {
-            Name = id,
-            DisplayName = displayName,
-            TypeName = valueType?.FullName ?? string.Empty,
-            ReadOnly = true,
-            Error = message
-        };
+            var descriptor = new RuntimeMemberDescriptor
+            {
+                Name = id,
+                DisplayName = displayName,
+                TypeName = valueType?.FullName ?? string.Empty,
+                ReadOnly = true,
+                Error = message
+            };
+            RuntimeInspectorControlMetadata.Populate(descriptor, valueType, displayName, id);
+            return descriptor;
+        }
 
         private RuntimeCommandResult TrySetActive(Volume volume, int componentIndex, string text)
         {

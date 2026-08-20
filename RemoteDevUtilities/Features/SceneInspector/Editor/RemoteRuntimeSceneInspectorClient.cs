@@ -25,6 +25,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
         private long _captureRequestId;
         private long _pickRequestId;
         private bool _captureReleasePending;
+        private readonly Dictionary<long, RemoteSceneInspectorCommandKind> _pendingCommands = new();
 
         public RemoteRuntimeSceneInspectorClient(IRemoteEditorSession session)
         {
@@ -41,6 +42,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
         public RemoteScenePickResponse LastPickResult { get; private set; }
         public long LastPickedObjectId { get; private set; }
         public int PickRevision { get; private set; }
+        public int SessionGeneration { get; private set; }
         public bool IsCapturePending => _captureRequestId != 0 && Capture == null;
         public bool IsCaptureReleasePending => _captureReleasePending;
         public bool IsPickPending => !_captureReleasePending && _pickRequestId != 0 && LastPickResult == null;
@@ -74,7 +76,10 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
         public void Execute(RemoteSceneInspectorCommandRequest command)
         {
             LastCommandResult = null;
-            _session.Send(RemoteSceneInspectorMessageTypes.SceneInspectorCommandRequest, command);
+            long requestId = _session.Send(
+                RemoteSceneInspectorMessageTypes.SceneInspectorCommandRequest, command);
+            if (requestId > 0 && command != null)
+                _pendingCommands[requestId] = command.Kind;
         }
 
         public void RequestCapture(bool freezeWhilePicking, int maximumWidth = 960, int jpegQuality = 70)
@@ -144,12 +149,16 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
                     }
                     break;
                 case RemoteSceneInspectorMessageTypes.SceneInspectorCommandResponse:
+                    if (!_pendingCommands.Remove(envelope.RequestId,
+                            out RemoteSceneInspectorCommandKind commandKind))
+                        break;
                     if (RemoteProtocolSerializer.TryDeserializePayload(envelope, out RemoteSceneInspectorCommandResponse commandResult, out _))
                     {
                         LastCommandResult = commandResult;
                         if (commandResult.Success)
                         {
-                            RequestHierarchy(false);
+                            if (CommandAffectsHierarchy(commandKind))
+                                RequestHierarchy(false);
                             if (Inspection?.Details != null)
                                 Inspect(Inspection.Details.Id);
                         }
@@ -184,6 +193,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
 
         public void Reset()
         {
+            SessionGeneration++;
             Hierarchy = new RemoteSceneInspectorHierarchyResponse();
             Inspection = null;
             InspectionRevision = 0;
@@ -197,6 +207,10 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
             LastPickResult = null;
             LastPickedObjectId = 0;
             PickRevision = 0;
+            _pendingCommands.Clear();
         }
+
+        private static bool CommandAffectsHierarchy(RemoteSceneInspectorCommandKind kind) =>
+            kind == RemoteSceneInspectorCommandKind.SetGameObjectActive;
     }
 }

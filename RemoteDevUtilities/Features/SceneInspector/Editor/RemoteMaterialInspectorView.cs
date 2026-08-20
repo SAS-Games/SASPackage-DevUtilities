@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using SAS.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector;
 using UnityEditor;
 using UnityEngine;
@@ -8,6 +9,17 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
 {
     internal sealed class RemoteMaterialInspectorView
     {
+        private enum ShaderPropertyType
+        {
+            Float,
+            Range,
+            Integer,
+            Color,
+            Vector,
+            Texture,
+            Unsupported
+        }
+
         private static readonly string[] MaterialScopes =
         {
             "Selected Renderer",
@@ -21,10 +33,12 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
         private readonly Dictionary<string, string> _editValues = new();
         private readonly Dictionary<string, int> _materialScopes = new();
         private long _inspectionRevision = long.MinValue;
+        private int _sessionGeneration = int.MinValue;
         private string _shaderSearch = string.Empty;
 
         public void Draw(RemoteRuntimeSceneInspectorClient client, RemoteMaterialShaderSection section)
         {
+            SynchronizeSession(client.SessionGeneration);
             SynchronizeInspection(client.InspectionRevision);
             if (section?.Renderers == null || section.Renderers.Length == 0)
                 return;
@@ -129,11 +143,23 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
             if (property.ReadOnly)
             {
                 using (new EditorGUI.DisabledScope(true))
-                    EditorGUILayout.TextField(property.Value ?? string.Empty);
+                {
+                    if (!TryDrawTypedShaderValue(property, out _, out _))
+                        EditorGUILayout.TextField(property.Value ?? string.Empty);
+                }
             }
             else
             {
-                DrawEditableShaderProperty(client, rendererId, slot, property, scope, key);
+                if (TryDrawTypedShaderValue(property, out string nextValue, out bool changed))
+                {
+                    if (changed)
+                        SetShaderProperty(client, rendererId, slot.MaterialIndex, property.PropertyId,
+                            scope, nextValue);
+                }
+                else
+                {
+                    DrawEditableShaderProperty(client, rendererId, slot, property, scope, key);
+                }
             }
 
             DrawResetButton(client, rendererId, slot, property, scope);
@@ -161,17 +187,120 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
             }
             if (apply)
             {
-                client.Execute(new RemoteSceneInspectorCommandRequest
-                {
-                    Kind = RemoteSceneInspectorCommandKind.SetShaderProperty,
-                    RendererId = rendererId,
-                    MaterialIndex = slot.MaterialIndex,
-                    PropertyId = property.PropertyId,
-                    MaterialScope = scope,
-                    Value = value
-                });
+                SetShaderProperty(client, rendererId, slot.MaterialIndex, property.PropertyId,
+                    scope, value);
             }
         }
+
+        private void SynchronizeSession(int sessionGeneration)
+        {
+            if (_sessionGeneration == sessionGeneration)
+                return;
+            _sessionGeneration = sessionGeneration;
+            _inspectionRevision = long.MinValue;
+            _expandedRenderers.Clear();
+            _expandedSlots.Clear();
+            _editValues.Clear();
+            _materialScopes.Clear();
+            _shaderSearch = string.Empty;
+        }
+
+        private static bool TryDrawTypedShaderValue(RemoteShaderPropertyView property,
+            out string nextValue, out bool changed)
+        {
+            nextValue = property?.Value ?? string.Empty;
+            changed = false;
+            if (property == null)
+                return false;
+
+            switch ((ShaderPropertyType)property.Type)
+            {
+                case ShaderPropertyType.Float:
+                case ShaderPropertyType.Range:
+                    if (!float.TryParse(property.Value, NumberStyles.Float,
+                            CultureInfo.InvariantCulture, out float scalar))
+                        return false;
+                    EditorGUI.BeginChangeCheck();
+                    float nextScalar = property.Type == (int)ShaderPropertyType.Range
+                        ? EditorGUILayout.Slider(scalar, property.RangeMinimum,
+                            property.RangeMaximum)
+                        : EditorGUILayout.FloatField(scalar);
+                    changed = EditorGUI.EndChangeCheck();
+                    nextValue = nextScalar.ToString("R", CultureInfo.InvariantCulture);
+                    return true;
+
+                case ShaderPropertyType.Integer:
+                    if (!int.TryParse(property.Value, NumberStyles.Integer,
+                            CultureInfo.InvariantCulture, out int integer))
+                        return false;
+                    EditorGUI.BeginChangeCheck();
+                    int nextInteger = EditorGUILayout.IntField(integer);
+                    changed = EditorGUI.EndChangeCheck();
+                    nextValue = nextInteger.ToString(CultureInfo.InvariantCulture);
+                    return true;
+
+                case ShaderPropertyType.Color:
+                    if (!TryParseVector(property.Value, out Vector4 colorValues))
+                        return false;
+                    EditorGUI.BeginChangeCheck();
+                    Color nextColor = EditorGUI.ColorField(EditorGUILayout.GetControlRect(),
+                        GUIContent.none,
+                        new Color(colorValues.x, colorValues.y, colorValues.z, colorValues.w),
+                        true, true, true);
+                    changed = EditorGUI.EndChangeCheck();
+                    nextValue = Join(nextColor.r, nextColor.g, nextColor.b, nextColor.a);
+                    return true;
+
+                case ShaderPropertyType.Vector:
+                    if (!TryParseVector(property.Value, out Vector4 vector))
+                        return false;
+                    EditorGUI.BeginChangeCheck();
+                    Vector4 nextVector = EditorGUI.Vector4Field(EditorGUILayout.GetControlRect(),
+                        GUIContent.none, vector);
+                    changed = EditorGUI.EndChangeCheck();
+                    nextValue = Join(nextVector.x, nextVector.y, nextVector.z, nextVector.w);
+                    return true;
+
+                default:
+                    // Textures stay descriptive/read-only unless the existing text command is
+                    // used to clear them. Assignment needs the planned runtime texture registry.
+                    return false;
+            }
+        }
+
+        private static void SetShaderProperty(RemoteRuntimeSceneInspectorClient client,
+            long rendererId, int materialIndex, int propertyId, int scope, string value)
+        {
+            client.Execute(new RemoteSceneInspectorCommandRequest
+            {
+                Kind = RemoteSceneInspectorCommandKind.SetShaderProperty,
+                RendererId = rendererId,
+                MaterialIndex = materialIndex,
+                PropertyId = propertyId,
+                MaterialScope = scope,
+                Value = value
+            });
+        }
+
+        private static bool TryParseVector(string value, out Vector4 vector)
+        {
+            vector = default;
+            string[] parts = (value ?? string.Empty).Split(',');
+            if (parts.Length != 4)
+                return false;
+            var values = new float[4];
+            for (int i = 0; i < values.Length; i++)
+            {
+                if (!float.TryParse(parts[i].Trim(), NumberStyles.Float,
+                        CultureInfo.InvariantCulture, out values[i]))
+                    return false;
+            }
+            vector = new Vector4(values[0], values[1], values[2], values[3]);
+            return true;
+        }
+
+        private static string Join(params float[] values) => string.Join(", ",
+            Array.ConvertAll(values, value => value.ToString("R", CultureInfo.InvariantCulture)));
 
         private void SynchronizeInspection(long inspectionRevision)
         {

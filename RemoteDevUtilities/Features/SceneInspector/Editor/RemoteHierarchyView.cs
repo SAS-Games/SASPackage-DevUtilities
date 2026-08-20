@@ -12,6 +12,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
         private readonly Dictionary<long, List<RemoteHierarchyEntry>> _children = new();
         private string _search = string.Empty;
         private long _cachedRevision = long.MinValue;
+        private int _sessionGeneration = int.MinValue;
 
         public long SelectedObjectId { get; private set; }
 
@@ -36,6 +37,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
 
         public void Draw(RemoteRuntimeSceneInspectorClient client)
         {
+            SynchronizeSession(client.SessionGeneration);
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
             _search = GUILayout.TextField(_search, GUI.skin.FindStyle("ToolbarSearchTextField"), GUILayout.MinWidth(100f));
             if (GUILayout.Button("Refresh", EditorStyles.toolbarButton, GUILayout.Width(55f)))
@@ -57,6 +59,19 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
             {
                 DrawSearchResults(client, hierarchy.Entries);
             }
+        }
+
+        public void SynchronizeSession(int sessionGeneration)
+        {
+            if (_sessionGeneration == sessionGeneration)
+                return;
+
+            _sessionGeneration = sessionGeneration;
+            _expanded.Clear();
+            _children.Clear();
+            _search = string.Empty;
+            _cachedRevision = long.MinValue;
+            SelectedObjectId = 0;
         }
 
         private void EnsureLookup(RemoteSceneInspectorHierarchyResponse hierarchy)

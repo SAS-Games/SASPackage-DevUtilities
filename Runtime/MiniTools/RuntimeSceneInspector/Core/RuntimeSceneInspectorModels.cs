@@ -50,6 +50,50 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
     }
 
     [Serializable]
+    public enum RuntimeInspectorControlKind
+    {
+        Automatic = 0,
+        Text = 1,
+        Boolean = 2,
+        Integer = 3,
+        Float = 4,
+        Enum = 5,
+        EnumFlags = 6,
+        Layer = 7,
+        LayerMask = 8,
+        SortingLayer = 9,
+        Vector2 = 10,
+        Vector2Int = 11,
+        Vector3 = 12,
+        Vector3Int = 13,
+        Vector4 = 14,
+        QuaternionEuler = 15,
+        Color = 16,
+        Color32 = 17,
+        Rect = 18,
+        Bounds = 19,
+        ObjectReference = 20
+    }
+
+    [Flags]
+    public enum RuntimeInspectorMemberCapabilities
+    {
+        None = 0,
+        Edit = 1 << 0,
+        Options = 1 << 1,
+        Range = 1 << 2
+    }
+
+    [Serializable]
+    public sealed class RuntimeInspectorOption
+    {
+        public string Label;
+        public string Value;
+        public long NumericValue;
+        public bool HasNumericValue;
+    }
+
+    [Serializable]
     public sealed class RuntimeMemberDescriptor
     {
         public string Name;
@@ -58,6 +102,12 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
         public string Value;
         public bool ReadOnly;
         public string Error;
+        public RuntimeInspectorControlKind ControlKind;
+        public RuntimeInspectorMemberCapabilities Capabilities;
+        public IReadOnlyList<RuntimeInspectorOption> Options;
+        public bool HasRange;
+        public float RangeMinimum;
+        public float RangeMaximum;
     }
 
     [Serializable]
@@ -190,6 +240,196 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
         {
             Min = min;
             Max = max;
+        }
+    }
+
+    /// <summary>
+    /// Creates portable editor metadata on the Player, where the inspected types and project
+    /// layer settings are authoritative. Remote editors should not need to load those types.
+    /// </summary>
+    internal static class RuntimeInspectorControlMetadata
+    {
+        internal static void Populate(RuntimeMemberDescriptor descriptor, Type valueType,
+            string displayName, string memberId,
+            RuntimeInspectorControlKind requestedKind = RuntimeInspectorControlKind.Automatic,
+            RuntimeRangeAttribute range = null)
+        {
+            if (descriptor == null)
+                return;
+
+            RuntimeInspectorControlKind kind = requestedKind == RuntimeInspectorControlKind.Automatic
+                ? ResolveKind(valueType, displayName, memberId)
+                : requestedKind;
+            descriptor.ControlKind = kind;
+            descriptor.Options = BuildOptions(kind, valueType);
+            descriptor.HasRange = range != null && range.Max >= range.Min;
+            descriptor.RangeMinimum = range?.Min ?? 0f;
+            descriptor.RangeMaximum = range?.Max ?? 0f;
+
+            RuntimeInspectorMemberCapabilities capabilities = descriptor.ReadOnly
+                ? RuntimeInspectorMemberCapabilities.None
+                : RuntimeInspectorMemberCapabilities.Edit;
+            if (descriptor.Options != null && descriptor.Options.Count > 0)
+                capabilities |= RuntimeInspectorMemberCapabilities.Options;
+            if (descriptor.HasRange)
+                capabilities |= RuntimeInspectorMemberCapabilities.Range;
+            descriptor.Capabilities = capabilities;
+        }
+
+        private static RuntimeInspectorControlKind ResolveKind(Type type, string displayName,
+            string memberId)
+        {
+            if (type == null)
+                return RuntimeInspectorControlKind.Text;
+            if (type == typeof(bool))
+                return RuntimeInspectorControlKind.Boolean;
+            if (type.IsEnum)
+                return type.IsDefined(typeof(FlagsAttribute), false)
+                    ? RuntimeInspectorControlKind.EnumFlags
+                    : RuntimeInspectorControlKind.Enum;
+            if (type == typeof(LayerMask))
+                return RuntimeInspectorControlKind.LayerMask;
+            if ((type == typeof(int) || type == typeof(string)) &&
+                IsSortingLayerIdentifier(displayName, memberId))
+                return RuntimeInspectorControlKind.SortingLayer;
+            if (type == typeof(int) && IsLayerIdentifier(displayName, memberId))
+                return RuntimeInspectorControlKind.Layer;
+            if (type == typeof(byte) || type == typeof(short) || type == typeof(int) ||
+                type == typeof(long))
+                return RuntimeInspectorControlKind.Integer;
+            if (type == typeof(float) || type == typeof(double))
+                return RuntimeInspectorControlKind.Float;
+            if (type == typeof(Vector2))
+                return RuntimeInspectorControlKind.Vector2;
+            if (type == typeof(Vector2Int))
+                return RuntimeInspectorControlKind.Vector2Int;
+            if (type == typeof(Vector3))
+                return RuntimeInspectorControlKind.Vector3;
+            if (type == typeof(Vector3Int))
+                return RuntimeInspectorControlKind.Vector3Int;
+            if (type == typeof(Vector4))
+                return RuntimeInspectorControlKind.Vector4;
+            if (type == typeof(Quaternion))
+                return RuntimeInspectorControlKind.QuaternionEuler;
+            if (type == typeof(Color))
+                return RuntimeInspectorControlKind.Color;
+            if (type == typeof(Color32))
+                return RuntimeInspectorControlKind.Color32;
+            if (type == typeof(Rect))
+                return RuntimeInspectorControlKind.Rect;
+            if (type == typeof(Bounds))
+                return RuntimeInspectorControlKind.Bounds;
+            if (typeof(UnityEngine.Object).IsAssignableFrom(type))
+                return RuntimeInspectorControlKind.ObjectReference;
+            return RuntimeInspectorControlKind.Text;
+        }
+
+        private static IReadOnlyList<RuntimeInspectorOption> BuildOptions(
+            RuntimeInspectorControlKind kind, Type valueType)
+        {
+            switch (kind)
+            {
+                case RuntimeInspectorControlKind.Enum:
+                case RuntimeInspectorControlKind.EnumFlags:
+                    return BuildEnumOptions(valueType);
+                case RuntimeInspectorControlKind.Layer:
+                case RuntimeInspectorControlKind.LayerMask:
+                    return BuildLayerOptions();
+                case RuntimeInspectorControlKind.SortingLayer:
+                    return BuildSortingLayerOptions(valueType);
+                default:
+                    return Array.Empty<RuntimeInspectorOption>();
+            }
+        }
+
+        private static IReadOnlyList<RuntimeInspectorOption> BuildEnumOptions(Type enumType)
+        {
+            if (enumType == null || !enumType.IsEnum)
+                return Array.Empty<RuntimeInspectorOption>();
+
+            string[] names = Enum.GetNames(enumType);
+            Array values = Enum.GetValues(enumType);
+            var options = new RuntimeInspectorOption[names.Length];
+            for (int i = 0; i < names.Length; i++)
+            {
+                options[i] = new RuntimeInspectorOption
+                {
+                    Label = names[i],
+                    Value = names[i],
+                    NumericValue = ToInt64(values.GetValue(i)),
+                    HasNumericValue = true
+                };
+            }
+
+            return options;
+        }
+
+        private static IReadOnlyList<RuntimeInspectorOption> BuildLayerOptions()
+        {
+            var options = new RuntimeInspectorOption[32];
+            for (int i = 0; i < options.Length; i++)
+            {
+                string name = LayerMask.LayerToName(i);
+                options[i] = new RuntimeInspectorOption
+                {
+                    Label = string.IsNullOrEmpty(name) ? "Layer " + i : name,
+                    Value = i.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    NumericValue = i,
+                    HasNumericValue = true
+                };
+            }
+
+            return options;
+        }
+
+        private static IReadOnlyList<RuntimeInspectorOption> BuildSortingLayerOptions(Type valueType)
+        {
+            SortingLayer[] layers = SortingLayer.layers;
+            var options = new RuntimeInspectorOption[layers.Length];
+            bool useName = valueType == typeof(string);
+            for (int i = 0; i < layers.Length; i++)
+            {
+                options[i] = new RuntimeInspectorOption
+                {
+                    Label = layers[i].name,
+                    Value = useName
+                        ? layers[i].name
+                        : layers[i].id.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    NumericValue = layers[i].id,
+                    HasNumericValue = true
+                };
+            }
+
+            return options;
+        }
+
+        private static long ToInt64(object enumValue)
+        {
+            try
+            {
+                return Convert.ToInt64(enumValue, System.Globalization.CultureInfo.InvariantCulture);
+            }
+            catch (OverflowException)
+            {
+                return unchecked((long)Convert.ToUInt64(enumValue,
+                    System.Globalization.CultureInfo.InvariantCulture));
+            }
+        }
+
+        internal static bool IsLayerIdentifier(string displayName, string memberId)
+        {
+            string target = (displayName ?? memberId ?? string.Empty).Replace(" ", string.Empty);
+            return target.IndexOf("Layer", StringComparison.OrdinalIgnoreCase) >= 0 &&
+                   target.IndexOf("Sorting", StringComparison.OrdinalIgnoreCase) < 0 &&
+                   target.IndexOf("Mask", StringComparison.OrdinalIgnoreCase) < 0;
+        }
+
+        internal static bool IsSortingLayerIdentifier(string displayName, string memberId)
+        {
+            string target = (displayName ?? memberId ?? string.Empty).Replace(" ", string.Empty);
+            return target.IndexOf("SortingLayer", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   target.IndexOf("Sorting", StringComparison.OrdinalIgnoreCase) >= 0 &&
+                   target.IndexOf("Layer", StringComparison.OrdinalIgnoreCase) >= 0;
         }
     }
 }

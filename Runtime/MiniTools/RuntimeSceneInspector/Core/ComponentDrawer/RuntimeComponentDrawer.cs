@@ -130,9 +130,14 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             return ownsId;
         }
 
-        protected void Add<TValue>(string id, string displayName, Func<TComponent, TValue> getter, Action<TComponent, TValue> setter = null, Func<TComponent, bool> applies = null, Func<TComponent, TValue, string> validator = null)
+        protected void Add<TValue>(string id, string displayName, Func<TComponent, TValue> getter,
+            Action<TComponent, TValue> setter = null, Func<TComponent, bool> applies = null,
+            Func<TComponent, TValue, string> validator = null,
+            RuntimeInspectorControlKind controlKind = RuntimeInspectorControlKind.Automatic,
+            RuntimeRangeAttribute range = null)
         {
-            _members.Add(new MemberDefinition<TValue>(id, displayName, getter, setter, applies, validator));
+            _members.Add(new MemberDefinition<TValue>(id, displayName, getter, setter, applies,
+                validator, controlKind, range));
             if (!string.IsNullOrEmpty(displayName))
                 _ownedDisplayNames.Add(displayName);
         }
@@ -227,13 +232,21 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             private readonly Func<TComponent, TValue> _getter;
             private readonly Action<TComponent, TValue> _setter;
             private readonly Func<TComponent, TValue, string> _validator;
+            private readonly RuntimeInspectorControlKind _controlKind;
+            private readonly RuntimeRangeAttribute _range;
 
-            public MemberDefinition(string id, string displayName, Func<TComponent, TValue> getter, Action<TComponent, TValue> setter, Func<TComponent, bool> applies, Func<TComponent, TValue, string> validator) : base(id, displayName, typeof(TValue))
+            public MemberDefinition(string id, string displayName, Func<TComponent, TValue> getter,
+                Action<TComponent, TValue> setter, Func<TComponent, bool> applies,
+                Func<TComponent, TValue, string> validator,
+                RuntimeInspectorControlKind controlKind, RuntimeRangeAttribute range)
+                : base(id, displayName, typeof(TValue))
             {
                 _getter = getter ?? throw new ArgumentNullException(nameof(getter));
                 _setter = setter;
                 _applies = applies;
                 _validator = validator;
+                _controlKind = controlKind;
+                _range = range;
             }
 
             public override bool AppliesTo(TComponent component) => _applies == null || _applies(component);
@@ -244,7 +257,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                 try
                 {
                     TValue value = _getter(component);
-                    return new RuntimeMemberDescriptor
+                    var descriptor = new RuntimeMemberDescriptor
                     {
                         Name = Id,
                         DisplayName = DisplayName,
@@ -252,10 +265,13 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                         Value = drawer?.Format(value, ValueType) ?? value?.ToString() ?? "null",
                         ReadOnly = _setter == null || drawer == null || typeof(Object).IsAssignableFrom(ValueType)
                     };
+                    RuntimeInspectorControlMetadata.Populate(descriptor, ValueType, DisplayName, Id,
+                        _controlKind, _range);
+                    return descriptor;
                 }
                 catch (Exception ex)
                 {
-                    return new RuntimeMemberDescriptor
+                    var descriptor = new RuntimeMemberDescriptor
                     {
                         Name = Id,
                         DisplayName = DisplayName,
@@ -263,6 +279,9 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                         ReadOnly = true,
                         Error = ex.GetType().Name + ": " + ex.Message
                     };
+                    RuntimeInspectorControlMetadata.Populate(descriptor, ValueType, DisplayName, Id,
+                        _controlKind, _range);
+                    return descriptor;
                 }
             }
 

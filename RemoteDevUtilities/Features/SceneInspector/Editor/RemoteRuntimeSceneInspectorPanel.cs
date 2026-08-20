@@ -15,6 +15,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
         private readonly RemoteSceneCaptureView _capture = new();
         private int _observedPickRevision;
         private long _pendingPickedObjectId;
+        private int _sessionGeneration = int.MinValue;
 
         public void Initialize(Action repaint)
         {
@@ -34,6 +35,14 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
             {
                 EditorGUILayout.HelpBox("Connect to a runtime Player to inspect its hierarchy and shader values.", MessageType.Info);
                 return;
+            }
+
+            if (_sessionGeneration != client.SessionGeneration)
+            {
+                _sessionGeneration = client.SessionGeneration;
+                _observedPickRevision = client.PickRevision;
+                _pendingPickedObjectId = 0;
+                _hierarchy.SynchronizeSession(client.SessionGeneration);
             }
 
             if (_observedPickRevision != client.PickRevision)

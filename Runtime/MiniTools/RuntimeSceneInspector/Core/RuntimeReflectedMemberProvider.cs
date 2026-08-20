@@ -194,6 +194,10 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                  propertyName == "sharedMaterials"))
                 return true;
 
+            if (declaringType != null && typeof(Collider).IsAssignableFrom(declaringType) &&
+                propertyName == "material")
+                return true;
+
             if (declaringType != null && typeof(MeshFilter).IsAssignableFrom(declaringType) &&
                 propertyName == "mesh")
                 return true;
@@ -201,10 +205,28 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             if (declaringType?.FullName == "UnityEngine.Rendering.Volume" && propertyName == "profile")
                 return true;
 
+            if (InheritsFrom(declaringType, "UnityEngine.UI.Graphic") &&
+                propertyName == "materialForRendering")
+                return true;
+
+            if (InheritsFrom(declaringType, "TMPro.TMP_Text") &&
+                (propertyName == "fontMaterial" || propertyName == "fontMaterials"))
+                return true;
+
             // ParticleSystem modules are already represented by the curated particle-system
             // drawer. Reflecting the module structs adds duplicate, non-actionable rows.
             return declaringType == typeof(ParticleSystem) &&
                    property.PropertyType.Name.EndsWith("Module", StringComparison.Ordinal);
+        }
+
+        private static bool InheritsFrom(Type type, string fullName)
+        {
+            for (Type current = type; current != null; current = current.BaseType)
+            {
+                if (string.Equals(current.FullName, fullName, StringComparison.Ordinal))
+                    return true;
+            }
+            return false;
         }
 
         private static int CompareMetadataTokens(MemberInfo left, MemberInfo right) =>
@@ -285,7 +307,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                 property.PropertyType,
                 component => property.GetValue(component),
                 writable ? (component, value) => property.SetValue(component, value) : null,
-                property.GetCustomAttribute<RuntimeRangeAttribute>(true),
+                GetRange(property),
                 true);
 
             internal static ReflectedMember ForField(string id, string displayName,
@@ -295,8 +317,21 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                 field.FieldType,
                 component => field.GetValue(component),
                 writable ? (component, value) => field.SetValue(component, value) : null,
-                field.GetCustomAttribute<RuntimeRangeAttribute>(true),
+                GetRange(field),
                 false);
+
+            private static RuntimeRangeAttribute GetRange(MemberInfo member)
+            {
+                RuntimeRangeAttribute runtimeRange =
+                    member.GetCustomAttribute<RuntimeRangeAttribute>(true);
+                if (runtimeRange != null)
+                    return runtimeRange;
+
+                RangeAttribute unityRange = member.GetCustomAttribute<RangeAttribute>(true);
+                return unityRange == null
+                    ? null
+                    : new RuntimeRangeAttribute(unityRange.min, unityRange.max);
+            }
 
             internal RuntimeMemberDescriptor Build(Component component,
                 RuntimeValueDrawerRegistry valueDrawers)
@@ -305,7 +340,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                 {
                     object value = _getter(component);
                     IRuntimeValueDrawer drawer = valueDrawers.Resolve(ValueType);
-                    return new RuntimeMemberDescriptor
+                    var descriptor = new RuntimeMemberDescriptor
                     {
                         Name = Id,
                         DisplayName = DisplayName,
@@ -313,11 +348,14 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                         Value = Format(value, ValueType, drawer, DisplayName, Id),
                         ReadOnly = !CanSet || drawer == null
                     };
+                    RuntimeInspectorControlMetadata.Populate(descriptor, ValueType, DisplayName, Id,
+                        range: _range);
+                    return descriptor;
                 }
                 catch (Exception exception)
                 {
                     Exception actual = Unwrap(exception);
-                    return new RuntimeMemberDescriptor
+                    var descriptor = new RuntimeMemberDescriptor
                     {
                         Name = Id,
                         DisplayName = DisplayName,
@@ -325,6 +363,9 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                         ReadOnly = true,
                         Error = actual.GetType().Name + ": " + actual.Message
                     };
+                    RuntimeInspectorControlMetadata.Populate(descriptor, ValueType, DisplayName, Id,
+                        range: _range);
+                    return descriptor;
                 }
             }
 
@@ -418,14 +459,14 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                     return false;
 
                 int numericValue = System.Convert.ToInt32(value, System.Globalization.CultureInfo.InvariantCulture);
-                if (IsLayerIdentifier(displayName, memberId))
+                if (RuntimeInspectorControlMetadata.IsLayerIdentifier(displayName, memberId))
                 {
                     string layerName = LayerMask.LayerToName(numericValue);
                     formatted = string.IsNullOrEmpty(layerName) ? ("Layer " + numericValue) : layerName;
                     return true;
                 }
 
-                if (IsSortingLayerIdentifier(displayName, memberId))
+                if (RuntimeInspectorControlMetadata.IsSortingLayerIdentifier(displayName, memberId))
                 {
                     string layerName = SortingLayer.IDToName(numericValue);
                     formatted = string.IsNullOrEmpty(layerName) ? (numericValue.ToString(System.Globalization.CultureInfo.InvariantCulture)) : layerName;
@@ -443,7 +484,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                 if (valueType != typeof(int) || string.IsNullOrWhiteSpace(text))
                     return false;
 
-                if (IsLayerIdentifier(displayName, memberId))
+                if (RuntimeInspectorControlMetadata.IsLayerIdentifier(displayName, memberId))
                 {
                     if (int.TryParse(text, System.Globalization.NumberStyles.Integer,
                             System.Globalization.CultureInfo.InvariantCulture, out int numeric))
@@ -463,7 +504,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                     return false;
                 }
 
-                if (IsSortingLayerIdentifier(displayName, memberId))
+                if (RuntimeInspectorControlMetadata.IsSortingLayerIdentifier(displayName, memberId))
                 {
                     if (int.TryParse(text, System.Globalization.NumberStyles.Integer,
                             System.Globalization.CultureInfo.InvariantCulture, out int numeric))
@@ -484,21 +525,6 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                 }
 
                 return false;
-            }
-
-            private static bool IsLayerIdentifier(string displayName, string memberId)
-            {
-                string target = (displayName ?? memberId ?? string.Empty).Replace(" ", string.Empty);
-                return target.IndexOf("Layer", StringComparison.OrdinalIgnoreCase) >= 0 &&
-                       target.IndexOf("Sorting", StringComparison.OrdinalIgnoreCase) < 0;
-            }
-
-            private static bool IsSortingLayerIdentifier(string displayName, string memberId)
-            {
-                string target = (displayName ?? memberId ?? string.Empty).Replace(" ", string.Empty);
-                return target.IndexOf("SortingLayer", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                       target.IndexOf("Sorting", StringComparison.OrdinalIgnoreCase) >= 0 &&
-                       target.IndexOf("Layer", StringComparison.OrdinalIgnoreCase) >= 0;
             }
 
             private static Exception Unwrap(Exception exception)

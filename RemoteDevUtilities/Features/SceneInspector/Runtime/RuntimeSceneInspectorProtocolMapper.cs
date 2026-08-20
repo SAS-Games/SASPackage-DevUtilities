@@ -68,6 +68,20 @@ namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector
             for (int i = 0; i < sourceMembers.Count; i++)
             {
                 RuntimeMemberDescriptor member = sourceMembers[i];
+                IReadOnlyList<RuntimeInspectorOption> sourceOptions =
+                    member.Options ?? Array.Empty<RuntimeInspectorOption>();
+                var options = new RemoteInspectorOption[sourceOptions.Count];
+                for (int optionIndex = 0; optionIndex < sourceOptions.Count; optionIndex++)
+                {
+                    RuntimeInspectorOption option = sourceOptions[optionIndex];
+                    options[optionIndex] = new RemoteInspectorOption
+                    {
+                        Label = option.Label,
+                        Value = option.Value,
+                        NumericValue = option.NumericValue,
+                        HasNumericValue = option.HasNumericValue
+                    };
+                }
                 members[i] = new RemoteMemberDescriptor
                 {
                     Name = member.Name,
@@ -75,7 +89,13 @@ namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector
                     TypeName = member.TypeName,
                     Value = member.Value,
                     ReadOnly = member.ReadOnly,
-                    Error = member.Error
+                    Error = member.Error,
+                    ControlKind = (RemoteInspectorControlKind)member.ControlKind,
+                    Capabilities = (RemoteInspectorMemberCapabilities)member.Capabilities,
+                    Options = options,
+                    HasRange = member.HasRange,
+                    RangeMinimum = member.RangeMinimum,
+                    RangeMaximum = member.RangeMaximum
                 };
             }
 

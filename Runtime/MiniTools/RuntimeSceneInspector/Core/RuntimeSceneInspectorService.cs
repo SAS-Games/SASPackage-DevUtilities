@@ -160,6 +160,13 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             }
         }
 
+        /// <summary>Resolves a hierarchy ID for local preview and tooling integrations.</summary>
+        public bool TryResolveObject(RuntimeObjectId objectId, out GameObject gameObject)
+        {
+            EnsureMainThread();
+            return _registry.TryResolve(objectId, out gameObject);
+        }
+
         public bool TryGetObjectId(GameObject target, out RuntimeObjectId objectId)
         {
             EnsureMainThread();
@@ -201,7 +208,6 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                     if (!_registry.TryResolve(layer.ObjectId, out GameObject target))
                         return RuntimeCommandResult.Fail("The GameObject no longer exists.");
                     target.layer = layer.Layer;
-                    RefreshHierarchy();
                     return RuntimeCommandResult.Ok();
                 }
 
@@ -215,12 +221,9 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                         return RuntimeCommandResult.Fail("The component type is blocked.");
                     if (!componentEnabled.Enabled && IsRuntimeSceneInspectorProtected(component))
                         return RuntimeCommandResult.Fail("The runtime scene inspector cannot disable its own host.");
-                    RuntimeCommandResult result = TrySetEnabled(component, componentEnabled.Enabled)
+                    return TrySetEnabled(component, componentEnabled.Enabled)
                         ? RuntimeCommandResult.Ok()
                         : RuntimeCommandResult.Fail("This component has no supported enabled state.");
-                    if (result.Success)
-                        RefreshHierarchy();
-                    return result;
                 }
 
                 if (command is SetMemberValueCommand setValue)
@@ -231,10 +234,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                         return RuntimeCommandResult.Fail("The component no longer exists.");
                     if (IsBlocked(component.GetType()))
                         return RuntimeCommandResult.Fail("The component type is blocked.");
-                    RuntimeCommandResult result = SetMember(component, setValue.MemberName, setValue.Value);
-                    if (result.Success)
-                        RefreshHierarchy();
-                    return result;
+                    return SetMember(component, setValue.MemberName, setValue.Value);
                 }
 
                 foreach (IRuntimeSceneInspectorExtension extension in _inspectorExtensions)

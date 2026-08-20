@@ -71,9 +71,9 @@ namespace SAS.Utilities.RuntimeSceneInspector
                     continue;
 
                 Ray ray = camera.ScreenPointToRay(screenPosition);
+                AddPhysicsCandidates(camera, ray, candidates);
                 if (_settings.UseRendererBoundsFallback)
                     AddRendererCandidates(camera, ray, candidates);
-                AddPhysicsCandidates(camera, ray, candidates);
             }
 
             if (candidates.Count == 0)

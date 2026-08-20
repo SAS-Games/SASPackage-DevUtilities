@@ -17,9 +17,17 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector.Capture
         private bool _freezeWhilePicking = true;
         private int _captureWidthIndex = 1;
         private Vector2 _lastPickUv = new(-1f, -1f);
+        private int _sessionGeneration = int.MinValue;
 
         internal void Draw(RemoteRuntimeSceneInspectorClient client, float availableWidth)
         {
+            if (_sessionGeneration != client.SessionGeneration)
+            {
+                _sessionGeneration = client.SessionGeneration;
+                DestroyTexture();
+                _decodeError = null;
+                _lastPickUv = new Vector2(-1f, -1f);
+            }
             _client = client;
             DrawToolbar(client, availableWidth);
 

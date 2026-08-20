@@ -85,6 +85,50 @@ namespace SAS.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector
     }
 
     [Serializable]
+    public enum RemoteInspectorControlKind
+    {
+        Automatic = 0,
+        Text = 1,
+        Boolean = 2,
+        Integer = 3,
+        Float = 4,
+        Enum = 5,
+        EnumFlags = 6,
+        Layer = 7,
+        LayerMask = 8,
+        SortingLayer = 9,
+        Vector2 = 10,
+        Vector2Int = 11,
+        Vector3 = 12,
+        Vector3Int = 13,
+        Vector4 = 14,
+        QuaternionEuler = 15,
+        Color = 16,
+        Color32 = 17,
+        Rect = 18,
+        Bounds = 19,
+        ObjectReference = 20
+    }
+
+    [Flags]
+    public enum RemoteInspectorMemberCapabilities
+    {
+        None = 0,
+        Edit = 1 << 0,
+        Options = 1 << 1,
+        Range = 1 << 2
+    }
+
+    [Serializable]
+    public sealed class RemoteInspectorOption
+    {
+        public string Label;
+        public string Value;
+        public long NumericValue;
+        public bool HasNumericValue;
+    }
+
+    [Serializable]
     public sealed class RemoteMemberDescriptor
     {
         public string Name;
@@ -93,6 +137,12 @@ namespace SAS.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector
         public string Value;
         public bool ReadOnly;
         public string Error;
+        public RemoteInspectorControlKind ControlKind;
+        public RemoteInspectorMemberCapabilities Capabilities;
+        public RemoteInspectorOption[] Options = Array.Empty<RemoteInspectorOption>();
+        public bool HasRange;
+        public float RangeMinimum;
+        public float RangeMaximum;
     }
 
     [Serializable]
