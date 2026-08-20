@@ -21,6 +21,10 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
         private readonly Dictionary<SlotKey, MaterialInstanceRecord> _materialInstances = new();
         private readonly Dictionary<MaterialPropertyKey, MaterialOverrideRecord> _sharedMaterialOverrides = new();
         private readonly Dictionary<int, GlobalOverrideRecord> _globalOverrides = new();
+        private readonly List<SlotKey> _slotKeyBuffer = new();
+        private readonly List<PropertyKey> _propertyKeyBuffer = new();
+        private readonly List<MaterialPropertyKey> _materialPropertyKeyBuffer = new();
+        private readonly List<Renderer> _rendererBuffer = new();
 
         internal RuntimeMaterialShaderExtension(RuntimeSceneInspectorSettings settings)
         {
@@ -33,18 +37,21 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                 return;
 
             PruneInvalidState();
-            Renderer[] renderers = target.GetComponents<Renderer>();
-            if (renderers.Length == 0)
+            _rendererBuffer.Clear();
+            target.GetComponents(_rendererBuffer);
+            if (_rendererBuffer.Count == 0)
                 return;
 
-            var rendererDescriptors = new List<RuntimeRendererMaterialDescriptor>(renderers.Length);
-            foreach (Renderer renderer in renderers)
+            var rendererDescriptors = new List<RuntimeRendererMaterialDescriptor>(_rendererBuffer.Count);
+            for (int i = 0; i < _rendererBuffer.Count; i++)
             {
+                Renderer renderer = _rendererBuffer[i];
                 if (renderer == null)
                     continue;
 
                 rendererDescriptors.Add(BuildRenderer(renderer, registry));
             }
+            _rendererBuffer.Clear();
 
             if (rendererDescriptors.Count > 0)
             {
@@ -131,8 +138,18 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             slot.TotalPropertyCount = shaderDescriptor.Properties.Count;
             var properties = new List<RuntimeShaderPropertyView>(Mathf.Min(shaderDescriptor.Properties.Count, _settings.MaxVisibleShaderProperties));
 
+            int rendererInstanceId = renderer.GetInstanceID();
+            var slotKey = new SlotKey(rendererInstanceId, materialIndex);
+            _materialInstances.TryGetValue(slotKey, out MaterialInstanceRecord instanceRecord);
+            Material sharedMaterial = instanceRecord != null &&
+                                      instanceRecord.InstanceMaterial == material &&
+                                      instanceRecord.OriginalMaterial != null
+                ? instanceRecord.OriginalMaterial
+                : material;
+
             _propertyBlock.Clear();
             renderer.GetPropertyBlock(_propertyBlock, materialIndex);
+            slot.Scopes = BuildScopeStates(slotKey, sharedMaterial, shaderDescriptor);
             int included = 0;
             foreach (RuntimeShaderPropertyDescriptor property in shaderDescriptor.Properties)
             {
@@ -145,57 +162,219 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                 }
 
                 included++;
-                try
-                {
-                    RuntimeShaderPropertyValue value;
-                    string source;
-                    var key = new PropertyKey(renderer.GetInstanceID(), materialIndex, property.PropertyId);
-                    bool inspectorOverride = _propertyBlockOverrides.TryGetValue(key, out PropertyBlockOverrideRecord record);
-                    if (inspectorOverride)
-                    {
-                        value = record.CurrentValue;
-                        source = "Inspector renderer override";
-                    }
-                    else if (_propertyBlock.HasProperty(property.PropertyId))
-                    {
-                        value = ReadPropertyBlock(_propertyBlock, property);
-                        source = "Renderer property block";
-                    }
-                    else
-                    {
-                        value = ReadMaterial(material, property);
-                        source = "Material";
-                        Texture rendererTexture = ResolveRendererTexture(renderer, property);
-                        if (rendererTexture != null)
-                        {
-                            value = RuntimeShaderPropertyValue.Texture(rendererTexture);
-                            source = "Sprite renderer";
-                        }
-                    }
-
-                    properties.Add(new RuntimeShaderPropertyView
-                    {
-                        Property = property,
-                        Value = Format(value, property),
-                        ValueSource = source,
-                        HasInspectorOverride = inspectorOverride,
-                        ReadOnly = !CanEdit(property)
-                    });
-                }
-                catch (Exception ex)
-                {
-                    properties.Add(new RuntimeShaderPropertyView
-                    {
-                        Property = property,
-                        Value = ex.GetType().Name + ": " + ex.Message,
-                        ValueSource = "Unavailable",
-                        ReadOnly = true
-                    });
-                }
+                properties.Add(BuildPropertyView(renderer, rendererInstanceId, materialIndex,
+                    material, sharedMaterial, instanceRecord, property));
             }
 
             slot.Properties = properties;
             return slot;
+        }
+
+        private RuntimeShaderPropertyView BuildPropertyView(Renderer renderer, int rendererInstanceId,
+            int materialIndex, Material assignedMaterial, Material sharedMaterial,
+            MaterialInstanceRecord instanceRecord, RuntimeShaderPropertyDescriptor property)
+        {
+            var scopes = new RuntimeShaderPropertyScopeView[4];
+            scopes[(int)RuntimeMaterialEditScope.RendererPropertyBlock] = BuildScopeView(
+                RuntimeMaterialEditScope.RendererPropertyBlock, renderer, rendererInstanceId,
+                materialIndex, assignedMaterial, sharedMaterial, instanceRecord, property);
+            scopes[(int)RuntimeMaterialEditScope.MaterialInstance] = BuildScopeView(
+                RuntimeMaterialEditScope.MaterialInstance, renderer, rendererInstanceId,
+                materialIndex, assignedMaterial, sharedMaterial, instanceRecord, property);
+            scopes[(int)RuntimeMaterialEditScope.SharedMaterial] = BuildScopeView(
+                RuntimeMaterialEditScope.SharedMaterial, renderer, rendererInstanceId,
+                materialIndex, assignedMaterial, sharedMaterial, instanceRecord, property);
+            scopes[(int)RuntimeMaterialEditScope.GlobalShaderProperty] = BuildScopeView(
+                RuntimeMaterialEditScope.GlobalShaderProperty, renderer, rendererInstanceId,
+                materialIndex, assignedMaterial, sharedMaterial, instanceRecord, property);
+
+            RuntimeShaderPropertyScopeView rendererScope =
+                scopes[(int)RuntimeMaterialEditScope.RendererPropertyBlock];
+            return new RuntimeShaderPropertyView
+            {
+                Property = property,
+                Scopes = scopes,
+                // Keep the renderer-effective fields as the compact/default representation used
+                // by existing native integrations. Scope-aware views use Scopes explicitly.
+                Value = rendererScope.Value,
+                ValueSource = rendererScope.ValueSource,
+                ReadOnly = rendererScope.ReadOnly,
+                HasInspectorOverride = rendererScope.HasInspectorOverride
+            };
+        }
+
+        private RuntimeShaderPropertyScopeView BuildScopeView(RuntimeMaterialEditScope scope,
+            Renderer renderer, int rendererInstanceId, int materialIndex, Material assignedMaterial,
+            Material sharedMaterial, MaterialInstanceRecord instanceRecord,
+            RuntimeShaderPropertyDescriptor property)
+        {
+            var view = new RuntimeShaderPropertyScopeView
+            {
+                Scope = scope,
+                ReadOnly = !CanEdit(property) || !ScopeAllowed(scope)
+            };
+
+            try
+            {
+                RuntimeShaderPropertyValue value;
+                switch (scope)
+                {
+                    case RuntimeMaterialEditScope.RendererPropertyBlock:
+                    {
+                        var key = new PropertyKey(rendererInstanceId, materialIndex,
+                            property.PropertyId);
+                        view.HasInspectorOverride = _propertyBlockOverrides.TryGetValue(key,
+                            out PropertyBlockOverrideRecord record);
+                        if (view.HasInspectorOverride)
+                        {
+                            value = record.CurrentValue;
+                            view.ValueSource = "Inspector renderer override";
+                        }
+                        else if (_propertyBlock.HasProperty(property.PropertyId))
+                        {
+                            value = ReadPropertyBlock(_propertyBlock, property);
+                            view.ValueSource = "Renderer property block";
+                        }
+                        else
+                        {
+                            value = ReadMaterial(assignedMaterial, property);
+                            view.ValueSource = "Material";
+                            Texture rendererTexture = ResolveRendererTexture(renderer, property);
+                            if (rendererTexture != null)
+                            {
+                                value = RuntimeShaderPropertyValue.Texture(rendererTexture);
+                                view.ValueSource = "Sprite renderer";
+                            }
+                        }
+                        break;
+                    }
+                    case RuntimeMaterialEditScope.MaterialInstance:
+                    {
+                        value = ReadMaterial(assignedMaterial, property);
+                        view.ValueSource = instanceRecord == null
+                            ? "Material (instance created on edit)"
+                            : "Inspector material instance";
+                        if (instanceRecord?.OriginalMaterial != null)
+                        {
+                            RuntimeShaderPropertyDescriptor originalProperty =
+                                FindProperty(instanceRecord.OriginalMaterial, property.PropertyId);
+                            if (originalProperty != null)
+                            {
+                                view.HasInspectorOverride = !ValuesEqual(value,
+                                    ReadMaterial(instanceRecord.OriginalMaterial, originalProperty));
+                                if (view.HasInspectorOverride)
+                                    view.ValueSource = "Inspector material-instance override";
+                            }
+                        }
+                        break;
+                    }
+                    case RuntimeMaterialEditScope.SharedMaterial:
+                    {
+                        RuntimeShaderPropertyDescriptor sharedProperty =
+                            FindProperty(sharedMaterial, property.PropertyId);
+                        if (sharedProperty == null)
+                            throw new InvalidOperationException(
+                                "The shared material no longer has this shader property.");
+                        value = ReadMaterial(sharedMaterial, sharedProperty);
+                        var key = new MaterialPropertyKey(sharedMaterial.GetInstanceID(),
+                            property.PropertyId);
+                        view.HasInspectorOverride = _sharedMaterialOverrides.ContainsKey(key);
+                        view.ValueSource = view.HasInspectorOverride
+                            ? "Inspector shared-material override"
+                            : "Shared material";
+                        break;
+                    }
+                    case RuntimeMaterialEditScope.GlobalShaderProperty:
+                        value = ReadGlobal(property);
+                        view.HasInspectorOverride =
+                            _globalOverrides.ContainsKey(property.PropertyId);
+                        view.ValueSource = view.HasInspectorOverride
+                            ? "Inspector global override"
+                            : "Global shader property";
+                        break;
+                    default:
+                        throw new InvalidOperationException("Unsupported material edit scope.");
+                }
+
+                view.Value = Format(value, property);
+            }
+            catch (Exception ex)
+            {
+                view.Value = ex.GetType().Name + ": " + ex.Message;
+                view.ValueSource = "Unavailable";
+                view.ReadOnly = true;
+                view.HasInspectorOverride = false;
+            }
+
+            return view;
+        }
+
+        private IReadOnlyList<RuntimeMaterialScopeState> BuildScopeStates(SlotKey slotKey,
+            Material sharedMaterial, RuntimeShaderDescriptor shader)
+        {
+            return new[]
+            {
+                new RuntimeMaterialScopeState
+                {
+                    Scope = RuntimeMaterialEditScope.RendererPropertyBlock,
+                    ReadOnly = !ScopeAllowed(RuntimeMaterialEditScope.RendererPropertyBlock),
+                    HasInspectorOverrides = HasPropertyBlockOverrides(slotKey)
+                },
+                new RuntimeMaterialScopeState
+                {
+                    Scope = RuntimeMaterialEditScope.MaterialInstance,
+                    ReadOnly = !ScopeAllowed(RuntimeMaterialEditScope.MaterialInstance),
+                    HasInspectorOverrides = _materialInstances.ContainsKey(slotKey)
+                },
+                new RuntimeMaterialScopeState
+                {
+                    Scope = RuntimeMaterialEditScope.SharedMaterial,
+                    ReadOnly = !ScopeAllowed(RuntimeMaterialEditScope.SharedMaterial),
+                    HasInspectorOverrides = HasSharedMaterialOverrides(sharedMaterial)
+                },
+                new RuntimeMaterialScopeState
+                {
+                    Scope = RuntimeMaterialEditScope.GlobalShaderProperty,
+                    ReadOnly = !ScopeAllowed(RuntimeMaterialEditScope.GlobalShaderProperty),
+                    HasInspectorOverrides = HasGlobalOverrides(shader)
+                }
+            };
+        }
+
+        private bool HasPropertyBlockOverrides(SlotKey slotKey)
+        {
+            foreach (PropertyKey key in _propertyBlockOverrides.Keys)
+            {
+                if (key.RendererInstanceId == slotKey.RendererInstanceId &&
+                    key.MaterialIndex == slotKey.MaterialIndex)
+                    return true;
+            }
+            return false;
+        }
+
+        private bool HasSharedMaterialOverrides(Material material)
+        {
+            if (material == null)
+                return false;
+            int materialId = material.GetInstanceID();
+            foreach (MaterialPropertyKey key in _sharedMaterialOverrides.Keys)
+            {
+                if (key.MaterialInstanceId == materialId)
+                    return true;
+            }
+            return false;
+        }
+
+        private bool HasGlobalOverrides(RuntimeShaderDescriptor shader)
+        {
+            if (shader?.Properties == null)
+                return false;
+            for (int i = 0; i < shader.Properties.Count; i++)
+            {
+                if (_globalOverrides.ContainsKey(shader.Properties[i].PropertyId))
+                    return true;
+            }
+            return false;
         }
 
         private RuntimeCommandResult SetProperty(SetRuntimeShaderPropertyCommand command, RuntimeObjectRegistry registry)
@@ -480,34 +659,46 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
 
         private bool CheckScopePermission(RuntimeMaterialEditScope scope, out string error)
         {
-            bool allowed;
             switch (scope)
             {
                 case RuntimeMaterialEditScope.RendererPropertyBlock:
-                    allowed = _settings.AllowMaterialPropertyBlockChanges;
                     error = "Renderer property-block changes are disabled.";
                     break;
                 case RuntimeMaterialEditScope.MaterialInstance:
-                    allowed = _settings.AllowMaterialInstantiation;
                     error = "Material instantiation is disabled.";
                     break;
                 case RuntimeMaterialEditScope.SharedMaterial:
-                    allowed = _settings.AllowSharedMaterialChanges;
                     error = "Shared-material changes are disabled.";
                     break;
                 case RuntimeMaterialEditScope.GlobalShaderProperty:
-                    allowed = _settings.AllowGlobalShaderChanges;
                     error = "Global shader changes are disabled.";
                     break;
                 default:
-                    allowed = false;
                     error = "Unsupported material edit scope.";
-                    break;
+                    return false;
             }
 
+            bool allowed = ScopeAllowed(scope);
             if (allowed)
                 error = null;
             return allowed;
+        }
+
+        private bool ScopeAllowed(RuntimeMaterialEditScope scope)
+        {
+            switch (scope)
+            {
+                case RuntimeMaterialEditScope.RendererPropertyBlock:
+                    return _settings.AllowMaterialPropertyBlockChanges;
+                case RuntimeMaterialEditScope.MaterialInstance:
+                    return _settings.AllowMaterialInstantiation;
+                case RuntimeMaterialEditScope.SharedMaterial:
+                    return _settings.AllowSharedMaterialChanges;
+                case RuntimeMaterialEditScope.GlobalShaderProperty:
+                    return _settings.AllowGlobalShaderChanges;
+                default:
+                    return false;
+            }
         }
 
         private bool CanEdit(RuntimeShaderPropertyDescriptor property) => _settings.AllowShaderValueChanges && property.Type != RuntimeShaderPropertyType.Unsupported && (property.Type != RuntimeShaderPropertyType.Texture || _settings.AllowTextureChanges);
@@ -517,7 +708,13 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             if (material == null || material.shader == null || !material.HasProperty(propertyId))
                 return null;
             RuntimeShaderDescriptor descriptor = _metadata.GetOrCreate(material.shader);
-            return descriptor.Properties.FirstOrDefault(property => property.PropertyId == propertyId);
+            for (int i = 0; i < descriptor.Properties.Count; i++)
+            {
+                RuntimeShaderPropertyDescriptor property = descriptor.Properties[i];
+                if (property.PropertyId == propertyId)
+                    return property;
+            }
+            return null;
         }
 
         private static bool TryResolveRenderer(RuntimeObjectRegistry registry, RuntimeObjectId id, out Renderer renderer, out string error)
@@ -549,7 +746,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
         private int RestorePropertyBlockSlot(Renderer renderer, int materialIndex)
         {
             var slotKey = new SlotKey(renderer.GetInstanceID(), materialIndex);
-            PropertyKey[] keys = PropertyBlockKeys(slotKey);
+            List<PropertyKey> keys = PropertyBlockKeys(slotKey);
             foreach (PropertyKey key in keys)
                 _propertyBlockOverrides.Remove(key);
 
@@ -559,7 +756,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                 _propertyBlockSlots.Remove(slotKey);
             }
 
-            return keys.Length;
+            return keys.Count;
         }
 
         private void RebuildPropertyBlockSlot(Renderer renderer, int materialIndex)
@@ -569,21 +766,28 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                 return;
 
             RestoreOriginalPropertyBlock(slotRecord);
-            PropertyKey[] remainingKeys = PropertyBlockKeys(slotKey);
+            List<PropertyKey> remainingKeys = PropertyBlockKeys(slotKey);
             foreach (PropertyKey remainingKey in remainingKeys)
             {
                 PropertyBlockOverrideRecord remaining = _propertyBlockOverrides[remainingKey];
                 ApplyPropertyBlockValue(renderer, materialIndex, remaining.Property, remaining.CurrentValue);
             }
 
-            if (remainingKeys.Length == 0)
+            if (remainingKeys.Count == 0)
                 _propertyBlockSlots.Remove(slotKey);
         }
 
-        private PropertyKey[] PropertyBlockKeys(SlotKey slotKey) =>
-            _propertyBlockOverrides.Keys.Where(key =>
-                key.RendererInstanceId == slotKey.RendererInstanceId &&
-                key.MaterialIndex == slotKey.MaterialIndex).ToArray();
+        private List<PropertyKey> PropertyBlockKeys(SlotKey slotKey)
+        {
+            _propertyKeyBuffer.Clear();
+            foreach (PropertyKey key in _propertyBlockOverrides.Keys)
+            {
+                if (key.RendererInstanceId == slotKey.RendererInstanceId &&
+                    key.MaterialIndex == slotKey.MaterialIndex)
+                    _propertyKeyBuffer.Add(key);
+            }
+            return _propertyKeyBuffer;
+        }
 
         private static void RestoreOriginalPropertyBlock(PropertyBlockSlotRecord record)
         {
@@ -749,25 +953,49 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
 
         private void PruneInvalidState()
         {
-            foreach (SlotKey key in _propertyBlockSlots.Where(pair => pair.Value.Renderer == null)
-                         .Select(pair => pair.Key).ToArray())
+            _slotKeyBuffer.Clear();
+            foreach (KeyValuePair<SlotKey, PropertyBlockSlotRecord> pair in _propertyBlockSlots)
+            {
+                if (pair.Value.Renderer == null)
+                    _slotKeyBuffer.Add(pair.Key);
+            }
+            foreach (SlotKey key in _slotKeyBuffer)
                 _propertyBlockSlots.Remove(key);
 
-            foreach (PropertyKey key in _propertyBlockOverrides.Where(pair => pair.Value.Renderer == null ||
-                         !_propertyBlockSlots.ContainsKey(new SlotKey(pair.Key.RendererInstanceId,
-                             pair.Key.MaterialIndex))).Select(pair => pair.Key).ToArray())
+            _propertyKeyBuffer.Clear();
+            foreach (KeyValuePair<PropertyKey, PropertyBlockOverrideRecord> pair in
+                     _propertyBlockOverrides)
+            {
+                if (pair.Value.Renderer == null || !_propertyBlockSlots.ContainsKey(
+                        new SlotKey(pair.Key.RendererInstanceId, pair.Key.MaterialIndex)))
+                    _propertyKeyBuffer.Add(pair.Key);
+            }
+            foreach (PropertyKey key in _propertyKeyBuffer)
                 _propertyBlockOverrides.Remove(key);
 
-            foreach (SlotKey key in _materialInstances.Keys.ToArray())
+            _slotKeyBuffer.Clear();
+            foreach (KeyValuePair<SlotKey, MaterialInstanceRecord> pair in _materialInstances)
             {
-                MaterialInstanceRecord record = _materialInstances[key];
+                MaterialInstanceRecord record = pair.Value;
                 if (record.Renderer != null && record.InstanceMaterial != null && IsMaterialAssigned(record.Renderer, record.MaterialIndex, record.InstanceMaterial))
                     continue;
+                _slotKeyBuffer.Add(pair.Key);
+            }
+            foreach (SlotKey key in _slotKeyBuffer)
+            {
+                MaterialInstanceRecord record = _materialInstances[key];
                 _materialInstances.Remove(key);
                 DestroyOwnedMaterial(record.InstanceMaterial);
             }
 
-            foreach (MaterialPropertyKey key in _sharedMaterialOverrides.Where(pair => pair.Value.Material == null).Select(pair => pair.Key).ToArray())
+            _materialPropertyKeyBuffer.Clear();
+            foreach (KeyValuePair<MaterialPropertyKey, MaterialOverrideRecord> pair in
+                     _sharedMaterialOverrides)
+            {
+                if (pair.Value.Material == null)
+                    _materialPropertyKeyBuffer.Add(pair.Key);
+            }
+            foreach (MaterialPropertyKey key in _materialPropertyKeyBuffer)
                 _sharedMaterialOverrides.Remove(key);
         }
 

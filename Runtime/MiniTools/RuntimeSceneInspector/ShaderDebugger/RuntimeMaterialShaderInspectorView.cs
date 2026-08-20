@@ -127,8 +127,14 @@ namespace SAS.Utilities.RuntimeSceneInspector
 
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
-            if (GUILayout.Button("RESTORE SCOPE", _theme.WarningButton, GUILayout.Width(112f), GUILayout.Height(23f)))
+            RuntimeMaterialScopeState scopeState = slot.GetScope(scope);
+            bool previousEnabled = GUI.enabled;
+            GUI.enabled = previousEnabled && scopeState != null && !scopeState.ReadOnly &&
+                          scopeState.HasInspectorOverrides;
+            if (GUILayout.Button("RESTORE SCOPE", _theme.WarningButton, GUILayout.Width(112f),
+                    GUILayout.Height(23f)))
                 _controller.RestoreShaderMaterial(renderer.RendererId, slot.MaterialIndex, scope);
+            GUI.enabled = previousEnabled;
             GUILayout.EndHorizontal();
 
             int visibleCount = 0;
@@ -176,8 +182,10 @@ namespace SAS.Utilities.RuntimeSceneInspector
         private void DrawProperty(RuntimeObjectId rendererId, RuntimeMaterialSlotDescriptor slot, RuntimeMaterialEditScope scope, RuntimeShaderPropertyView view, int propertyRowIndex)
         {
             RuntimeShaderPropertyDescriptor property = view.Property;
+            RuntimeShaderPropertyScopeView scopeView = view.GetScope(scope);
             bool isEditing = _controller.IsEditingShaderProperty(rendererId, slot.MaterialIndex, property.PropertyId);
-            bool canEdit = !view.ReadOnly && _controller.IsMaterialScopeAllowed(scope);
+            bool canEdit = scopeView != null && !scopeView.ReadOnly &&
+                           _controller.IsMaterialScopeAllowed(scope);
 
             GUILayout.BeginVertical(RowStyle(propertyRowIndex));
             GUILayout.BeginHorizontal();
@@ -203,19 +211,25 @@ namespace SAS.Utilities.RuntimeSceneInspector
             }
             else
             {
-                GUILayout.Label(view.Value, _theme.Body);
+                GUILayout.Label(scopeView?.Value ?? "<scope unavailable>", _theme.Body);
                 if (canEdit && GUILayout.Button("EDIT", _theme.PrimaryButton, GUILayout.Width(48f), GUILayout.Height(22f)))
                 {
                     _controller.BeginShaderEditFromView(rendererId, slot.MaterialIndex, view, propertyRowIndex);
                 }
             }
 
-            if (canEdit && !isEditing && GUILayout.Button("RESET", _theme.Button, GUILayout.Width(50f), GUILayout.Height(22f)))
+            bool previousEnabled = GUI.enabled;
+            GUI.enabled = previousEnabled && canEdit && !isEditing &&
+                          scopeView.HasInspectorOverride;
+            if (GUILayout.Button("RESET", _theme.Button, GUILayout.Width(50f),
+                    GUILayout.Height(22f)))
                 _controller.RestoreShaderProperty(rendererId, slot.MaterialIndex, property.PropertyId, scope);
+            GUI.enabled = previousEnabled;
 
             GUILayout.EndHorizontal();
             string range = property.Type == RuntimeShaderPropertyType.Range ? $"   Range {property.RangeMinimum:G5} to {property.RangeMaximum:G5}" : string.Empty;
-            GUILayout.Label($"Type: {property.Type}   Source: {view.ValueSource}{range}", _theme.Muted);
+            GUILayout.Label($"Type: {property.Type}   Source: " +
+                            $"{scopeView?.ValueSource ?? "Scope unavailable"}{range}", _theme.Muted);
             GUILayout.EndVertical();
             RevealCursor(propertyRowIndex);
         }

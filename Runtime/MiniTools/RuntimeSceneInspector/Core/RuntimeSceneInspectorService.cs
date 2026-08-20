@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using Unity.Profiling;
 using UnityEngine;
@@ -20,6 +19,9 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
         private readonly RuntimeReflectedMemberProvider _reflectedMembers;
         private readonly List<IRuntimeSceneInspectorExtension> _inspectorExtensions = new();
         private readonly Dictionary<string, RuntimeObjectId> _sceneIds = new();
+        private readonly List<Component> _componentBuffer = new();
+        private readonly List<GameObject> _rootObjectBuffer = new();
+        private readonly HashSet<int> _sceneHandleBuffer = new();
         private readonly int _mainThreadId;
         private RuntimeHierarchySnapshot _snapshot = new() { Entries = Array.Empty<RuntimeHierarchyEntry>() };
         private long _nextSceneId = 1L << 60;
@@ -50,21 +52,23 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             {
                 _registry.BeginReconciliation();
                 var entries = new List<RuntimeHierarchyEntry>();
-                var normalHandles = new HashSet<int>();
+                _sceneHandleBuffer.Clear();
                 for (int i = 0; i < SceneManager.sceneCount; i++)
                 {
                     Scene scene = SceneManager.GetSceneAt(i);
                     if (!scene.IsValid() || !scene.isLoaded)
                         continue;
-                    normalHandles.Add(scene.handle);
+                    _sceneHandleBuffer.Add(scene.handle);
                     RuntimeObjectId sceneId = GetSceneId(scene, false);
                     entries.Add(new RuntimeHierarchyEntry
                     {
                         Id = sceneId, Kind = RuntimeHierarchyKind.Scene, Name = scene.name, ActiveSelf = true,
                         ActiveInHierarchy = true
                     });
-                    foreach (GameObject root in scene.GetRootGameObjects())
-                        AddObject(entries, root, sceneId, sceneId);
+                    _rootObjectBuffer.Clear();
+                    scene.GetRootGameObjects(_rootObjectBuffer);
+                    for (int rootIndex = 0; rootIndex < _rootObjectBuffer.Count; rootIndex++)
+                        AddObject(entries, _rootObjectBuffer[rootIndex], sceneId, sceneId);
                 }
 
                 RuntimeObjectId persistentId = default;
@@ -74,7 +78,8 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                         continue;
                     GameObject gameObject = transform.gameObject;
                     Scene scene = gameObject.scene;
-                    if (!scene.IsValid() || !scene.isLoaded || normalHandles.Contains(scene.handle))
+                    if (!scene.IsValid() || !scene.isLoaded ||
+                        _sceneHandleBuffer.Contains(scene.handle))
                         continue;
                     if (!persistentId.IsValid)
                     {
@@ -91,6 +96,8 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
 
                 _registry.EndReconciliation();
                 _snapshot = new RuntimeHierarchySnapshot { Revision = _snapshot.Revision + 1, Entries = entries };
+                _rootObjectBuffer.Clear();
+                _sceneHandleBuffer.Clear();
             }
         }
 
@@ -102,8 +109,12 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             using (InspectorMarker.Auto())
             {
                 var components = new List<RuntimeComponentDescriptor>();
-                foreach (Component component in gameObject.GetComponents<Component>())
+                _componentBuffer.Clear();
+                gameObject.GetComponents(_componentBuffer);
+                for (int componentIndex = 0; componentIndex < _componentBuffer.Count;
+                     componentIndex++)
                 {
+                    Component component = _componentBuffer[componentIndex];
                     if (component == null)
                     {
                         components.Add(new RuntimeComponentDescriptor
@@ -198,6 +209,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                     RefreshHierarchy();
                     return RuntimeCommandResult.Ok();
                 }
+                _componentBuffer.Clear();
 
                 if (command is SetGameObjectLayerCommand layer)
                 {
@@ -266,15 +278,17 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             if (gameObject == null || (!_settings.IncludeInactiveObjects && !gameObject.activeInHierarchy))
                 return;
             RuntimeObjectId id = _registry.GetOrCreate(gameObject);
-            Component[] components = gameObject.GetComponents<Component>();
-            var names = new string[components.Length];
-            for (int i = 0; i < components.Length; i++)
+            _componentBuffer.Clear();
+            gameObject.GetComponents(_componentBuffer);
+            var names = new string[_componentBuffer.Count];
+            for (int i = 0; i < _componentBuffer.Count; i++)
             {
-                Component component = components[i];
+                Component component = _componentBuffer[i];
                 names[i] = component == null ? "Missing Script" : component.GetType().Name;
                 if (component != null)
                     _registry.GetOrCreate(component);
             }
+            _componentBuffer.Clear();
 
             entries.Add(new RuntimeHierarchyEntry
             {
@@ -358,7 +372,26 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             return RuntimeCommandResult.Fail("The member is not writable.");
         }
 
-        private bool IsBlocked(Type type) => _settings.BlockedComponentTypes.Contains(type.FullName) || _settings.BlockedNamespaces.Any(value => !string.IsNullOrEmpty(value) && (type.Namespace?.StartsWith(value, StringComparison.Ordinal) ?? false));
+        private bool IsBlocked(Type type)
+        {
+            string[] blockedTypes = _settings.BlockedComponentTypes;
+            for (int i = 0; i < blockedTypes.Length; i++)
+            {
+                if (string.Equals(blockedTypes[i], type.FullName, StringComparison.Ordinal))
+                    return true;
+            }
+
+            string typeNamespace = type.Namespace ?? string.Empty;
+            string[] blockedNamespaces = _settings.BlockedNamespaces;
+            for (int i = 0; i < blockedNamespaces.Length; i++)
+            {
+                string blockedNamespace = blockedNamespaces[i];
+                if (!string.IsNullOrEmpty(blockedNamespace) &&
+                    typeNamespace.StartsWith(blockedNamespace, StringComparison.Ordinal))
+                    return true;
+            }
+            return false;
+        }
 
         private RuntimeObjectId GetSceneId(Scene scene, bool persistent)
         {
@@ -405,7 +438,22 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             return true;
         }
 
-        private static bool IsRuntimeSceneInspectorHost(GameObject gameObject) => gameObject != null && gameObject.GetComponents<Component>().Any(IsRuntimeSceneInspectorProtected);
+        private bool IsRuntimeSceneInspectorHost(GameObject gameObject)
+        {
+            if (gameObject == null)
+                return false;
+            _componentBuffer.Clear();
+            gameObject.GetComponents(_componentBuffer);
+            for (int i = 0; i < _componentBuffer.Count; i++)
+            {
+                if (!IsRuntimeSceneInspectorProtected(_componentBuffer[i]))
+                    continue;
+                _componentBuffer.Clear();
+                return true;
+            }
+            _componentBuffer.Clear();
+            return false;
+        }
 
         private static bool IsRuntimeSceneInspectorProtected(Component component) => component != null && component.GetType().IsDefined(typeof(RuntimeSceneInspectorProtectedAttribute), true);
 

@@ -35,6 +35,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Transport
         private double _nextDiagnosticLogTime;
         private long _beaconSequence;
         private bool _reportedSendFailure;
+        private bool _diagnosticsEnabled;
 
         public void Initialize(RuntimeRemoteConnectionServiceContext context)
         {
@@ -53,6 +54,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Transport
             RemoteDevUtilitiesRuntimeSettings settings = context?.Settings;
             if (settings == null || !settings.EnableLanDiscovery)
                 return;
+
+            _diagnosticsEnabled = settings.EnableLanDiscoveryDiagnosticLogs;
 
             if (tcpEndpoint?.IsListening != true)
             {
@@ -98,10 +101,13 @@ namespace SAS.Utilities.RemoteDevUtilities.Transport
                 _nextBeaconTime = 0d;
                 _nextDiagnosticLogTime = 0d;
                 _beaconSequence = 0;
-                Debug.Log($"[RemoteDevUtilities] LAN discovery broadcaster started. " +
-                          $"UDP port={RemoteLanDiscoveryConstants.Port}, TCP port={_advertisedTcpPort}, " +
-                          $"interval={RemoteLanDiscoveryConstants.BeaconIntervalSeconds:0.###}s, " +
-                          $"destinations=[{FormatDestinations()}].");
+                if (_diagnosticsEnabled)
+                {
+                    Debug.Log($"[RemoteDevUtilities] LAN discovery broadcaster started. " +
+                              $"UDP port={RemoteLanDiscoveryConstants.Port}, TCP port={_advertisedTcpPort}, " +
+                              $"interval={RemoteLanDiscoveryConstants.BeaconIntervalSeconds:0.###}s, " +
+                              $"destinations=[{FormatDestinations()}].");
+                }
             }
             catch (Exception exception) when (exception is SocketException || exception is ObjectDisposedException)
             {
@@ -140,7 +146,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Transport
             if (successfulDestinations > 0)
             {
                 _reportedSendFailure = false;
-                if (now >= _nextDiagnosticLogTime)
+                if (_diagnosticsEnabled && now >= _nextDiagnosticLogTime)
                 {
                     _nextDiagnosticLogTime = now + DiagnosticLogIntervalSeconds;
                     Debug.Log($"[RemoteDevUtilities] LAN discovery beacon #{_beaconSequence} sent to " +

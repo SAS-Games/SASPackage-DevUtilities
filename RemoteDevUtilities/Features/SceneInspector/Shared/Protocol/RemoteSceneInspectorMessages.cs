@@ -176,6 +176,17 @@ namespace SAS.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector
         public int TotalPropertyCount;
         public bool PropertyLimitReached;
         public RemoteShaderPropertyView[] Properties = Array.Empty<RemoteShaderPropertyView>();
+        public RemoteMaterialScopeState[] Scopes = Array.Empty<RemoteMaterialScopeState>();
+    }
+
+    [Serializable]
+    public sealed class RemoteShaderPropertyScopeView
+    {
+        public int Scope;
+        public string Value;
+        public string ValueSource;
+        public bool ReadOnly;
+        public bool HasInspectorOverride;
     }
 
     [Serializable]
@@ -196,6 +207,15 @@ namespace SAS.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector
         public string ValueSource;
         public bool ReadOnly;
         public bool HasInspectorOverride;
+        public RemoteShaderPropertyScopeView[] Scopes = Array.Empty<RemoteShaderPropertyScopeView>();
+    }
+
+    [Serializable]
+    public sealed class RemoteMaterialScopeState
+    {
+        public int Scope;
+        public bool ReadOnly;
+        public bool HasInspectorOverrides;
     }
 
     public enum RemoteSceneInspectorCommandKind

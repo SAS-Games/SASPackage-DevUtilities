@@ -55,6 +55,16 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
     }
 
     [Serializable]
+    public sealed class RuntimeShaderPropertyScopeView
+    {
+        public RuntimeMaterialEditScope Scope;
+        public string Value;
+        public string ValueSource;
+        public bool ReadOnly;
+        public bool HasInspectorOverride;
+    }
+
+    [Serializable]
     public sealed class RuntimeShaderPropertyView
     {
         public RuntimeShaderPropertyDescriptor Property;
@@ -62,6 +72,28 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
         public string ValueSource;
         public bool ReadOnly;
         public bool HasInspectorOverride;
+        public IReadOnlyList<RuntimeShaderPropertyScopeView> Scopes;
+
+        public RuntimeShaderPropertyScopeView GetScope(RuntimeMaterialEditScope scope)
+        {
+            if (Scopes == null)
+                return null;
+            for (int i = 0; i < Scopes.Count; i++)
+            {
+                RuntimeShaderPropertyScopeView candidate = Scopes[i];
+                if (candidate != null && candidate.Scope == scope)
+                    return candidate;
+            }
+            return null;
+        }
+    }
+
+    [Serializable]
+    public sealed class RuntimeMaterialScopeState
+    {
+        public RuntimeMaterialEditScope Scope;
+        public bool ReadOnly;
+        public bool HasInspectorOverrides;
     }
 
     [Serializable]
@@ -79,6 +111,20 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
         public int TotalPropertyCount;
         public bool PropertyLimitReached;
         public IReadOnlyList<RuntimeShaderPropertyView> Properties;
+        public IReadOnlyList<RuntimeMaterialScopeState> Scopes;
+
+        public RuntimeMaterialScopeState GetScope(RuntimeMaterialEditScope scope)
+        {
+            if (Scopes == null)
+                return null;
+            for (int i = 0; i < Scopes.Count; i++)
+            {
+                RuntimeMaterialScopeState candidate = Scopes[i];
+                if (candidate != null && candidate.Scope == scope)
+                    return candidate;
+            }
+            return null;
+        }
     }
 
     [Serializable]

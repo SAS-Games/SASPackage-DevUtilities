@@ -61,14 +61,17 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
         {
             RequestHierarchy(true);
             if (selectedObjectId > 0)
-                Inspect(selectedObjectId);
+                RequestInspection(selectedObjectId, selectedObjectId != InspectionObjectId);
         }
 
         public void OnConnected() => RequestHierarchy(true);
 
-        public void Inspect(long objectId)
+        public void Inspect(long objectId) => RequestInspection(objectId, true);
+
+        private void RequestInspection(long objectId, bool clearCurrent)
         {
-            Inspection = null;
+            if (clearCurrent || InspectionObjectId != objectId)
+                Inspection = null;
             InspectionObjectId = objectId;
             _inspectionRequestId = _session.Send(RemoteSceneInspectorMessageTypes.SceneInspectorInspectRequest, new RemoteSceneInspectorInspectRequest { ObjectId = objectId });
         }
@@ -160,7 +163,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
                             if (CommandAffectsHierarchy(commandKind))
                                 RequestHierarchy(false);
                             if (Inspection?.Details != null)
-                                Inspect(Inspection.Details.Id);
+                                RequestInspection(Inspection.Details.Id, false);
                         }
                     }
 

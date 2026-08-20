@@ -96,9 +96,17 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
             }
 
             if (!_materialScopes.TryGetValue(slotKey, out scope))
-                scope = 0;
+                scope = FirstWritableScope(slot);
             scope = EditorGUILayout.Popup("Edit Scope", scope, MaterialScopes);
             _materialScopes[slotKey] = scope;
+
+            RemoteMaterialScopeState scopeState = GetScope(slot, scope);
+            if (scopeState == null)
+                EditorGUILayout.HelpBox("The Player did not provide state for this material scope.",
+                    MessageType.Error);
+            else if (scopeState.ReadOnly)
+                EditorGUILayout.HelpBox("This material scope is read-only in the Player settings.",
+                    MessageType.Info);
 
             if (scope == 2 || scope == 3)
             {
@@ -122,8 +130,13 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
 
         private static void DrawRestoreButton(RemoteRuntimeSceneInspectorClient client, long rendererId, RemoteMaterialSlotDescriptor slot, int scope)
         {
-            if (!GUILayout.Button("Restore Slot"))
-                return;
+            RemoteMaterialScopeState scopeState = GetScope(slot, scope);
+            using (new EditorGUI.DisabledScope(scopeState == null || scopeState.ReadOnly ||
+                                                !scopeState.HasInspectorOverrides))
+            {
+                if (!GUILayout.Button("Restore Scope"))
+                    return;
+            }
 
             client.Execute(new RemoteSceneInspectorCommandRequest
             {
@@ -137,20 +150,27 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
         private void DrawShaderProperty(RemoteRuntimeSceneInspectorClient client, long rendererId, RemoteMaterialSlotDescriptor slot, RemoteShaderPropertyView property, int scope)
         {
             string key = $"shader:{rendererId}:{slot.MaterialIndex}:{property.PropertyId}:{scope}";
+            RemoteShaderPropertyScopeView scopeView = GetScope(property, scope);
             EditorGUILayout.BeginHorizontal();
             GUILayout.Label(property.DisplayName ?? property.Name, GUILayout.Width(155f));
 
-            if (property.ReadOnly)
+            if (scopeView == null)
+            {
+                using (new EditorGUI.DisabledScope(true))
+                    EditorGUILayout.TextField("<scope unavailable>");
+            }
+            else if (scopeView.ReadOnly)
             {
                 using (new EditorGUI.DisabledScope(true))
                 {
-                    if (!TryDrawTypedShaderValue(property, out _, out _))
-                        EditorGUILayout.TextField(property.Value ?? string.Empty);
+                    if (!TryDrawTypedShaderValue(property, scopeView.Value, out _, out _))
+                        EditorGUILayout.TextField(scopeView.Value ?? string.Empty);
                 }
             }
             else
             {
-                if (TryDrawTypedShaderValue(property, out string nextValue, out bool changed))
+                if (TryDrawTypedShaderValue(property, scopeView.Value, out string nextValue,
+                        out bool changed))
                 {
                     if (changed)
                         SetShaderProperty(client, rendererId, slot.MaterialIndex, property.PropertyId,
@@ -158,24 +178,29 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
                 }
                 else
                 {
-                    DrawEditableShaderProperty(client, rendererId, slot, property, scope, key);
+                    DrawEditableShaderProperty(client, rendererId, slot, property, scope,
+                        scopeView.Value, key);
                 }
             }
 
-            DrawResetButton(client, rendererId, slot, property, scope);
+            DrawResetButton(client, rendererId, slot, property, scope, scopeView);
             EditorGUILayout.EndHorizontal();
-            EditorGUILayout.LabelField($"{property.Name}  •  {property.ValueSource}", EditorStyles.miniLabel);
+            EditorGUILayout.LabelField(property.Name + "  •  " +
+                                       (scopeView?.ValueSource ?? "Scope unavailable"),
+                EditorStyles.miniLabel);
         }
 
-        private void DrawEditableShaderProperty(RemoteRuntimeSceneInspectorClient client, long rendererId, RemoteMaterialSlotDescriptor slot, RemoteShaderPropertyView property, int scope, string key)
+        private void DrawEditableShaderProperty(RemoteRuntimeSceneInspectorClient client,
+            long rendererId, RemoteMaterialSlotDescriptor slot, RemoteShaderPropertyView property,
+            int scope, string authoritativeValue, string key)
         {
             if (!_editValues.TryGetValue(key, out string value))
-                value = property.Value ?? string.Empty;
+                value = authoritativeValue ?? string.Empty;
             string controlName = "remote-shader-value:" + key;
             GUI.SetNextControlName(controlName);
             value = EditorGUILayout.TextField(value);
             _editValues[key] = value;
-            bool dirty = value != (property.Value ?? string.Empty);
+            bool dirty = value != (authoritativeValue ?? string.Empty);
             bool apply;
             using (new EditorGUI.DisabledScope(!dirty))
                 apply = GUILayout.Button("Apply", GUILayout.Width(48f));
@@ -206,9 +231,10 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
         }
 
         private static bool TryDrawTypedShaderValue(RemoteShaderPropertyView property,
+            string currentValue,
             out string nextValue, out bool changed)
         {
-            nextValue = property?.Value ?? string.Empty;
+            nextValue = currentValue ?? string.Empty;
             changed = false;
             if (property == null)
                 return false;
@@ -217,7 +243,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
             {
                 case ShaderPropertyType.Float:
                 case ShaderPropertyType.Range:
-                    if (!float.TryParse(property.Value, NumberStyles.Float,
+                    if (!float.TryParse(currentValue, NumberStyles.Float,
                             CultureInfo.InvariantCulture, out float scalar))
                         return false;
                     EditorGUI.BeginChangeCheck();
@@ -230,7 +256,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
                     return true;
 
                 case ShaderPropertyType.Integer:
-                    if (!int.TryParse(property.Value, NumberStyles.Integer,
+                    if (!int.TryParse(currentValue, NumberStyles.Integer,
                             CultureInfo.InvariantCulture, out int integer))
                         return false;
                     EditorGUI.BeginChangeCheck();
@@ -240,7 +266,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
                     return true;
 
                 case ShaderPropertyType.Color:
-                    if (!TryParseVector(property.Value, out Vector4 colorValues))
+                    if (!TryParseVector(currentValue, out Vector4 colorValues))
                         return false;
                     EditorGUI.BeginChangeCheck();
                     Color nextColor = EditorGUI.ColorField(EditorGUILayout.GetControlRect(),
@@ -252,7 +278,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
                     return true;
 
                 case ShaderPropertyType.Vector:
-                    if (!TryParseVector(property.Value, out Vector4 vector))
+                    if (!TryParseVector(currentValue, out Vector4 vector))
                         return false;
                     EditorGUI.BeginChangeCheck();
                     Vector4 nextVector = EditorGUI.Vector4Field(EditorGUILayout.GetControlRect(),
@@ -311,9 +337,12 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
             _inspectionRevision = inspectionRevision;
         }
 
-        private static void DrawResetButton(RemoteRuntimeSceneInspectorClient client, long rendererId, RemoteMaterialSlotDescriptor slot, RemoteShaderPropertyView property, int scope)
+        private static void DrawResetButton(RemoteRuntimeSceneInspectorClient client,
+            long rendererId, RemoteMaterialSlotDescriptor slot, RemoteShaderPropertyView property,
+            int scope, RemoteShaderPropertyScopeView scopeView)
         {
-            using (new EditorGUI.DisabledScope(!property.HasInspectorOverride))
+            using (new EditorGUI.DisabledScope(scopeView == null || scopeView.ReadOnly ||
+                                                !scopeView.HasInspectorOverride))
             {
                 if (!GUILayout.Button("Reset", GUILayout.Width(48f)))
                     return;
@@ -327,6 +356,41 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
                     MaterialScope = scope
                 });
             }
+        }
+
+        private static RemoteShaderPropertyScopeView GetScope(RemoteShaderPropertyView property,
+            int scope)
+        {
+            foreach (RemoteShaderPropertyScopeView candidate in
+                     property?.Scopes ?? Array.Empty<RemoteShaderPropertyScopeView>())
+            {
+                if (candidate != null && candidate.Scope == scope)
+                    return candidate;
+            }
+            return null;
+        }
+
+        private static RemoteMaterialScopeState GetScope(RemoteMaterialSlotDescriptor slot,
+            int scope)
+        {
+            foreach (RemoteMaterialScopeState candidate in
+                     slot?.Scopes ?? Array.Empty<RemoteMaterialScopeState>())
+            {
+                if (candidate != null && candidate.Scope == scope)
+                    return candidate;
+            }
+            return null;
+        }
+
+        private static int FirstWritableScope(RemoteMaterialSlotDescriptor slot)
+        {
+            for (int scope = 0; scope < MaterialScopes.Length; scope++)
+            {
+                RemoteMaterialScopeState state = GetScope(slot, scope);
+                if (state != null && !state.ReadOnly)
+                    return scope;
+            }
+            return 0;
         }
 
         private bool MatchesShaderSearch(RemoteShaderPropertyView property)

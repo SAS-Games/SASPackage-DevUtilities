@@ -143,6 +143,21 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
             for (int i = 0; i < sourceProperties.Length; i++)
             {
                 RemoteShaderPropertyView property = sourceProperties[i];
+                RemoteShaderPropertyScopeView[] sourceScopes =
+                    property.Scopes ?? Array.Empty<RemoteShaderPropertyScopeView>();
+                var scopes = new RuntimeShaderPropertyScopeView[sourceScopes.Length];
+                for (int scopeIndex = 0; scopeIndex < sourceScopes.Length; scopeIndex++)
+                {
+                    RemoteShaderPropertyScopeView scope = sourceScopes[scopeIndex];
+                    scopes[scopeIndex] = new RuntimeShaderPropertyScopeView
+                    {
+                        Scope = (RuntimeMaterialEditScope)scope.Scope,
+                        Value = scope.Value,
+                        ValueSource = scope.ValueSource,
+                        ReadOnly = scope.ReadOnly,
+                        HasInspectorOverride = scope.HasInspectorOverride
+                    };
+                }
                 properties[i] = new RuntimeShaderPropertyView
                 {
                     Property = new RuntimeShaderPropertyDescriptor
@@ -162,7 +177,22 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
                     Value = property.Value,
                     ValueSource = property.ValueSource,
                     ReadOnly = property.ReadOnly,
-                    HasInspectorOverride = property.HasInspectorOverride
+                    HasInspectorOverride = property.HasInspectorOverride,
+                    Scopes = scopes
+                };
+            }
+
+            RemoteMaterialScopeState[] sourceSlotScopes =
+                slot.Scopes ?? Array.Empty<RemoteMaterialScopeState>();
+            var slotScopes = new RuntimeMaterialScopeState[sourceSlotScopes.Length];
+            for (int i = 0; i < sourceSlotScopes.Length; i++)
+            {
+                RemoteMaterialScopeState scope = sourceSlotScopes[i];
+                slotScopes[i] = new RuntimeMaterialScopeState
+                {
+                    Scope = (RuntimeMaterialEditScope)scope.Scope,
+                    ReadOnly = scope.ReadOnly,
+                    HasInspectorOverrides = scope.HasInspectorOverrides
                 };
             }
 
@@ -179,7 +209,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.DebugHost
                 IsInspectorMaterialInstance = slot.IsInspectorMaterialInstance,
                 TotalPropertyCount = slot.TotalPropertyCount,
                 PropertyLimitReached = slot.PropertyLimitReached,
-                Properties = properties
+                Properties = properties,
+                Scopes = slotScopes
             };
         }
     }

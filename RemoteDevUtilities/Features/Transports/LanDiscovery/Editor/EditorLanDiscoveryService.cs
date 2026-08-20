@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using SAS.Utilities.RemoteDevUtilities.Editor.Client;
+using SAS.Utilities.RemoteDevUtilities.Editor.Configuration;
 using SAS.Utilities.RemoteDevUtilities.Protocol;
 using UnityEngine;
 
@@ -63,8 +64,11 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
                 Error = null;
                 _nextReceiveDiagnosticLogTime = 0d;
                 _nextRejectedDiagnosticLogTime = 0d;
-                Debug.Log($"[RemoteDevUtilities] LAN discovery listener started on 0.0.0.0:" +
-                          $"{RemoteLanDiscoveryConstants.Port}/UDP. Waiting for Player beacons.");
+                if (DiagnosticsEnabled)
+                {
+                    Debug.Log($"[RemoteDevUtilities] LAN discovery listener started on 0.0.0.0:" +
+                              $"{RemoteLanDiscoveryConstants.Port}/UDP. Waiting for Player beacons.");
+                }
             }
             catch (Exception exception) when (exception is SocketException || exception is ObjectDisposedException)
             {
@@ -82,7 +86,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
                 {
                     bool beaconChanged = _registry.Accept(datagram.Host, beacon, now);
                     changed |= beaconChanged;
-                    if (beaconChanged || now >= _nextReceiveDiagnosticLogTime)
+                    if (DiagnosticsEnabled &&
+                        (beaconChanged || now >= _nextReceiveDiagnosticLogTime))
                     {
                         _nextReceiveDiagnosticLogTime = now + DiagnosticLogIntervalSeconds;
                         Debug.Log($"[RemoteDevUtilities] LAN discovery beacon received from " +
@@ -92,7 +97,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
                                   $"device={beacon.Target?.DeviceName ?? "unknown"}.");
                     }
                 }
-                else if (now >= _nextRejectedDiagnosticLogTime)
+                else if (DiagnosticsEnabled && now >= _nextRejectedDiagnosticLogTime)
                 {
                     _nextRejectedDiagnosticLogTime = now + DiagnosticLogIntervalSeconds;
                     Debug.LogWarning($"[RemoteDevUtilities] UDP datagram received on discovery port from " +
@@ -107,8 +112,11 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
         public bool Clear()
         {
             bool changed = _registry.Clear();
-            Debug.Log("[RemoteDevUtilities] LAN discovery results cleared. The UDP listener remains active; " +
-                      "Search Again is passive and waits for the Player's next beacon.");
+            if (DiagnosticsEnabled)
+            {
+                Debug.Log("[RemoteDevUtilities] LAN discovery results cleared. The UDP listener remains active; " +
+                          "Search Again is passive and waits for the Player's next beacon.");
+            }
             return changed;
         }
 
@@ -170,5 +178,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
             _listener?.Close();
             _listener = null;
         }
+
+        private static bool DiagnosticsEnabled => RemoteDevUtilitiesProjectSettings.instance.Runtime
+            .EnableLanDiscoveryDiagnosticLogs;
     }
 }

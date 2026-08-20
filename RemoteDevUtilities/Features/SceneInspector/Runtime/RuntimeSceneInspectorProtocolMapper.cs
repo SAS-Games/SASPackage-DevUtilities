@@ -151,6 +151,21 @@ namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector
             {
                 RuntimeShaderPropertyView view = sourceProperties[i];
                 RuntimeShaderPropertyDescriptor property = view.Property;
+                IReadOnlyList<RuntimeShaderPropertyScopeView> sourceScopes =
+                    view.Scopes ?? Array.Empty<RuntimeShaderPropertyScopeView>();
+                var scopes = new RemoteShaderPropertyScopeView[sourceScopes.Count];
+                for (int scopeIndex = 0; scopeIndex < sourceScopes.Count; scopeIndex++)
+                {
+                    RuntimeShaderPropertyScopeView scope = sourceScopes[scopeIndex];
+                    scopes[scopeIndex] = new RemoteShaderPropertyScopeView
+                    {
+                        Scope = (int)scope.Scope,
+                        Value = scope.Value,
+                        ValueSource = scope.ValueSource,
+                        ReadOnly = scope.ReadOnly,
+                        HasInspectorOverride = scope.HasInspectorOverride
+                    };
+                }
                 properties[i] = new RemoteShaderPropertyView
                 {
                     Index = property?.Index ?? -1,
@@ -167,7 +182,22 @@ namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector
                     Value = view.Value,
                     ValueSource = view.ValueSource,
                     ReadOnly = view.ReadOnly,
-                    HasInspectorOverride = view.HasInspectorOverride
+                    HasInspectorOverride = view.HasInspectorOverride,
+                    Scopes = scopes
+                };
+            }
+
+            IReadOnlyList<RuntimeMaterialScopeState> sourceSlotScopes =
+                slot.Scopes ?? Array.Empty<RuntimeMaterialScopeState>();
+            var slotScopes = new RemoteMaterialScopeState[sourceSlotScopes.Count];
+            for (int i = 0; i < sourceSlotScopes.Count; i++)
+            {
+                RuntimeMaterialScopeState scope = sourceSlotScopes[i];
+                slotScopes[i] = new RemoteMaterialScopeState
+                {
+                    Scope = (int)scope.Scope,
+                    ReadOnly = scope.ReadOnly,
+                    HasInspectorOverrides = scope.HasInspectorOverrides
                 };
             }
 
@@ -184,7 +214,8 @@ namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector
                 IsInspectorMaterialInstance = slot.IsInspectorMaterialInstance,
                 TotalPropertyCount = slot.TotalPropertyCount,
                 PropertyLimitReached = slot.PropertyLimitReached,
-                Properties = properties
+                Properties = properties,
+                Scopes = slotScopes
             };
         }
     }

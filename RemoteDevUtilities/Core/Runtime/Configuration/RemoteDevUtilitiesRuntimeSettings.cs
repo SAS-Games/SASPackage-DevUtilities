@@ -52,6 +52,11 @@ namespace SAS.Utilities.RemoteDevUtilities
         [SerializeField]
         private bool _enableLanDiscovery = true;
 
+        [InspectorName("LAN Discovery Diagnostic Logs")]
+        [Tooltip("Write verbose LAN discovery beacon diagnostics in the Editor and Player. Keep this disabled during normal use; configuration, socket, and send failures are always reported.")]
+        [SerializeField]
+        private bool _enableLanDiscoveryDiagnosticLogs;
+
         [Tooltip("Shared access token required by the runtime handshake. TCP traffic is not encrypted; use Remote Dev Utilities only on a trusted development network.")]
         [SerializeField]
         private string _tcpAccessToken = string.Empty;
@@ -71,6 +76,7 @@ namespace SAS.Utilities.RemoteDevUtilities
         internal int TcpPortFallbackCount => _enableTcpPortFallback ? Mathf.Clamp(_tcpPortFallbackCount, 0, 32) : 0;
         internal bool AllowTcpConnectionsFromOtherMachines => _allowTcpConnectionsFromOtherMachines;
         internal bool EnableLanDiscovery => _enableLanDiscovery;
+        internal bool EnableLanDiscoveryDiagnosticLogs => _enableLanDiscoveryDiagnosticLogs;
         internal string TcpAccessToken => string.IsNullOrWhiteSpace(_tcpAccessToken) ? string.Empty : _tcpAccessToken;
         internal int MaxQueuedLogs => Mathf.Max(16, _maxQueuedLogs);
         internal int MaxLogsPerBatch => Mathf.Max(1, _maxLogsPerBatch);
@@ -92,6 +98,7 @@ namespace SAS.Utilities.RemoteDevUtilities
             _tcpPortFallbackCount = settings.TcpPortFallbackCount;
             _allowTcpConnectionsFromOtherMachines = settings.AllowTcpConnectionsFromOtherMachines;
             _enableLanDiscovery = settings.EnableLanDiscovery;
+            _enableLanDiscoveryDiagnosticLogs = settings.EnableLanDiscoveryDiagnosticLogs;
             _tcpAccessToken = settings.TcpAccessToken;
             _maxQueuedLogs = settings.MaxQueuedLogs;
             _maxLogsPerBatch = settings.MaxLogsPerBatch;
@@ -143,6 +150,11 @@ namespace SAS.Utilities.RemoteDevUtilities
         [SerializeField]
         private bool m_EnableLanDiscovery = true;
 
+        [InspectorName("LAN Discovery Diagnostic Logs")]
+        [Tooltip("Write verbose LAN discovery beacon diagnostics in the Editor and Player. Keep this disabled during normal use; configuration, socket, and send failures are always reported.")]
+        [SerializeField]
+        private bool m_EnableLanDiscoveryDiagnosticLogs;
+
         [Tooltip("Shared access token required by the runtime handshake. TCP traffic is not encrypted; " + "use Remote Dev Utilities only on a trusted development network.")]
         [SerializeField]
         private string m_TcpAccessToken = string.Empty;
@@ -163,6 +175,7 @@ namespace SAS.Utilities.RemoteDevUtilities
         public int TcpPortFallbackCount => m_EnableTcpPortFallback ? Mathf.Clamp(m_TcpPortFallbackCount, 0, 32) : 0;
         public bool AllowTcpConnectionsFromOtherMachines => m_AllowTcpConnectionsFromOtherMachines;
         public bool EnableLanDiscovery => m_EnableLanDiscovery;
+        public bool EnableLanDiscoveryDiagnosticLogs => m_EnableLanDiscoveryDiagnosticLogs;
         public string TcpAccessToken => string.IsNullOrWhiteSpace(m_TcpAccessToken) ? string.Empty : m_TcpAccessToken;
         public int MaxQueuedLogs => Mathf.Max(16, m_MaxQueuedLogs);
         public int MaxLogsPerBatch => Mathf.Max(1, m_MaxLogsPerBatch);
@@ -223,6 +236,7 @@ namespace SAS.Utilities.RemoteDevUtilities
             m_TcpPortFallbackCount = configuration.TcpPortFallbackCount;
             m_AllowTcpConnectionsFromOtherMachines = configuration.AllowTcpConnectionsFromOtherMachines;
             m_EnableLanDiscovery = configuration.EnableLanDiscovery;
+            m_EnableLanDiscoveryDiagnosticLogs = configuration.EnableLanDiscoveryDiagnosticLogs;
             m_TcpAccessToken = configuration.TcpAccessToken;
             m_MaxQueuedLogs = configuration.MaxQueuedLogs;
             m_MaxLogsPerBatch = configuration.MaxLogsPerBatch;

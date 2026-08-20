@@ -68,6 +68,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Configuration
                     "Debug",
                     "TCP",
                     "Port",
+                    "LAN Discovery",
+                    "Diagnostic Logs",
                     "Access Token",
                     "Build UI",
                     "Mini Tools"

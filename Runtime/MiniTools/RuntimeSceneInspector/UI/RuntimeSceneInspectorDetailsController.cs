@@ -249,11 +249,18 @@ namespace SAS.Utilities.RuntimeSceneInspector
             if (!CanEditShaderProperty(property, rendererId, materialIndex))
                 return;
 
+            RuntimeShaderPropertyScopeView scopeView =
+                property.GetScope(GetMaterialScope(rendererId, materialIndex));
+            if (scopeView == null)
+                return;
+
             ClearEditingTargets();
             _editingRendererId = rendererId;
             _editingMaterialIndex = materialIndex;
             _editingShaderProperty = property;
-            _editValue = property.Property.Type == RuntimeShaderPropertyType.Texture ? "null" : property.Value;
+            _editValue = property.Property.Type == RuntimeShaderPropertyType.Texture
+                ? "null"
+                : scopeView.Value;
             FocusEditField = true;
         }
 
@@ -470,7 +477,13 @@ namespace SAS.Utilities.RuntimeSceneInspector
             }
         }
 
-        private bool CanEditShaderProperty(RuntimeShaderPropertyView property, RuntimeObjectId rendererId, int materialIndex) => property != null && !property.ReadOnly && ScopeAllowed(GetMaterialScope(rendererId, materialIndex));
+        private bool CanEditShaderProperty(RuntimeShaderPropertyView property,
+            RuntimeObjectId rendererId, int materialIndex)
+        {
+            RuntimeMaterialEditScope scope = GetMaterialScope(rendererId, materialIndex);
+            RuntimeShaderPropertyScopeView scopeView = property?.GetScope(scope);
+            return scopeView != null && !scopeView.ReadOnly && ScopeAllowed(scope);
+        }
 
         private RuntimeMaterialEditScope FirstAllowedScope()
         {
