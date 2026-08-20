@@ -30,6 +30,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
         private readonly object _gate = new();
         private readonly Queue<Datagram> _pending = new();
         private readonly RemoteLanDiscoveryRegistry _registry = new();
+        private readonly Func<bool> _diagnosticsEnabled;
         private UdpClient _listener;
         private Thread _worker;
         private volatile bool _running;
@@ -38,6 +39,17 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
 
         public IReadOnlyList<RemoteLanPlayerDescriptor> Players => _registry.Players;
         public string Error { get; private set; }
+
+        public EditorLanDiscoveryService() : this(() =>
+            RemoteDevUtilitiesProjectSettings.instance.Runtime.EnableLanDiscoveryDiagnosticLogs)
+        {
+        }
+
+        internal EditorLanDiscoveryService(Func<bool> diagnosticsEnabled)
+        {
+            _diagnosticsEnabled = diagnosticsEnabled ?? throw new ArgumentNullException(
+                nameof(diagnosticsEnabled));
+        }
 
         public void Start(RemoteDevUtilitiesClient client) => Start();
 
@@ -179,7 +191,6 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
             _listener = null;
         }
 
-        private static bool DiagnosticsEnabled => RemoteDevUtilitiesProjectSettings.instance.Runtime
-            .EnableLanDiscoveryDiagnosticLogs;
+        private bool DiagnosticsEnabled => _diagnosticsEnabled();
     }
 }

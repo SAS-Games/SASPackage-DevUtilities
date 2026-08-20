@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using SAS.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector;
+using SAS.Utilities.RuntimeSceneInspector;
 using UnityEditor;
 using UnityEngine;
 
@@ -114,7 +115,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
             string search = _search.Trim();
             foreach (RemoteHierarchyEntry entry in entries)
             {
-                if (entry.Kind == 0 || (entry.Name?.IndexOf(search, StringComparison.OrdinalIgnoreCase) ?? -1) >= 0 || ContainsComponent(entry.ComponentTypeNames, search))
+                if (entry.Kind == 0 ||
+                    RuntimeHierarchySearch.Matches(entry.Name, entry.ComponentTypeNames, search))
                     DrawRow(client, entry, 0, false);
             }
         }
@@ -165,18 +167,5 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
             EditorGUILayout.EndHorizontal();
         }
 
-        private static bool ContainsComponent(string[] names, string search)
-        {
-            if (names == null)
-                return false;
-
-            foreach (string name in names)
-            {
-                if ((name?.IndexOf(search, StringComparison.OrdinalIgnoreCase) ?? -1) >= 0)
-                    return true;
-            }
-
-            return false;
-        }
     }
 }

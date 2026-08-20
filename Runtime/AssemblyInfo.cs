@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("DevUtilities.RemoteDevUtilities")]
 [assembly: InternalsVisibleTo("DevUtilities.RemoteDevUtilities.EditorTests")]
 [assembly: InternalsVisibleTo("DevUtilities.RemoteDevUtilities.SceneInspector.Runtime")]
+[assembly: InternalsVisibleTo("DevUtilities.RemoteDevUtilities.SceneInspector.Editor")]
 [assembly: InternalsVisibleTo("DevUtilities.RemoteDevUtilities.SceneInspector.EditorTests")]
 [assembly: InternalsVisibleTo("DevUtilities.RemoteDevUtilities.DebugHost.Runtime")]
 [assembly: InternalsVisibleTo("DevUtilities.RemoteDevUtilities.DebugHost.Editor")]

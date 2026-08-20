@@ -280,7 +280,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
                     if (!TryParseFloats(member.Value, 6, out float[] boundsValues))
                         return false;
                     EditorGUI.BeginChangeCheck();
-                    Bounds bounds = EditorGUI.BoundsField(EditorGUILayout.GetControlRect(),
+                    Bounds bounds = EditorGUI.BoundsField(EditorGUILayout.GetControlRect(false,
+                            GetControlHeight(RemoteInspectorControlKind.Bounds)),
                         GUIContent.none, new Bounds(
                             new Vector3(boundsValues[0], boundsValues[1], boundsValues[2]),
                             new Vector3(boundsValues[3], boundsValues[4], boundsValues[5])));
@@ -292,6 +293,17 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
                 default:
                     return false;
             }
+        }
+
+        internal static float GetControlHeight(RemoteInspectorControlKind controlKind)
+        {
+            if (controlKind == RemoteInspectorControlKind.Bounds)
+            {
+                return EditorGUIUtility.singleLineHeight * 2f +
+                       EditorGUIUtility.standardVerticalSpacing;
+            }
+
+            return EditorGUIUtility.singleLineHeight;
         }
 
         private static bool TryDrawOptionPopup(RemoteMemberDescriptor member, out string nextValue,

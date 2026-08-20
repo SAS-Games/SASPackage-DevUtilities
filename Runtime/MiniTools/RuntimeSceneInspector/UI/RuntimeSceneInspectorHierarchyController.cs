@@ -243,7 +243,7 @@ namespace SAS.Utilities.RuntimeSceneInspector
             var matches = new HashSet<long>();
             foreach (RuntimeHierarchyEntry item in _snapshot.Entries)
             {
-                if ((item.Name?.IndexOf(_search, StringComparison.OrdinalIgnoreCase) ?? -1) >= 0 || (item.ComponentTypeNames?.Any(type => type.IndexOf(_search, StringComparison.OrdinalIgnoreCase) >= 0) ?? false))
+                if (RuntimeHierarchySearch.Matches(item.Name, item.ComponentTypeNames, _search))
                     for (RuntimeHierarchyEntry current = item; current != null && matches.Add(current.Id.Value) && byId.TryGetValue(current.ParentId.Value, out current);)
                     {
                     }
@@ -263,5 +263,52 @@ namespace SAS.Utilities.RuntimeSceneInspector
 
             return false;
         }
+    }
+
+    internal static class RuntimeHierarchySearch
+    {
+        internal static bool Matches(string objectName, IReadOnlyList<string> componentTypeNames,
+            string query)
+        {
+            string search = (query ?? string.Empty).Trim();
+            if (search.Length == 0)
+                return true;
+
+            bool componentsOnly = TryStripComponentPrefix(ref search);
+            if (search.Length == 0)
+                return false;
+
+            if (!componentsOnly && Contains(objectName, search))
+                return true;
+
+            if (componentTypeNames == null)
+                return false;
+            for (int i = 0; i < componentTypeNames.Count; i++)
+            {
+                if (Contains(componentTypeNames[i], search))
+                    return true;
+            }
+
+            return false;
+        }
+
+        private static bool TryStripComponentPrefix(ref string search)
+        {
+            string prefix;
+            if (search.StartsWith("component:", StringComparison.OrdinalIgnoreCase))
+                prefix = "component:";
+            else if (search.StartsWith("t:", StringComparison.OrdinalIgnoreCase))
+                prefix = "t:";
+            else if (search.StartsWith("c:", StringComparison.OrdinalIgnoreCase))
+                prefix = "c:";
+            else
+                return false;
+
+            search = search.Substring(prefix.Length).Trim();
+            return true;
+        }
+
+        private static bool Contains(string value, string search) =>
+            value?.IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0;
     }
 }

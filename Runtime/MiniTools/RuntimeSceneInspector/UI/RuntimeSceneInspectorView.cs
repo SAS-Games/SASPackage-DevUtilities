@@ -152,7 +152,7 @@ namespace SAS.Utilities.RuntimeSceneInspector
             else if (_controller.IsEditing)
                 GUILayout.Label("EDITING  Left/Right move the text cursor  /  Enter/A or SAVE applies  /  Esc/B cancels", _theme.Footer);
             else if (_controller.IsSearchFocused)
-                GUILayout.Label("SEARCH  Type to filter  /  X clears  /  Tab/RB next panel  /  Shift+Tab/LB previous", _theme.Footer);
+                GUILayout.Label("SEARCH  Name or component  /  t:Component filters by type  /  X clears  /  Tab/RB next panel", _theme.Footer);
             else if (_controller.IsInspectorFocused)
                 GUILayout.Label("INSPECTOR  Arrows navigate  /  Enter/A acts  /  Space/X toggles  /  Tab/RB next panel  /  Shift+Tab/LB previous", _theme.Footer);
             else
