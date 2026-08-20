@@ -84,6 +84,30 @@ namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector.Capture
                 return;
             }
 
+            if (request.Cancel)
+            {
+                long activeCaptureId = _captureRunner?.ActiveCaptureId ?? 0;
+                if (_captureRunner == null ||
+                    (request.CaptureId > 0 && request.CaptureId != activeCaptureId))
+                {
+                    SendPickResult(envelope.RequestId, new RemoteScenePickResponse
+                    {
+                        CaptureId = request.CaptureId,
+                        Cancelled = true,
+                        Error = "The captured frame is no longer active."
+                    });
+                    return;
+                }
+
+                _captureRunner.Release(request.CaptureId);
+                SendPickResult(envelope.RequestId, new RemoteScenePickResponse
+                {
+                    CaptureId = request.CaptureId > 0 ? request.CaptureId : activeCaptureId,
+                    Cancelled = true
+                });
+                return;
+            }
+
             if (_captureRunner == null || request.CaptureId <= 0 ||
                 request.CaptureId != _captureRunner.ActiveCaptureId)
             {
@@ -92,17 +116,6 @@ namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector.Capture
                     CaptureId = request.CaptureId,
                     Cancelled = true,
                     Error = "The captured frame is no longer active. Capture the Player again."
-                });
-                return;
-            }
-
-            if (request.Cancel)
-            {
-                _captureRunner.Release(request.CaptureId);
-                SendPickResult(envelope.RequestId, new RemoteScenePickResponse
-                {
-                    CaptureId = request.CaptureId,
-                    Cancelled = true
                 });
                 return;
             }

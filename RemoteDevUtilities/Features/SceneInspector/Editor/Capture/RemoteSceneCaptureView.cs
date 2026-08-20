@@ -65,14 +65,14 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector.Capture
 
         internal void ReleaseCapture()
         {
-            if (_client?.IsCaptureActive == true)
-                _client.ReleaseCapture();
+            _client?.ReleaseCapture();
         }
 
         private void DrawToolbar(RemoteRuntimeSceneInspectorClient client, float availableWidth)
         {
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
-            using (new EditorGUI.DisabledScope(client.IsCapturePending || client.IsPickPending))
+            using (new EditorGUI.DisabledScope(client.IsCapturePending || client.IsPickPending ||
+                                                client.IsCaptureReleasePending))
             {
                 if (GUILayout.Button("Capture Player View", EditorStyles.toolbarButton, GUILayout.Width(130f)))
                 {
@@ -82,9 +82,10 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector.Capture
             }
 
             GUILayout.FlexibleSpace();
-            using (new EditorGUI.DisabledScope(!client.IsCaptureActive || client.IsPickPending))
+            using (new EditorGUI.DisabledScope(!client.CanReleaseCapture))
             {
-                if (GUILayout.Button("Release", EditorStyles.toolbarButton, GUILayout.Width(58f)))
+                string releaseLabel = client.IsCapturePending ? "Cancel" : "Release";
+                if (GUILayout.Button(releaseLabel, EditorStyles.toolbarButton, GUILayout.Width(58f)))
                     client.ReleaseCapture();
             }
             EditorGUILayout.EndHorizontal();

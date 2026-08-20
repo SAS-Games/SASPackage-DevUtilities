@@ -24,6 +24,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
         private long _inspectionRequestId;
         private long _captureRequestId;
         private long _pickRequestId;
+        private bool _captureReleasePending;
 
         public RemoteRuntimeSceneInspectorClient(IRemoteEditorSession session)
         {
@@ -41,7 +42,10 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
         public long LastPickedObjectId { get; private set; }
         public int PickRevision { get; private set; }
         public bool IsCapturePending => _captureRequestId != 0 && Capture == null;
-        public bool IsPickPending => _pickRequestId != 0 && LastPickResult == null;
+        public bool IsCaptureReleasePending => _captureReleasePending;
+        public bool IsPickPending => !_captureReleasePending && _pickRequestId != 0 && LastPickResult == null;
+        public bool CanReleaseCapture => !_captureReleasePending &&
+                                         (IsCapturePending || IsCaptureActive || IsPickPending);
         public bool IsCaptureActive => Capture != null && Capture.CaptureId > 0 && string.IsNullOrEmpty(Capture.Error) &&
                                        !(LastPickResult?.CaptureId == Capture.CaptureId &&
                                          LastPickResult.Cancelled);
@@ -100,12 +104,16 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
 
         public void ReleaseCapture()
         {
-            if (!IsCaptureActive)
+            if (!CanReleaseCapture)
                 return;
 
+            long captureId = Capture?.CaptureId ?? 0;
+            _captureRequestId = 0;
+            Capture = null;
             LastPickResult = null;
             _pickRequestId = _session.Send(RemoteSceneInspectorMessageTypes.SceneInspectorPickRequest,
-                new RemoteScenePickRequest { CaptureId = Capture.CaptureId, Cancel = true });
+                new RemoteScenePickRequest { CaptureId = captureId, Cancel = true });
+            _captureReleasePending = _pickRequestId != 0;
         }
 
         public void SelectPickedObject(long objectId)
@@ -167,6 +175,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
                             SelectPickedObject(pick.ObjectId);
                     }
                     _pickRequestId = 0;
+                    _captureReleasePending = false;
                     break;
             }
 
@@ -182,6 +191,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
             _inspectionRequestId = 0;
             _captureRequestId = 0;
             _pickRequestId = 0;
+            _captureReleasePending = false;
             LastCommandResult = null;
             Capture = null;
             LastPickResult = null;

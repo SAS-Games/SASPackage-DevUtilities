@@ -152,6 +152,8 @@ namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector.Capture
                 completed?.Invoke(result);
         }
 
+        private void OnDisable() => Release();
+
         private void OnDestroy() => Release();
     }
 }
