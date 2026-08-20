@@ -17,6 +17,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
         private readonly RuntimeShaderMetadataCache _metadata = new();
         private readonly MaterialPropertyBlock _propertyBlock = new();
         private readonly Dictionary<PropertyKey, PropertyBlockOverrideRecord> _propertyBlockOverrides = new();
+        private readonly Dictionary<SlotKey, PropertyBlockSlotRecord> _propertyBlockSlots = new();
         private readonly Dictionary<SlotKey, MaterialInstanceRecord> _materialInstances = new();
         private readonly Dictionary<MaterialPropertyKey, MaterialOverrideRecord> _sharedMaterialOverrides = new();
         private readonly Dictionary<int, GlobalOverrideRecord> _globalOverrides = new();
@@ -249,10 +250,10 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                 case RuntimeMaterialEditScope.RendererPropertyBlock:
                     {
                         var key = new PropertyKey(renderer.GetInstanceID(), command.MaterialIndex, property.PropertyId);
-                        if (!_propertyBlockOverrides.TryGetValue(key, out PropertyBlockOverrideRecord record))
+                        if (!_propertyBlockOverrides.ContainsKey(key))
                             return RuntimeCommandResult.Fail("The inspector has no renderer override for this property.");
-                        ApplyPropertyBlockValue(renderer, command.MaterialIndex, property, record.OriginalValue);
                         _propertyBlockOverrides.Remove(key);
+                        RebuildPropertyBlockSlot(renderer, command.MaterialIndex);
                         return RuntimeCommandResult.Ok("Renderer override restored.");
                     }
                 case RuntimeMaterialEditScope.MaterialInstance:
@@ -310,18 +311,29 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
 
         private RuntimeCommandResult SetPropertyBlock(Renderer renderer, int materialIndex, Material material, RuntimeShaderPropertyDescriptor property, RuntimeShaderPropertyValue value)
         {
+            var slotKey = new SlotKey(renderer.GetInstanceID(), materialIndex);
+            if (!_propertyBlockSlots.TryGetValue(slotKey, out PropertyBlockSlotRecord slotRecord))
+            {
+                var originalBlock = new MaterialPropertyBlock();
+                renderer.GetPropertyBlock(originalBlock, materialIndex);
+                slotRecord = new PropertyBlockSlotRecord
+                {
+                    Renderer = renderer,
+                    MaterialIndex = materialIndex,
+                    OriginalBlock = originalBlock,
+                    OriginalWasEmpty = originalBlock.isEmpty
+                };
+                _propertyBlockSlots.Add(slotKey, slotRecord);
+            }
+
             var key = new PropertyKey(renderer.GetInstanceID(), materialIndex, property.PropertyId);
             if (!_propertyBlockOverrides.TryGetValue(key, out PropertyBlockOverrideRecord record))
             {
-                _propertyBlock.Clear();
-                renderer.GetPropertyBlock(_propertyBlock, materialIndex);
-                RuntimeShaderPropertyValue original = _propertyBlock.HasProperty(property.PropertyId) ? ReadPropertyBlock(_propertyBlock, property) : ReadMaterial(material, property);
                 record = new PropertyBlockOverrideRecord
                 {
                     Renderer = renderer,
                     MaterialIndex = materialIndex,
-                    Property = property,
-                    OriginalValue = original
+                    Property = property
                 };
                 _propertyBlockOverrides.Add(key, record);
             }
@@ -536,16 +548,49 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
 
         private int RestorePropertyBlockSlot(Renderer renderer, int materialIndex)
         {
-            int rendererId = renderer.GetInstanceID();
-            var keys = _propertyBlockOverrides.Keys.Where(key => key.RendererInstanceId == rendererId && key.MaterialIndex == materialIndex).ToArray();
+            var slotKey = new SlotKey(renderer.GetInstanceID(), materialIndex);
+            PropertyKey[] keys = PropertyBlockKeys(slotKey);
             foreach (PropertyKey key in keys)
-            {
-                PropertyBlockOverrideRecord record = _propertyBlockOverrides[key];
-                ApplyPropertyBlockValue(renderer, materialIndex, record.Property, record.OriginalValue);
                 _propertyBlockOverrides.Remove(key);
+
+            if (_propertyBlockSlots.TryGetValue(slotKey, out PropertyBlockSlotRecord slotRecord))
+            {
+                RestoreOriginalPropertyBlock(slotRecord);
+                _propertyBlockSlots.Remove(slotKey);
             }
 
             return keys.Length;
+        }
+
+        private void RebuildPropertyBlockSlot(Renderer renderer, int materialIndex)
+        {
+            var slotKey = new SlotKey(renderer.GetInstanceID(), materialIndex);
+            if (!_propertyBlockSlots.TryGetValue(slotKey, out PropertyBlockSlotRecord slotRecord))
+                return;
+
+            RestoreOriginalPropertyBlock(slotRecord);
+            PropertyKey[] remainingKeys = PropertyBlockKeys(slotKey);
+            foreach (PropertyKey remainingKey in remainingKeys)
+            {
+                PropertyBlockOverrideRecord remaining = _propertyBlockOverrides[remainingKey];
+                ApplyPropertyBlockValue(renderer, materialIndex, remaining.Property, remaining.CurrentValue);
+            }
+
+            if (remainingKeys.Length == 0)
+                _propertyBlockSlots.Remove(slotKey);
+        }
+
+        private PropertyKey[] PropertyBlockKeys(SlotKey slotKey) =>
+            _propertyBlockOverrides.Keys.Where(key =>
+                key.RendererInstanceId == slotKey.RendererInstanceId &&
+                key.MaterialIndex == slotKey.MaterialIndex).ToArray();
+
+        private static void RestoreOriginalPropertyBlock(PropertyBlockSlotRecord record)
+        {
+            if (record?.Renderer == null)
+                return;
+            record.Renderer.SetPropertyBlock(record.OriginalWasEmpty ? null : record.OriginalBlock,
+                record.MaterialIndex);
         }
 
         private RuntimeCommandResult RestoreSharedProperty(Material material, RuntimeShaderPropertyDescriptor property)
@@ -630,13 +675,13 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
 
         private void RestoreAllPropertyBlocks()
         {
-            foreach (PropertyBlockOverrideRecord record in _propertyBlockOverrides.Values)
+            foreach (PropertyBlockSlotRecord record in _propertyBlockSlots.Values)
             {
                 if (record.Renderer == null)
                     continue;
                 try
                 {
-                    ApplyPropertyBlockValue(record.Renderer, record.MaterialIndex, record.Property, record.OriginalValue);
+                    RestoreOriginalPropertyBlock(record);
                 }
                 catch
                 {
@@ -645,6 +690,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             }
 
             _propertyBlockOverrides.Clear();
+            _propertyBlockSlots.Clear();
         }
 
         private void RestoreAllMaterialInstances()
@@ -703,7 +749,13 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
 
         private void PruneInvalidState()
         {
-            foreach (PropertyKey key in _propertyBlockOverrides.Where(pair => pair.Value.Renderer == null).Select(pair => pair.Key).ToArray())
+            foreach (SlotKey key in _propertyBlockSlots.Where(pair => pair.Value.Renderer == null)
+                         .Select(pair => pair.Key).ToArray())
+                _propertyBlockSlots.Remove(key);
+
+            foreach (PropertyKey key in _propertyBlockOverrides.Where(pair => pair.Value.Renderer == null ||
+                         !_propertyBlockSlots.ContainsKey(new SlotKey(pair.Key.RendererInstanceId,
+                             pair.Key.MaterialIndex))).Select(pair => pair.Key).ToArray())
                 _propertyBlockOverrides.Remove(key);
 
             foreach (SlotKey key in _materialInstances.Keys.ToArray())
@@ -1065,8 +1117,15 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             public Renderer Renderer;
             public int MaterialIndex;
             public RuntimeShaderPropertyDescriptor Property;
-            public RuntimeShaderPropertyValue OriginalValue;
             public RuntimeShaderPropertyValue CurrentValue;
+        }
+
+        private sealed class PropertyBlockSlotRecord
+        {
+            public Renderer Renderer;
+            public int MaterialIndex;
+            public MaterialPropertyBlock OriginalBlock;
+            public bool OriginalWasEmpty;
         }
 
         private sealed class MaterialInstanceRecord
