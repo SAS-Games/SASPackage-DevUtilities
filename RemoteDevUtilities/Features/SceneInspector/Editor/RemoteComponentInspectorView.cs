@@ -12,9 +12,11 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
     {
         private readonly HashSet<long> _expandedComponents = new();
         private readonly Dictionary<string, string> _editValues = new();
+        private long _inspectionRevision = long.MinValue;
 
         public void Draw(RemoteRuntimeSceneInspectorClient client, RemoteComponentDescriptor[] components)
         {
+            SynchronizeInspection(client.InspectionRevision);
             EditorGUILayout.Space(4f);
             EditorGUILayout.LabelField("Components", EditorStyles.boldLabel);
             foreach (RemoteComponentDescriptor component in components ?? Array.Empty<RemoteComponentDescriptor>())
@@ -105,26 +107,44 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
             {
                 if (!_editValues.TryGetValue(key, out string value))
                     value = member.Value ?? string.Empty;
+                string controlName = "remote-component-value:" + key;
+                GUI.SetNextControlName(controlName);
                 value = EditorGUILayout.TextField(value);
                 _editValues[key] = value;
-                using (new EditorGUI.DisabledScope(value == (member.Value ?? string.Empty)))
+                bool dirty = value != (member.Value ?? string.Empty);
+                bool apply;
+                using (new EditorGUI.DisabledScope(!dirty))
+                    apply = GUILayout.Button("Apply", GUILayout.Width(48f));
+                if (dirty && RemoteInspectorInput.IsApplyKey(Event.current,
+                        GUI.GetNameOfFocusedControl(), controlName))
                 {
-                    if (GUILayout.Button("Apply", GUILayout.Width(48f)))
+                    apply = true;
+                    Event.current.Use();
+                }
+                if (apply)
+                {
+                    client.Execute(new RemoteSceneInspectorCommandRequest
                     {
-                        client.Execute(new RemoteSceneInspectorCommandRequest
-                        {
-                            Kind = RemoteSceneInspectorCommandKind.SetMemberValue,
-                            ComponentId = componentId,
-                            MemberName = member.Name,
-                            Value = value
-                        });
-                    }
+                        Kind = RemoteSceneInspectorCommandKind.SetMemberValue,
+                        ComponentId = componentId,
+                        MemberName = member.Name,
+                        Value = value
+                    });
                 }
             }
 
             EditorGUILayout.EndHorizontal();
             if (!string.IsNullOrWhiteSpace(member.Error))
                 EditorGUILayout.HelpBox(member.Error, MessageType.Warning);
+        }
+
+        private void SynchronizeInspection(long inspectionRevision)
+        {
+            if (_inspectionRevision == inspectionRevision)
+                return;
+
+            _editValues.Clear();
+            _inspectionRevision = inspectionRevision;
         }
 
         private static void DrawReadOnlyMember(RemoteMemberDescriptor member)

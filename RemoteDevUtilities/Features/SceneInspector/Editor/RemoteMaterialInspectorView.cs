@@ -20,10 +20,12 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
         private readonly HashSet<string> _expandedSlots = new();
         private readonly Dictionary<string, string> _editValues = new();
         private readonly Dictionary<string, int> _materialScopes = new();
+        private long _inspectionRevision = long.MinValue;
         private string _shaderSearch = string.Empty;
 
         public void Draw(RemoteRuntimeSceneInspectorClient client, RemoteMaterialShaderSection section)
         {
+            SynchronizeInspection(client.InspectionRevision);
             if (section?.Renderers == null || section.Renderers.Length == 0)
                 return;
 
@@ -143,23 +145,41 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
         {
             if (!_editValues.TryGetValue(key, out string value))
                 value = property.Value ?? string.Empty;
+            string controlName = "remote-shader-value:" + key;
+            GUI.SetNextControlName(controlName);
             value = EditorGUILayout.TextField(value);
             _editValues[key] = value;
-            using (new EditorGUI.DisabledScope(value == (property.Value ?? string.Empty)))
+            bool dirty = value != (property.Value ?? string.Empty);
+            bool apply;
+            using (new EditorGUI.DisabledScope(!dirty))
+                apply = GUILayout.Button("Apply", GUILayout.Width(48f));
+            if (dirty && RemoteInspectorInput.IsApplyKey(Event.current,
+                    GUI.GetNameOfFocusedControl(), controlName))
             {
-                if (GUILayout.Button("Apply", GUILayout.Width(48f)))
-                {
-                    client.Execute(new RemoteSceneInspectorCommandRequest
-                    {
-                        Kind = RemoteSceneInspectorCommandKind.SetShaderProperty,
-                        RendererId = rendererId,
-                        MaterialIndex = slot.MaterialIndex,
-                        PropertyId = property.PropertyId,
-                        MaterialScope = scope,
-                        Value = value
-                    });
-                }
+                apply = true;
+                Event.current.Use();
             }
+            if (apply)
+            {
+                client.Execute(new RemoteSceneInspectorCommandRequest
+                {
+                    Kind = RemoteSceneInspectorCommandKind.SetShaderProperty,
+                    RendererId = rendererId,
+                    MaterialIndex = slot.MaterialIndex,
+                    PropertyId = property.PropertyId,
+                    MaterialScope = scope,
+                    Value = value
+                });
+            }
+        }
+
+        private void SynchronizeInspection(long inspectionRevision)
+        {
+            if (_inspectionRevision == inspectionRevision)
+                return;
+
+            _editValues.Clear();
+            _inspectionRevision = inspectionRevision;
         }
 
         private static void DrawResetButton(RemoteRuntimeSceneInspectorClient client, long rendererId, RemoteMaterialSlotDescriptor slot, RemoteShaderPropertyView property, int scope)

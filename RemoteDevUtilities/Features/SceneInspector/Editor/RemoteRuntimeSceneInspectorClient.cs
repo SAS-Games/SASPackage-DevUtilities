@@ -33,6 +33,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
         public IEnumerable<string> MessageTypes => SupportedMessages;
         public RemoteSceneInspectorHierarchyResponse Hierarchy { get; private set; } = new();
         public RemoteSceneInspectorInspectResponse Inspection { get; private set; }
+        public long InspectionRevision { get; private set; }
         public long InspectionObjectId { get; private set; }
         public RemoteSceneInspectorCommandResponse LastCommandResult { get; private set; }
         public RemoteSceneCaptureResponse Capture { get; private set; }
@@ -48,6 +49,13 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
         public void RequestHierarchy(bool forceRefresh)
         {
             _session.Send(RemoteSceneInspectorMessageTypes.SceneInspectorHierarchyRequest, new RemoteSceneInspectorHierarchyRequest { ForceRefresh = forceRefresh });
+        }
+
+        public void Refresh(long selectedObjectId)
+        {
+            RequestHierarchy(true);
+            if (selectedObjectId > 0)
+                Inspect(selectedObjectId);
         }
 
         public void OnConnected() => RequestHierarchy(true);
@@ -122,7 +130,10 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
                     if (envelope.RequestId != _inspectionRequestId)
                         break;
                     if (RemoteProtocolSerializer.TryDeserializePayload(envelope, out RemoteSceneInspectorInspectResponse inspection, out _))
+                    {
                         Inspection = inspection;
+                        InspectionRevision++;
+                    }
                     break;
                 case RemoteSceneInspectorMessageTypes.SceneInspectorCommandResponse:
                     if (RemoteProtocolSerializer.TryDeserializePayload(envelope, out RemoteSceneInspectorCommandResponse commandResult, out _))
@@ -166,6 +177,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
         {
             Hierarchy = new RemoteSceneInspectorHierarchyResponse();
             Inspection = null;
+            InspectionRevision = 0;
             InspectionObjectId = 0;
             _inspectionRequestId = 0;
             _captureRequestId = 0;
