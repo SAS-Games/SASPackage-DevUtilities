@@ -1,0 +1,22 @@
+{
+  "name": "DevUtilities.RemoteDevUtilities.FrameRecorder.Editor",
+  "rootNamespace": "SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder",
+  "references": [
+    "DevUtilities.RemoteDevUtilities",
+    "DevUtilities.RemoteDevUtilities.Editor",
+    "DevUtilities.RemoteDevUtilities.FrameRecorder.Protocol",
+    "DevUtilities.RemoteDevUtilities.SceneInspector.Protocol",
+    "DevUtilities.RemoteDevUtilities.SceneInspector.Editor"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
