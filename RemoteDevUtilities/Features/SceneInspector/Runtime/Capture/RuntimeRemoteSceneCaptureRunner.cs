@@ -1,7 +1,9 @@
 using System;
 using System.Collections;
 using SAS.Utilities.RuntimeSceneInspector.Core;
+using Unity.Collections;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 
 namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector.Capture
 {
@@ -100,51 +102,19 @@ namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector.Capture
                 FrameCount = Time.frameCount,
                 PlayerFrozen = _timeScaleFreeze.IsAcquired
             };
-            Texture2D source = null;
-            Texture2D scaled = null;
-            RenderTexture temporary = null;
-            RenderTexture previousActive = RenderTexture.active;
             try
             {
-                source = ScreenCapture.CaptureScreenshotAsTexture();
-                if (source == null || source.width < 1 || source.height < 1)
-                    throw new InvalidOperationException("The Player did not produce a readable screen capture.");
-
-                int targetWidth = Mathf.Min(maximumWidth, source.width);
-                int targetHeight = Mathf.Max(1, Mathf.RoundToInt(source.height * (targetWidth / (float)source.width)));
-                Texture2D encoderSource = source;
-                if (targetWidth != source.width || targetHeight != source.height)
-                {
-                    temporary = RenderTexture.GetTemporary(targetWidth, targetHeight, 0,
-                        RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
-                    temporary.filterMode = FilterMode.Bilinear;
-                    Graphics.Blit(source, temporary);
-                    RenderTexture.active = temporary;
-                    scaled = new Texture2D(targetWidth, targetHeight, TextureFormat.RGB24, false);
-                    scaled.ReadPixels(new Rect(0f, 0f, targetWidth, targetHeight), 0, 0, false);
-                    scaled.Apply(false, false);
-                    encoderSource = scaled;
-                }
-
-                result.Width = encoderSource.width;
-                result.Height = encoderSource.height;
-                result.JpegBytes = encoderSource.EncodeToJPG(jpegQuality);
+                RuntimeRemoteScreenCaptureData capture = RuntimeRemoteScreenCapture.Capture(maximumWidth);
+                result.Width = capture.Width;
+                result.Height = capture.Height;
+                result.JpegBytes = ImageConversion.EncodeArrayToJPG(capture.Pixels,
+                    capture.GraphicsFormat, (uint)capture.Width, (uint)capture.Height, 0, jpegQuality);
                 if (result.JpegBytes == null || result.JpegBytes.Length == 0)
                     throw new InvalidOperationException("The Player could not encode the screen capture.");
             }
             catch (Exception exception)
             {
                 result.Error = exception.GetType().Name + ": " + exception.Message;
-            }
-            finally
-            {
-                RenderTexture.active = previousActive;
-                if (temporary != null)
-                    RenderTexture.ReleaseTemporary(temporary);
-                if (scaled != null)
-                    Destroy(scaled);
-                if (source != null)
-                    Destroy(source);
             }
 
             _captureCoroutine = null;
@@ -155,5 +125,70 @@ namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector.Capture
         private void OnDisable() => Release();
 
         private void OnDestroy() => Release();
+    }
+
+    internal sealed class RuntimeRemoteScreenCaptureData
+    {
+        internal byte[] Pixels;
+        internal GraphicsFormat GraphicsFormat;
+        internal int Width;
+        internal int Height;
+    }
+
+    /// <summary>
+    /// Shared screen-capture primitive used by both one-shot Scene Capture and Frame Recorder.
+    /// Unity texture access stays on the main thread; callers may encode the copied pixels later.
+    /// </summary>
+    internal static class RuntimeRemoteScreenCapture
+    {
+        internal static RuntimeRemoteScreenCaptureData Capture(int maximumWidth)
+        {
+            Texture2D source = null;
+            Texture2D scaled = null;
+            RenderTexture temporary = null;
+            RenderTexture previousActive = RenderTexture.active;
+            try
+            {
+                source = ScreenCapture.CaptureScreenshotAsTexture();
+                if (source == null || source.width < 1 || source.height < 1)
+                    throw new InvalidOperationException("The Player did not produce a readable screen capture.");
+
+                int targetWidth = Mathf.Min(Mathf.Clamp(maximumWidth, 320, 1280), source.width);
+                int targetHeight = Mathf.Max(1,
+                    Mathf.RoundToInt(source.height * (targetWidth / (float)source.width)));
+                Texture2D captured = source;
+                if (targetWidth != source.width || targetHeight != source.height)
+                {
+                    temporary = RenderTexture.GetTemporary(targetWidth, targetHeight, 0,
+                        RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
+                    temporary.filterMode = FilterMode.Bilinear;
+                    Graphics.Blit(source, temporary);
+                    RenderTexture.active = temporary;
+                    scaled = new Texture2D(targetWidth, targetHeight, TextureFormat.RGB24, false);
+                    scaled.ReadPixels(new Rect(0f, 0f, targetWidth, targetHeight), 0, 0, false);
+                    scaled.Apply(false, false);
+                    captured = scaled;
+                }
+
+                NativeArray<byte> rawPixels = captured.GetRawTextureData<byte>();
+                return new RuntimeRemoteScreenCaptureData
+                {
+                    Pixels = rawPixels.ToArray(),
+                    GraphicsFormat = captured.graphicsFormat,
+                    Width = captured.width,
+                    Height = captured.height
+                };
+            }
+            finally
+            {
+                RenderTexture.active = previousActive;
+                if (temporary != null)
+                    RenderTexture.ReleaseTemporary(temporary);
+                if (scaled != null)
+                    UnityEngine.Object.Destroy(scaled);
+                if (source != null)
+                    UnityEngine.Object.Destroy(source);
+            }
+        }
     }
 }

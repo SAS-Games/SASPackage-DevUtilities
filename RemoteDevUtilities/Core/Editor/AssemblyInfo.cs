@@ -17,3 +17,5 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("DevUtilities.RemoteDevUtilities.Logging.EditorTests")]
 [assembly: InternalsVisibleTo("DevUtilities.RemoteDevUtilities.MiniTools.Editor")]
 [assembly: InternalsVisibleTo("DevUtilities.RemoteDevUtilities.MiniTools.EditorTests")]
+[assembly: InternalsVisibleTo("DevUtilities.RemoteDevUtilities.FrameRecorder.Editor")]
+[assembly: InternalsVisibleTo("DevUtilities.RemoteDevUtilities.FrameRecorder.EditorTests")]

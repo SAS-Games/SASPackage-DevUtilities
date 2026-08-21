@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using SAS.Utilities.RemoteDevUtilities.Editor.Client;
 using SAS.Utilities.RemoteDevUtilities.Protocol;
@@ -26,6 +27,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
         private long _pickRequestId;
         private bool _captureReleasePending;
         private readonly Dictionary<long, RemoteSceneInspectorCommandKind> _pendingCommands = new();
+        private readonly Dictionary<long, RemoteObjectDetails> _recordedInspections = new();
+        private bool _recordedReplay;
 
         public RemoteRuntimeSceneInspectorClient(IRemoteEditorSession session)
         {
@@ -51,9 +54,12 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
         public bool IsCaptureActive => Capture != null && Capture.CaptureId > 0 && string.IsNullOrEmpty(Capture.Error) &&
                                        !(LastPickResult?.CaptureId == Capture.CaptureId &&
                                          LastPickResult.Cancelled);
+        internal bool IsRecordedReplay => _recordedReplay;
 
         public void RequestHierarchy(bool forceRefresh)
         {
+            if (_recordedReplay)
+                return;
             _session.Send(RemoteSceneInspectorMessageTypes.SceneInspectorHierarchyRequest, new RemoteSceneInspectorHierarchyRequest { ForceRefresh = forceRefresh });
         }
 
@@ -70,6 +76,20 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
 
         private void RequestInspection(long objectId, bool clearCurrent)
         {
+            if (_recordedReplay)
+            {
+                InspectionObjectId = objectId;
+                Inspection = _recordedInspections.TryGetValue(objectId, out RemoteObjectDetails details)
+                    ? new RemoteSceneInspectorInspectResponse { Found = true, Details = details }
+                    : new RemoteSceneInspectorInspectResponse
+                    {
+                        Error = "This object was not available in the recorded frame."
+                    };
+                InspectionRevision++;
+                _session.NotifyStateChanged();
+                return;
+            }
+
             if (clearCurrent || InspectionObjectId != objectId)
                 Inspection = null;
             InspectionObjectId = objectId;
@@ -78,6 +98,16 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
 
         public void Execute(RemoteSceneInspectorCommandRequest command)
         {
+            if (_recordedReplay)
+            {
+                LastCommandResult = new RemoteSceneInspectorCommandResponse
+                {
+                    Message = "Recorded frame inspection is read-only."
+                };
+                _session.NotifyStateChanged();
+                return;
+            }
+
             LastCommandResult = null;
             long requestId = _session.Send(
                 RemoteSceneInspectorMessageTypes.SceneInspectorCommandRequest, command);
@@ -211,6 +241,83 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
             LastPickedObjectId = 0;
             PickRevision = 0;
             _pendingCommands.Clear();
+            _recordedInspections.Clear();
+            _recordedReplay = false;
+        }
+
+        internal void LoadRecordedSnapshot(RemoteSceneInspectorHierarchyResponse hierarchy,
+            RemoteObjectDetails[] inspections, int replayGeneration)
+        {
+            bool newReplay = !_recordedReplay || SessionGeneration != replayGeneration;
+            _recordedReplay = true;
+            SessionGeneration = replayGeneration;
+            Hierarchy = hierarchy ?? new RemoteSceneInspectorHierarchyResponse();
+            _recordedInspections.Clear();
+            foreach (RemoteObjectDetails details in inspections ?? Array.Empty<RemoteObjectDetails>())
+            {
+                if (details == null)
+                    continue;
+                MakeReadOnly(details);
+                _recordedInspections[details.Id] = details;
+            }
+
+            LastCommandResult = null;
+            if (!newReplay && InspectionObjectId > 0 &&
+                _recordedInspections.TryGetValue(InspectionObjectId, out RemoteObjectDetails selected))
+            {
+                Inspection = new RemoteSceneInspectorInspectResponse { Found = true, Details = selected };
+            }
+            else
+            {
+                Inspection = null;
+                InspectionObjectId = 0;
+            }
+            InspectionRevision++;
+        }
+
+        private static void MakeReadOnly(RemoteObjectDetails details)
+        {
+            details.ActiveReadOnly = true;
+            details.LayerReadOnly = true;
+            foreach (RemoteComponentDescriptor component in
+                     details.Components ?? Array.Empty<RemoteComponentDescriptor>())
+            {
+                if (component == null)
+                    continue;
+                component.EnabledReadOnly = true;
+                foreach (RemoteMemberDescriptor member in
+                         component.Members ?? Array.Empty<RemoteMemberDescriptor>())
+                {
+                    if (member != null)
+                        member.ReadOnly = true;
+                }
+            }
+
+            foreach (RemoteRendererMaterialDescriptor renderer in
+                     details.MaterialsAndShaders?.Renderers ?? Array.Empty<RemoteRendererMaterialDescriptor>())
+            foreach (RemoteMaterialSlotDescriptor slot in
+                     renderer?.MaterialSlots ?? Array.Empty<RemoteMaterialSlotDescriptor>())
+            {
+                foreach (RemoteMaterialScopeState scope in
+                         slot?.Scopes ?? Array.Empty<RemoteMaterialScopeState>())
+                {
+                    if (scope != null)
+                        scope.ReadOnly = true;
+                }
+                foreach (RemoteShaderPropertyView property in
+                         slot?.Properties ?? Array.Empty<RemoteShaderPropertyView>())
+                {
+                    if (property == null)
+                        continue;
+                    property.ReadOnly = true;
+                    foreach (RemoteShaderPropertyScopeView scope in
+                             property.Scopes ?? Array.Empty<RemoteShaderPropertyScopeView>())
+                    {
+                        if (scope != null)
+                            scope.ReadOnly = true;
+                    }
+                }
+            }
         }
 
         private static bool CommandAffectsHierarchy(RemoteSceneInspectorCommandKind kind) =>

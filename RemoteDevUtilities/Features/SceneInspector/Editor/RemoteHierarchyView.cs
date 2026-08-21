@@ -41,8 +41,11 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
             SynchronizeSession(client.SessionGeneration);
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
             _search = GUILayout.TextField(_search, GUI.skin.FindStyle("ToolbarSearchTextField"), GUILayout.MinWidth(100f));
-            if (GUILayout.Button("Refresh", EditorStyles.toolbarButton, GUILayout.Width(55f)))
-                client.Refresh(SelectedObjectId);
+            using (new EditorGUI.DisabledScope(client.IsRecordedReplay))
+            {
+                if (GUILayout.Button("Refresh", EditorStyles.toolbarButton, GUILayout.Width(55f)))
+                    client.Refresh(SelectedObjectId);
+            }
             EditorGUILayout.EndHorizontal();
 
             RemoteSceneInspectorHierarchyResponse hierarchy = client.Hierarchy;

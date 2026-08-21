@@ -18,6 +18,8 @@ namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector
     [RuntimeRemoteEndpoint("runtime-scene-inspector", 400)]
     internal sealed class RemoteRuntimeSceneInspectorEndpoint : IRuntimeRemoteEndpoint, IRuntimeRemoteSessionListener
     {
+        internal static RuntimeSceneInspectorService ActiveService { get; private set; }
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
         private static void EnsureRuntimeAssemblyIsLoaded()
         {
@@ -46,6 +48,7 @@ namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector
             {
                 settings = RuntimeSceneInspectorSettings.LoadOrCreateDefaults();
                 _service = new RuntimeSceneInspectorService(settings);
+                ActiveService = _service;
             }
 
             _captureFeature = new RemoteRuntimeSceneCaptureFeature(context, _service, settings);
@@ -93,6 +96,8 @@ namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector
         {
             _captureFeature?.Dispose();
             _captureFeature = null;
+            if (ReferenceEquals(ActiveService, _service))
+                ActiveService = null;
             _service?.Dispose();
             _service = null;
             _context = null;
