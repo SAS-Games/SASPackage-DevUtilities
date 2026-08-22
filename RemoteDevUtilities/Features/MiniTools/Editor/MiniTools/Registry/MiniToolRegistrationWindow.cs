@@ -44,7 +44,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Registry
         [SerializeField] private MiniToolWorkflow _workflow = MiniToolWorkflow.CreateNew;
         [SerializeField] private MiniToolScaffoldForm _scaffoldForm = new();
 
-        [MenuItem("Assets/Create/Dev Utilities/Mini Tool...", priority = 120)]
+        [MenuItem("Assets/Create/HP/Dev Utilities/Mini Tool...", priority = 120)]
         [MenuItem("Tools/Dev Utilities/Create Mini Tool...", priority = 120)]
         private static void OpenCreateFromMenu()
         {

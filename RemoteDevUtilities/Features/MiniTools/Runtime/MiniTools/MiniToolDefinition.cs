@@ -11,7 +11,6 @@ namespace SAS.Utilities.RemoteDevUtilities.MiniTools
     /// The single registration record shared by the Player, Native Workspace,
     /// Debug Host, and command routing.
     /// </summary>
-    [CreateAssetMenu(fileName = "MiniToolDefinition", menuName = "HP/Dev Utilities/Mini Tool")]
     public sealed class MiniToolDefinition : ScriptableObject
     {
         [SerializeField, HideInInspector] private string _toolId = string.Empty;
