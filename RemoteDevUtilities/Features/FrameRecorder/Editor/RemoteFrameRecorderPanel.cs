@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using SAS.Utilities.RemoteDevUtilities.Editor.Client;
+using SAS.Utilities.RemoteDevUtilities.Editor.Configuration;
 using SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector;
 using SAS.Utilities.RemoteDevUtilities.Protocol.FrameRecorder;
 using UnityEditor;
@@ -15,7 +16,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
         private static readonly string[] PlaybackSpeedLabels = { "0.25x", "0.5x", "1x", "2x" };
         private static readonly float[] PlaybackSpeedValues = { 0.25f, 0.5f, 1f, 2f };
         private static readonly string[] InspectorScopeLabels =
-            { "Selected object", "Hierarchy only", "All objects (slow)" };
+            { "Selected object", "Hierarchy only", "All objects (optimized)" };
         private static readonly RemoteFrameRecorderInspectorScope[] InspectorScopeValues =
         {
             RemoteFrameRecorderInspectorScope.SelectedObject,
@@ -49,6 +50,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
         private Vector2 _inspectorScroll;
 
         public string DisplayName => "Frame Recording";
+        public bool IsAvailable => RemoteDevUtilitiesProjectSettings.instance.Runtime
+            .EnableExperimentalFrameRecorder;
 
         public void Initialize(Action repaint)
         {
@@ -170,7 +173,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
             if (scope == RemoteFrameRecorderInspectorScope.AllObjects)
             {
                 EditorGUILayout.HelpBox(
-                    "All objects rebuilds every component/material inspector each frame and can cause significant Player lag. Prefer Selected object for normal debugging.",
+                    "All objects uses cached metadata, curated Unity component readers, and granular snapshot reuse. Unity values must still be read on the main thread, so large or shader-heavy scenes can remain expensive.",
                     MessageType.Warning);
             }
             if (_capacity > 100)

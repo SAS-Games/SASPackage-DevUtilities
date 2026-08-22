@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using SAS.Utilities.RemoteDevUtilities;
 using SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration;
+using SAS.Utilities.RuntimeSceneInspector;
 using UnityEditor;
 using UnityEngine;
 
@@ -22,6 +23,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Configuration
             get
             {
                 EnsureRuntimeConfiguration();
+                RuntimeSceneInspectorSettings.ConfigureDefaults(_runtime.RuntimeSceneInspector);
                 return _runtime;
             }
         }
@@ -39,6 +41,12 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Configuration
         {
             _ = instance.Runtime;
             SettingsService.OpenProjectSettings(SettingsPath);
+        }
+
+        [InitializeOnLoadMethod]
+        private static void ConfigureEditorRuntimeSceneInspector()
+        {
+            _ = instance.Runtime;
         }
 
         private void EnsureRuntimeConfiguration()
@@ -72,7 +80,10 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Configuration
                     "Diagnostic Logs",
                     "Access Token",
                     "Build UI",
-                    "Mini Tools"
+                    "Mini Tools",
+                    "Scene Inspector",
+                    "Frame Recorder",
+                    "Experimental"
                 }
             };
             return provider;
@@ -83,14 +94,28 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Configuration
             RemoteDevUtilitiesProjectSettings settings = instance;
             _ = settings.Runtime;
 
-            EditorGUILayout.HelpBox("These project settings are baked into ENABLE_DEBUG Players. " + "Editor-only mini-tool configuration is stored in the same " + "ProjectSettings file.", MessageType.Info);
+            EditorGUILayout.HelpBox(
+                "Runtime settings are baked into ENABLE_DEBUG Players. Editor mini-tool settings are stored in the same ProjectSettings file.",
+                MessageType.Info);
 
             var serializedSettings = new SerializedObject(settings);
             serializedSettings.Update();
             SerializedProperty runtime = serializedSettings.FindProperty("_runtime");
-            EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(runtime, new GUIContent("Runtime Build Settings"), true);
-            bool changed = EditorGUI.EndChangeCheck();
+            bool frameRecorderWasEnabled = settings.Runtime.EnableExperimentalFrameRecorder;
+            float previousLabelWidth = EditorGUIUtility.labelWidth;
+            EditorGUIUtility.labelWidth = Mathf.Clamp(
+                (EditorGUIUtility.currentViewWidth - 40f) * 0.4f, 240f, 320f);
+            bool changed;
+            try
+            {
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.PropertyField(runtime, new GUIContent("Runtime Build Settings"), true);
+                changed = EditorGUI.EndChangeCheck();
+            }
+            finally
+            {
+                EditorGUIUtility.labelWidth = previousLabelWidth;
+            }
 
             RemoteDevUtilitiesRuntimeConfiguration configuration = settings.Runtime;
             if (configuration.EnableLanDiscovery &&
@@ -107,7 +132,10 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Configuration
                 return;
 
             serializedSettings.ApplyModifiedProperties();
+            RuntimeSceneInspectorSettings.ConfigureDefaults(settings.Runtime.RuntimeSceneInspector);
             settings.Persist();
+            if (frameRecorderWasEnabled != settings.Runtime.EnableExperimentalFrameRecorder)
+                EditorApplication.delayCall += EditorUtility.RequestScriptReload;
         }
     }
 }

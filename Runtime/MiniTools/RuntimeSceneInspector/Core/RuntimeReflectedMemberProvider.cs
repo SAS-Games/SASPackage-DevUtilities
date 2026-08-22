@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -20,6 +21,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
 
         private readonly RuntimeValueDrawerRegistry _valueDrawers;
         private readonly Dictionary<Type, ReflectedTypeMetadata> _metadataCache = new();
+        private readonly ConditionalWeakTable<Component, InspectionCache> _inspectionCache = new();
 
         internal RuntimeReflectedMemberProvider(RuntimeValueDrawerRegistry valueDrawers)
         {
@@ -33,16 +35,43 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                 return Array.Empty<RuntimeMemberDescriptor>();
 
             ReflectedTypeMetadata metadata = Resolve(component.GetType());
-            var result = new List<RuntimeMemberDescriptor>(metadata.Members.Length);
-            foreach (ReflectedMember member in metadata.Members)
+            InspectionCache cache = _inspectionCache.GetValue(component,
+                _ => new InspectionCache(metadata.Members.Length));
+            bool changed = cache.Descriptors == null;
+            for (int i = 0; i < metadata.Members.Length; i++)
             {
-                if (member.IsProperty && !includeProperties)
+                ReflectedMember member = metadata.Members[i];
+                bool included = !(member.IsProperty && !includeProperties) &&
+                                (excludedDisplayNames == null || !excludedDisplayNames.Contains(member.DisplayName));
+                if (cache.Included[i] != included)
+                    changed = true;
+                cache.Included[i] = included;
+                if (!included)
+                {
+                    cache.HasValues[i] = false;
+                    cache.Values[i] = null;
                     continue;
-                if (excludedDisplayNames != null && excludedDisplayNames.Contains(member.DisplayName))
-                    continue;
-                result.Add(member.Build(component, _valueDrawers));
+                }
+
+                if (member.Capture(component, _valueDrawers, cache.Values[i], cache.HasValues[i],
+                        out object capturedValue))
+                    changed = true;
+                cache.Values[i] = capturedValue;
+                cache.HasValues[i] = true;
             }
-            return result;
+
+            if (!changed)
+                return cache.Descriptors;
+
+            var descriptors = new List<RuntimeMemberDescriptor>(metadata.Members.Length);
+            for (int i = 0; i < metadata.Members.Length; i++)
+            {
+                if (cache.Included[i])
+                    descriptors.Add(metadata.Members[i].BuildCaptured(cache.Values[i], _valueDrawers));
+            }
+
+            cache.Descriptors = descriptors;
+            return descriptors;
         }
 
         internal bool TrySetValue(Component component, string memberId, string text,
@@ -263,6 +292,52 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             return new string(characters.ToArray());
         }
 
+        private sealed class InspectionCache
+        {
+            internal InspectionCache(int count)
+            {
+                Included = new bool[count];
+                HasValues = new bool[count];
+                Values = new object[count];
+            }
+
+            internal bool[] Included { get; }
+            internal bool[] HasValues { get; }
+            internal object[] Values { get; }
+            internal IReadOnlyList<RuntimeMemberDescriptor> Descriptors { get; set; }
+        }
+
+        private sealed class CapturedUnityObject
+        {
+            internal CapturedUnityObject(Object value, int instanceId, string name)
+            {
+                Value = value;
+                InstanceId = instanceId;
+                Name = name;
+            }
+
+            internal Object Value { get; }
+            internal int InstanceId { get; }
+            internal string Name { get; }
+        }
+
+        private sealed class CapturedValue
+        {
+            internal CapturedValue(string value) => Value = value;
+            internal string Value { get; }
+
+            public override bool Equals(object obj) =>
+                obj is CapturedValue other && string.Equals(Value, other.Value, StringComparison.Ordinal);
+
+            public override int GetHashCode() => Value?.GetHashCode() ?? 0;
+        }
+
+        private sealed class CapturedError
+        {
+            internal CapturedError(string value) => Value = value;
+            internal string Value { get; }
+        }
+
         private sealed class ReflectedTypeMetadata
         {
             internal ReflectedTypeMetadata(ReflectedMember[] members)
@@ -333,40 +408,112 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                     : new RuntimeRangeAttribute(unityRange.min, unityRange.max);
             }
 
-            internal RuntimeMemberDescriptor Build(Component component,
-                RuntimeValueDrawerRegistry valueDrawers)
+            internal bool Capture(Component component, RuntimeValueDrawerRegistry valueDrawers,
+                object previousValue, bool hasPreviousValue, out object capturedValue)
             {
                 try
                 {
                     object value = _getter(component);
                     IRuntimeValueDrawer drawer = valueDrawers.Resolve(ValueType);
-                    var descriptor = new RuntimeMemberDescriptor
+                    if (typeof(Object).IsAssignableFrom(ValueType))
                     {
-                        Name = Id,
-                        DisplayName = DisplayName,
-                        TypeName = ValueType.FullName,
-                        Value = Format(value, ValueType, drawer, DisplayName, Id),
-                        ReadOnly = !CanSet || drawer == null
-                    };
-                    RuntimeInspectorControlMetadata.Populate(descriptor, ValueType, DisplayName, Id,
-                        range: _range);
-                    return descriptor;
+                        var unityObject = value as Object;
+                        int instanceId = unityObject == null ? 0 : unityObject.GetInstanceID();
+                        string name = unityObject == null ? null : unityObject.name;
+                        if (hasPreviousValue && previousValue is CapturedUnityObject previousObject &&
+                            previousObject.InstanceId == instanceId &&
+                            string.Equals(previousObject.Name, name, StringComparison.Ordinal))
+                        {
+                            capturedValue = previousValue;
+                            return false;
+                        }
+
+                        capturedValue = new CapturedUnityObject(unityObject, instanceId, name);
+                        return true;
+                    }
+
+                    if (drawer != null)
+                    {
+                        if (hasPreviousValue && !(previousValue is CapturedValue) && Equals(previousValue, value))
+                        {
+                            capturedValue = previousValue;
+                            return false;
+                        }
+
+                        capturedValue = value;
+                        return true;
+                    }
+
+                    CapturedValue formatted = CaptureFallbackValue(value, ValueType);
+                    if (hasPreviousValue && previousValue is CapturedValue previousFormatted &&
+                        previousFormatted.Equals(formatted))
+                    {
+                        capturedValue = previousValue;
+                        return false;
+                    }
+
+                    capturedValue = formatted;
+                    return true;
                 }
                 catch (Exception exception)
                 {
                     Exception actual = Unwrap(exception);
-                    var descriptor = new RuntimeMemberDescriptor
+                    string error = actual.GetType().Name + ": " + actual.Message;
+                    if (hasPreviousValue && previousValue is CapturedError previousError &&
+                        string.Equals(previousError.Value, error, StringComparison.Ordinal))
                     {
-                        Name = Id,
-                        DisplayName = DisplayName,
-                        TypeName = ValueType.FullName,
-                        ReadOnly = true,
-                        Error = actual.GetType().Name + ": " + actual.Message
-                    };
-                    RuntimeInspectorControlMetadata.Populate(descriptor, ValueType, DisplayName, Id,
-                        range: _range);
-                    return descriptor;
+                        capturedValue = previousValue;
+                        return false;
+                    }
+
+                    capturedValue = new CapturedError(error);
+                    return true;
                 }
+            }
+
+            internal RuntimeMemberDescriptor BuildCaptured(object capturedValue,
+                RuntimeValueDrawerRegistry valueDrawers)
+            {
+                var descriptor = new RuntimeMemberDescriptor
+                {
+                    Name = Id,
+                    DisplayName = DisplayName,
+                    TypeName = ValueType.FullName
+                };
+
+                if (capturedValue is CapturedError error)
+                {
+                    descriptor.ReadOnly = true;
+                    descriptor.Error = error.Value;
+                }
+                else
+                {
+                    IRuntimeValueDrawer drawer = valueDrawers.Resolve(ValueType);
+                    object value = capturedValue is CapturedUnityObject unityObject
+                        ? unityObject.Value
+                        : capturedValue is CapturedValue formatted
+                            ? formatted.Value
+                            : capturedValue;
+                    descriptor.Value = capturedValue is CapturedValue
+                        ? (string)value
+                        : Format(value, ValueType, drawer, DisplayName, Id);
+                    descriptor.ReadOnly = !CanSet || drawer == null;
+                }
+
+                RuntimeInspectorControlMetadata.Populate(descriptor, ValueType, DisplayName, Id,
+                    range: _range);
+                return descriptor;
+            }
+
+            private static CapturedValue CaptureFallbackValue(object value, Type valueType)
+            {
+                if (value == null)
+                    return new CapturedValue("null");
+                if (value is Array array)
+                    return new CapturedValue(valueType.Name + " (Length = " + array.Length + ")");
+                if (value is ICollection collection)
+                    return new CapturedValue(valueType.Name + " (Count = " + collection.Count + ")");
+                return new CapturedValue(value.ToString());
             }
 
             internal RuntimeCommandResult Set(Component component, string text,

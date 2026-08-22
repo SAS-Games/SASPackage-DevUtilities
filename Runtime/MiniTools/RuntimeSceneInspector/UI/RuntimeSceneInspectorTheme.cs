@@ -63,11 +63,11 @@ namespace SAS.Utilities.RuntimeSceneInspector
 
             if (_settings == null)
             {
-                Debug.LogWarning("[Runtime Scene Inspector] No RuntimeSceneInspectorSettings asset was assigned. " + "Expected Assets/Resources/RuntimeSceneInspectorSettings.asset.");
+                Debug.LogWarning("[Runtime Scene Inspector] No runtime scene-inspector configuration was provided. Using the built-in visual defaults.");
             }
             else if (_settings.RegularFont == null)
             {
-                Debug.LogWarning("[Runtime Scene Inspector] No regular font has been assigned to RuntimeSceneInspectorSettings. " + "The inspector will fall back to the default GUI font.");
+                Debug.LogWarning("[Runtime Scene Inspector] No regular font has been assigned in Project Settings. The inspector will fall back to the default GUI font.");
             }
 
             CreateTextures();

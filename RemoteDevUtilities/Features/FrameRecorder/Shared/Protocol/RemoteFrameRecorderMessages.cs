@@ -14,6 +14,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Protocol.FrameRecorder
     {
         public const int LegacyFullSnapshot = 0;
         public const int ContentAddressedSections = 1;
+        public const int ContentAddressedObjects = 2;
     }
 
     public static class RemoteFrameRecorderMessageTypes
@@ -131,6 +132,9 @@ namespace SAS.Utilities.RemoteDevUtilities.Protocol.FrameRecorder
         public string HierarchyGzipBase64;
         public string InspectorSnapshotId;
         public string InspectorGzipBase64;
+        public string InspectorManifestGzipBase64;
+        public RemoteRecordedSceneGraphBlob[] InspectorBlobs =
+            Array.Empty<RemoteRecordedSceneGraphBlob>();
         // Retained so the current Editor can still read recordings produced by older Players.
         public string SceneGraphGzipBase64;
         public string Error;
@@ -149,5 +153,48 @@ namespace SAS.Utilities.RemoteDevUtilities.Protocol.FrameRecorder
     {
         public RemoteObjectDetails[] Inspections = Array.Empty<RemoteObjectDetails>();
         public string Error;
+    }
+
+    [Serializable]
+    public sealed class RemoteRecordedInspectorManifest
+    {
+        public RemoteRecordedObjectSnapshotReference[] Objects =
+            Array.Empty<RemoteRecordedObjectSnapshotReference>();
+        public string Error;
+    }
+
+    [Serializable]
+    public sealed class RemoteRecordedObjectSnapshotReference
+    {
+        public long ObjectId;
+        public bool IsNull;
+        public string HeaderSnapshotId;
+        public string MaterialSnapshotId;
+        public string[] ComponentSnapshotIds = Array.Empty<string>();
+    }
+
+    [Serializable]
+    public sealed class RemoteRecordedObjectHeader
+    {
+        public long Id;
+        public string Name;
+        public bool Active;
+        public bool ActiveReadOnly;
+        public string Tag;
+        public int Layer;
+        public bool LayerReadOnly;
+    }
+
+    [Serializable]
+    public sealed class RemoteRecordedMaterialSnapshot
+    {
+        public RemoteMaterialShaderSection MaterialsAndShaders;
+    }
+
+    [Serializable]
+    public sealed class RemoteRecordedSceneGraphBlob
+    {
+        public string SnapshotId;
+        public string GzipBase64;
     }
 }

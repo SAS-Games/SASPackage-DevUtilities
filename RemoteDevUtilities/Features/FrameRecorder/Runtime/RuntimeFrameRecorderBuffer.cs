@@ -4,8 +4,10 @@ using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Security.Cryptography;
+using System.Runtime.CompilerServices;
 using System.Text;
 using SAS.Utilities.RemoteDevUtilities.Protocol.FrameRecorder;
+using SAS.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector;
 using UnityEngine;
 
 namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
@@ -20,8 +22,11 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
         internal byte[] JpegBytes;
         internal RuntimeSceneGraphSectionData HierarchySection;
         internal RuntimeSceneGraphSectionData InspectorSection;
+        internal RuntimeRecordedInspectorSectionData GranularInspectorSections;
         internal string HierarchySnapshotId;
         internal string InspectorSnapshotId;
+        internal string[] InspectorPayloadSnapshotIds = Array.Empty<string>();
+        internal RemoteRecordedInspectorManifest InspectorManifest;
         internal int HierarchyBytes;
         internal int InspectorBytes;
 
@@ -38,10 +43,95 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
         };
     }
 
+    internal sealed class RuntimeRecordedInspectorSectionData
+    {
+        internal RuntimeSceneGraphSectionData ManifestSection;
+        internal RuntimeSceneGraphSectionData[] PayloadSections =
+            Array.Empty<RuntimeSceneGraphSectionData>();
+        internal RemoteRecordedInspectorManifest Manifest;
+
+        internal static RuntimeRecordedInspectorSectionData Create(
+            RemoteRecordedSceneGraph graph)
+        {
+            RemoteObjectDetails[] inspections = graph?.Inspections ??
+                                                Array.Empty<RemoteObjectDetails>();
+            var references = new RemoteRecordedObjectSnapshotReference[inspections.Length];
+            var payloads = new List<RuntimeSceneGraphSectionData>();
+            for (int objectIndex = 0; objectIndex < inspections.Length; objectIndex++)
+            {
+                RemoteObjectDetails inspection = inspections[objectIndex];
+                if (inspection == null)
+                {
+                    references[objectIndex] = new RemoteRecordedObjectSnapshotReference
+                    {
+                        IsNull = true
+                    };
+                    continue;
+                }
+
+                RuntimeSceneGraphSectionData header = RuntimeSceneGraphSectionData.Create(
+                    new RemoteRecordedObjectHeader
+                    {
+                        Id = inspection.Id,
+                        Name = inspection.Name,
+                        Active = inspection.Active,
+                        ActiveReadOnly = inspection.ActiveReadOnly,
+                        Tag = inspection.Tag,
+                        Layer = inspection.Layer,
+                        LayerReadOnly = inspection.LayerReadOnly
+                    });
+                RuntimeSceneGraphSectionData material = RuntimeSceneGraphSectionData.Create(
+                    new RemoteRecordedMaterialSnapshot
+                    {
+                        MaterialsAndShaders = inspection.MaterialsAndShaders
+                    });
+                RemoteComponentDescriptor[] components = inspection.Components ??
+                                                         Array.Empty<RemoteComponentDescriptor>();
+                var componentIds = new string[components.Length];
+                payloads.Add(header);
+                payloads.Add(material);
+                for (int componentIndex = 0; componentIndex < components.Length; componentIndex++)
+                {
+                    RuntimeSceneGraphSectionData component =
+                        RuntimeSceneGraphSectionData.CreateComponent(components[componentIndex]);
+                    componentIds[componentIndex] = component.SnapshotId;
+                    payloads.Add(component);
+                }
+
+                references[objectIndex] = new RemoteRecordedObjectSnapshotReference
+                {
+                    ObjectId = inspection.Id,
+                    HeaderSnapshotId = header.SnapshotId,
+                    MaterialSnapshotId = material.SnapshotId,
+                    ComponentSnapshotIds = componentIds
+                };
+            }
+
+            var manifest = new RemoteRecordedInspectorManifest
+            {
+                Objects = references,
+                Error = graph?.Error
+            };
+            return new RuntimeRecordedInspectorSectionData
+            {
+                Manifest = manifest,
+                ManifestSection = RuntimeSceneGraphSectionData.Create(manifest),
+                PayloadSections = payloads.ToArray()
+            };
+        }
+    }
+
     internal sealed class RuntimeSceneGraphSectionData
     {
+        private static readonly ConditionalWeakTable<RemoteComponentDescriptor,
+            RuntimeSceneGraphSectionData> ComponentSections = new();
         internal string SnapshotId;
         internal byte[] Utf8Bytes;
+
+        internal static RuntimeSceneGraphSectionData CreateComponent(RemoteComponentDescriptor component) =>
+            component == null
+                ? Create<RemoteComponentDescriptor>(null)
+                : ComponentSections.GetValue(component, Create);
 
         internal static RuntimeSceneGraphSectionData Create<T>(T value)
         {
@@ -139,10 +229,14 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
                     RemoveFrame(replaced);
                 Intern(frame.HierarchySection, out frame.HierarchySnapshotId,
                     out frame.HierarchyBytes);
-                Intern(frame.InspectorSection, out frame.InspectorSnapshotId,
-                    out frame.InspectorBytes);
+                if (frame.GranularInspectorSections != null)
+                    InternGranularInspector(frame);
+                else
+                    Intern(frame.InspectorSection, out frame.InspectorSnapshotId,
+                        out frame.InspectorBytes);
                 frame.HierarchySection = null;
                 frame.InspectorSection = null;
+                frame.GranularInspectorSections = null;
                 _frames[frame.UnityFrame] = frame;
                 _storedImageBytes += frame.JpegBytes?.LongLength ?? 0L;
                 _referencedSceneGraphBytes += frame.ReferencedSceneGraphBytes;
@@ -199,6 +293,43 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
             }
         }
 
+        internal bool TryGetInspectorManifest(string snapshotId,
+            out RemoteRecordedInspectorManifest manifest)
+        {
+            lock (_gate)
+            {
+                foreach (RuntimeRecordedFrameData frame in _frames.Values)
+                {
+                    if (!string.Equals(frame.InspectorSnapshotId, snapshotId,
+                            StringComparison.Ordinal) || frame.InspectorManifest == null)
+                        continue;
+                    manifest = frame.InspectorManifest;
+                    return true;
+                }
+
+                manifest = null;
+                return false;
+            }
+        }
+
+        private void InternGranularInspector(RuntimeRecordedFrameData frame)
+        {
+            RuntimeRecordedInspectorSectionData granular = frame.GranularInspectorSections;
+            frame.InspectorManifest = granular.Manifest;
+            Intern(granular.ManifestSection, out frame.InspectorSnapshotId,
+                out int manifestBytes);
+            RuntimeSceneGraphSectionData[] payloads = granular.PayloadSections ??
+                                                       Array.Empty<RuntimeSceneGraphSectionData>();
+            frame.InspectorPayloadSnapshotIds = new string[payloads.Length];
+            frame.InspectorBytes = manifestBytes;
+            for (int i = 0; i < payloads.Length; i++)
+            {
+                Intern(payloads[i], out frame.InspectorPayloadSnapshotIds[i],
+                    out int payloadBytes);
+                frame.InspectorBytes += payloadBytes;
+            }
+        }
+
         private void Intern(RuntimeSceneGraphSectionData section, out string snapshotId,
             out int compressedBytes)
         {
@@ -230,6 +361,9 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
             _referencedSceneGraphBytes -= frame.ReferencedSceneGraphBytes;
             ReleaseBlob(frame.HierarchySnapshotId);
             ReleaseBlob(frame.InspectorSnapshotId);
+            string[] payloadIds = frame.InspectorPayloadSnapshotIds ?? Array.Empty<string>();
+            for (int i = 0; i < payloadIds.Length; i++)
+                ReleaseBlob(payloadIds[i]);
         }
 
         private void ReleaseBlob(string snapshotId)

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using SAS.Utilities.RemoteDevUtilities.Protocol.FrameRecorder;
@@ -23,6 +24,9 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
         private static readonly object JpegEncodingGate = new();
         private readonly RuntimeFrameRecorderBuffer _buffer = new();
         private readonly RuntimeTimeScaleLease _freezeLease = new();
+        private readonly RuntimeEditorSelectionSuppressionLease _selectionSuppression = new();
+        private readonly ConditionalWeakTable<RuntimeComponentDescriptor, RemoteComponentDescriptor>
+            _remoteComponentCache = new();
         private Coroutine _recordingCoroutine;
         private long _recordingId;
         private int _capacity;
@@ -75,6 +79,7 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
             _cachedHierarchy = null;
             _sealRequested = false;
             _recording = true;
+            _selectionSuppression.Acquire();
             _recordingCoroutine = StartCoroutine(RecordConsecutiveFrames(recordingId));
         }
 
@@ -90,6 +95,7 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
                 StopCoroutine(_recordingCoroutine);
                 _recordingCoroutine = null;
             }
+            _selectionSuppression.Release();
 
             if (freezePlayer && _recordingId != 0)
                 _freezeLease.Acquire();
@@ -109,6 +115,7 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
             }
 
             _freezeLease.Release();
+            _selectionSuppression.Release();
             _buffer.Clear(recordingId);
             _recordingId = 0;
             _capacity = 0;
@@ -132,6 +139,10 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
 
         internal bool TryGetSceneGraphBlob(string snapshotId, out byte[] bytes) =>
             _buffer.TryGetSceneGraphBlob(snapshotId, out bytes);
+
+        internal bool TryGetInspectorManifest(string snapshotId,
+            out RemoteRecordedInspectorManifest manifest) =>
+            _buffer.TryGetInspectorManifest(snapshotId, out manifest);
 
         private IEnumerator RecordConsecutiveFrames(long recordingId)
         {
@@ -219,15 +230,8 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
                     readbackTarget = RenderTexture.GetTemporary(pending.Width, pending.Height, 0,
                         RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
                     readbackTarget.filterMode = FilterMode.Bilinear;
-                    if (needsVerticalFlip)
-                    {
-                        Graphics.Blit(captureTarget, readbackTarget,
-                            new Vector2(1f, -1f), new Vector2(0f, 1f));
-                    }
-                    else
-                    {
-                        Graphics.Blit(captureTarget, readbackTarget);
-                    }
+                    RuntimeRemoteScreenCapture.BlitDisplayPixels(captureTarget, readbackTarget,
+                        needsVerticalFlip);
                     RenderTexture.ReleaseTemporary(captureTarget);
                     captureTarget = null;
                 }
@@ -289,16 +293,10 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
                     if (jpeg == null || jpeg.Length == 0)
                         throw new InvalidOperationException("The frame encoder returned no JPEG data.");
 
-                    RemoteRecordedSceneGraph graph = pending.SceneGraph ?? new RemoteRecordedSceneGraph();
+                    RemoteRecordedSceneGraph graph = BuildRemoteSceneGraph(pending.SceneGraph);
                     RuntimeSceneGraphSectionData hierarchySection =
                         RuntimeSceneGraphSectionData.Create(graph.Hierarchy ??
                                                             new RemoteSceneInspectorHierarchyResponse());
-                    RuntimeSceneGraphSectionData inspectorSection =
-                        RuntimeSceneGraphSectionData.Create(new RemoteRecordedInspectorSnapshot
-                        {
-                            Inspections = graph.Inspections ?? Array.Empty<RemoteObjectDetails>(),
-                            Error = graph.Error
-                        });
                     _buffer.Add(new RuntimeRecordedFrameData
                     {
                         RecordingId = pending.RecordingId,
@@ -308,7 +306,8 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
                         Height = pending.Height,
                         JpegBytes = jpeg,
                         HierarchySection = hierarchySection,
-                        InspectorSection = inspectorSection
+                        GranularInspectorSections =
+                            RuntimeRecordedInspectorSectionData.Create(graph)
                     });
                 }
                 catch (Exception exception)
@@ -337,12 +336,12 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
             Interlocked.Increment(ref _missedFrameCount);
         }
 
-        private RemoteRecordedSceneGraph CaptureSceneGraph()
+        private CapturedSceneGraphData CaptureSceneGraph()
         {
             RuntimeSceneInspectorService service = RemoteRuntimeSceneInspectorEndpoint.ActiveService;
             if (service == null)
             {
-                return new RemoteRecordedSceneGraph
+                return new CapturedSceneGraphData
                 {
                     Error = "Runtime Scene Inspector is disabled; no recorded inspector data is available."
                 };
@@ -356,7 +355,7 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
                 _cachedHierarchyRevision = runtimeHierarchy.Revision;
             }
             RemoteSceneInspectorHierarchyResponse hierarchy = _cachedHierarchy;
-            var inspections = new List<RemoteObjectDetails>();
+            var inspections = new List<RuntimeObjectDetails>();
             if (_inspectorScope == RemoteFrameRecorderInspectorScope.SelectedObject)
             {
                 AddInspection(service, _inspectedObjectId, inspections);
@@ -371,7 +370,7 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
                 }
             }
 
-            return new RemoteRecordedSceneGraph
+            return new CapturedSceneGraphData
             {
                 Hierarchy = hierarchy,
                 Inspections = inspections.ToArray()
@@ -379,14 +378,32 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
         }
 
         private static void AddInspection(RuntimeSceneInspectorService service, long objectId,
-            List<RemoteObjectDetails> inspections)
+            List<RuntimeObjectDetails> inspections)
         {
             if (objectId <= 0)
                 return;
             RuntimeObjectDetails runtimeDetails = service.InspectObject(new RuntimeObjectId(objectId));
-            RemoteObjectDetails remoteDetails = RuntimeSceneInspectorProtocolMapper.ToRemote(runtimeDetails);
-            if (remoteDetails != null)
-                inspections.Add(remoteDetails);
+            if (runtimeDetails != null)
+                inspections.Add(runtimeDetails);
+        }
+
+        private RemoteRecordedSceneGraph BuildRemoteSceneGraph(CapturedSceneGraphData captured)
+        {
+            captured ??= new CapturedSceneGraphData();
+            RuntimeObjectDetails[] source = captured.Inspections ?? Array.Empty<RuntimeObjectDetails>();
+            var inspections = new RemoteObjectDetails[source.Length];
+            for (int i = 0; i < source.Length; i++)
+                inspections[i] = RuntimeSceneInspectorProtocolMapper.ToRemote(source[i],
+                    component => component == null
+                        ? null
+                        : _remoteComponentCache.GetValue(component,
+                            RuntimeSceneInspectorProtocolMapper.ToRemote));
+            return new RemoteRecordedSceneGraph
+            {
+                Hierarchy = captured.Hierarchy ?? new RemoteSceneInspectorHierarchyResponse(),
+                Inspections = inspections,
+                Error = captured.Error
+            };
         }
 
         private void OnDisable() => Release();
@@ -399,8 +416,15 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
             internal double RealtimeSeconds;
             internal int Width;
             internal int Height;
-            internal RemoteRecordedSceneGraph SceneGraph;
+            internal CapturedSceneGraphData SceneGraph;
             internal RecordingWorkTracker WorkTracker;
+        }
+
+        private sealed class CapturedSceneGraphData
+        {
+            internal RemoteSceneInspectorHierarchyResponse Hierarchy;
+            internal RuntimeObjectDetails[] Inspections = Array.Empty<RuntimeObjectDetails>();
+            internal string Error;
         }
 
         private sealed class RecordingWorkTracker

@@ -16,7 +16,7 @@ using UnityEngine.Scripting;
 namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
 {
     [Preserve]
-    [RuntimeRemoteEndpoint("frame-recorder", 410)]
+    [RuntimeRemoteEndpoint("frame-recorder", 410, experimental: true)]
     internal sealed class RuntimeRemoteFrameRecorderEndpoint : IRuntimeRemoteEndpoint, IRuntimeRemoteSessionListener
     {
         private static readonly string[] SupportedMessages =
@@ -220,6 +220,14 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
                 return;
             }
 
+            if (request.SupportedSceneGraphFormatVersion >=
+                    RemoteRecordedSceneGraphFormats.ContentAddressedObjects &&
+                frame.InspectorManifest != null)
+            {
+                HandleGranularFrame(envelope.RequestId, request, frame, imageBase64);
+                return;
+            }
+
             string hierarchyBase64 = string.Empty;
             if (!string.Equals(request.KnownHierarchySnapshotId, frame.HierarchySnapshotId,
                     StringComparison.Ordinal))
@@ -237,10 +245,11 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
             if (!string.Equals(request.KnownInspectorSnapshotId, frame.InspectorSnapshotId,
                     StringComparison.Ordinal))
             {
-                if (!_recorder.TryGetSceneGraphBlob(frame.InspectorSnapshotId, out byte[] inspectorBytes))
+                if (!TryBuildInspectorSnapshot(frame, out byte[] inspectorBytes,
+                        out string inspectorError))
                 {
                     SendFrameError(envelope.RequestId, request.RecordingId, request.UnityFrame,
-                        "The recorded inspector snapshot is no longer available.");
+                        inspectorError);
                     return;
                 }
                 inspectorBase64 = Convert.ToBase64String(inspectorBytes);
@@ -268,6 +277,120 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
                 });
         }
 
+        private void HandleGranularFrame(long requestId,
+            RemoteFrameRecorderFrameRequest request, RuntimeRecordedFrameData frame,
+            string imageBase64)
+        {
+            string hierarchyBase64 = string.Empty;
+            if (!string.Equals(request.KnownHierarchySnapshotId, frame.HierarchySnapshotId,
+                    StringComparison.Ordinal))
+            {
+                if (!_recorder.TryGetSceneGraphBlob(frame.HierarchySnapshotId,
+                        out byte[] hierarchyBytes))
+                {
+                    SendFrameError(requestId, request.RecordingId, request.UnityFrame,
+                        "The recorded hierarchy snapshot is no longer available.");
+                    return;
+                }
+                hierarchyBase64 = Convert.ToBase64String(hierarchyBytes);
+            }
+
+            string inspectorManifestBase64 = string.Empty;
+            var inspectorBlobs = new List<RemoteRecordedSceneGraphBlob>();
+            if (!string.Equals(request.KnownInspectorSnapshotId, frame.InspectorSnapshotId,
+                    StringComparison.Ordinal))
+            {
+                if (!_recorder.TryGetSceneGraphBlob(frame.InspectorSnapshotId,
+                        out byte[] manifestBytes))
+                {
+                    SendFrameError(requestId, request.RecordingId, request.UnityFrame,
+                        "The recorded inspector manifest is no longer available.");
+                    return;
+                }
+                inspectorManifestBase64 = Convert.ToBase64String(manifestBytes);
+
+                var knownPayloads = new HashSet<string>(StringComparer.Ordinal);
+                if (_recorder.TryGetInspectorManifest(request.KnownInspectorSnapshotId,
+                        out RemoteRecordedInspectorManifest knownManifest))
+                    CollectPayloadIds(knownManifest, knownPayloads);
+
+                var addedPayloads = new HashSet<string>(StringComparer.Ordinal);
+                string[] payloadIds = frame.InspectorPayloadSnapshotIds ?? Array.Empty<string>();
+                for (int i = 0; i < payloadIds.Length; i++)
+                {
+                    string payloadId = payloadIds[i];
+                    if (string.IsNullOrEmpty(payloadId) || knownPayloads.Contains(payloadId) ||
+                        !addedPayloads.Add(payloadId))
+                        continue;
+                    if (!_recorder.TryGetSceneGraphBlob(payloadId, out byte[] payloadBytes))
+                    {
+                        SendFrameError(requestId, request.RecordingId, request.UnityFrame,
+                            "A recorded inspector object snapshot is no longer available.");
+                        return;
+                    }
+                    inspectorBlobs.Add(new RemoteRecordedSceneGraphBlob
+                    {
+                        SnapshotId = payloadId,
+                        GzipBase64 = Convert.ToBase64String(payloadBytes)
+                    });
+                }
+            }
+
+            long messageCharacters = imageBase64.Length + hierarchyBase64.Length +
+                                     inspectorManifestBase64.Length;
+            for (int i = 0; i < inspectorBlobs.Count; i++)
+            {
+                messageCharacters += inspectorBlobs[i].GzipBase64?.Length ?? 0;
+                messageCharacters += inspectorBlobs[i].SnapshotId?.Length ?? 0;
+                messageCharacters += 64;
+            }
+            if (messageCharacters > RemoteProtocolConstants.MaximumMessageBytes - 8192)
+            {
+                SendFrameError(requestId, request.RecordingId, request.UnityFrame,
+                    "The recorded frame exceeded the remote message limit. Use a smaller capture width.");
+                return;
+            }
+
+            _context.Sender.Send(RemoteFrameRecorderMessageTypes.FrameResponse, requestId,
+                new RemoteFrameRecorderFrameResponse
+                {
+                    RecordingId = request.RecordingId,
+                    UnityFrame = request.UnityFrame,
+                    ImageBase64 = imageBase64,
+                    SceneGraphFormatVersion =
+                        RemoteRecordedSceneGraphFormats.ContentAddressedObjects,
+                    HierarchySnapshotId = frame.HierarchySnapshotId,
+                    HierarchyGzipBase64 = hierarchyBase64,
+                    InspectorSnapshotId = frame.InspectorSnapshotId,
+                    InspectorManifestGzipBase64 = inspectorManifestBase64,
+                    InspectorBlobs = inspectorBlobs.ToArray()
+                });
+        }
+
+        private static void CollectPayloadIds(RemoteRecordedInspectorManifest manifest,
+            ISet<string> destination)
+        {
+            RemoteRecordedObjectSnapshotReference[] objects = manifest?.Objects ??
+                                                               Array.Empty<RemoteRecordedObjectSnapshotReference>();
+            for (int i = 0; i < objects.Length; i++)
+            {
+                RemoteRecordedObjectSnapshotReference reference = objects[i];
+                if (reference == null || reference.IsNull)
+                    continue;
+                if (!string.IsNullOrEmpty(reference.HeaderSnapshotId))
+                    destination.Add(reference.HeaderSnapshotId);
+                if (!string.IsNullOrEmpty(reference.MaterialSnapshotId))
+                    destination.Add(reference.MaterialSnapshotId);
+                string[] componentIds = reference.ComponentSnapshotIds ?? Array.Empty<string>();
+                for (int componentIndex = 0; componentIndex < componentIds.Length;
+                     componentIndex++)
+                {
+                    if (!string.IsNullOrEmpty(componentIds[componentIndex]))
+                        destination.Add(componentIds[componentIndex]);
+                }
+            }
+        }
+
         private bool TryBuildLegacySceneGraph(RuntimeRecordedFrameData frame, out string base64,
             out string error)
         {
@@ -276,9 +399,7 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
             try
             {
                 if (!_recorder.TryGetSceneGraphBlob(frame.HierarchySnapshotId,
-                        out byte[] hierarchyBytes) ||
-                    !_recorder.TryGetSceneGraphBlob(frame.InspectorSnapshotId,
-                        out byte[] inspectorBytes))
+                        out byte[] hierarchyBytes))
                 {
                     error = "The recorded scene graph is no longer available.";
                     return false;
@@ -287,9 +408,14 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
                 RemoteSceneInspectorHierarchyResponse hierarchy =
                     JsonUtility.FromJson<RemoteSceneInspectorHierarchyResponse>(
                         Encoding.UTF8.GetString(Decompress(hierarchyBytes)));
-                RemoteRecordedInspectorSnapshot inspector =
-                    JsonUtility.FromJson<RemoteRecordedInspectorSnapshot>(
-                        Encoding.UTF8.GetString(Decompress(inspectorBytes)));
+                if (!TryBuildInspectorSnapshot(frame, out byte[] inspectorBytes,
+                        out string inspectorError))
+                {
+                    error = inspectorError;
+                    return false;
+                }
+                RemoteRecordedInspectorSnapshot inspector = DeserializeCompressed<
+                    RemoteRecordedInspectorSnapshot>(inspectorBytes);
                 var graph = new RemoteRecordedSceneGraph
                 {
                     Hierarchy = hierarchy ?? new RemoteSceneInspectorHierarchyResponse(),
@@ -305,6 +431,96 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
                 error = exception.GetType().Name + ": " + exception.Message;
                 return false;
             }
+        }
+
+        private bool TryBuildInspectorSnapshot(RuntimeRecordedFrameData frame, out byte[] bytes,
+            out string error)
+        {
+            bytes = null;
+            error = null;
+            try
+            {
+                if (frame.InspectorManifest == null)
+                {
+                    if (_recorder.TryGetSceneGraphBlob(frame.InspectorSnapshotId, out bytes))
+                        return true;
+                    error = "The recorded inspector snapshot is no longer available.";
+                    return false;
+                }
+
+                RemoteRecordedObjectSnapshotReference[] references =
+                    frame.InspectorManifest.Objects ??
+                    Array.Empty<RemoteRecordedObjectSnapshotReference>();
+                var inspections = new RemoteObjectDetails[references.Length];
+                for (int i = 0; i < references.Length; i++)
+                {
+                    RemoteRecordedObjectSnapshotReference reference = references[i];
+                    if (reference == null || reference.IsNull)
+                        continue;
+                    if (!TryReadBlob(reference.HeaderSnapshotId,
+                            out RemoteRecordedObjectHeader header) ||
+                        !TryReadBlob(reference.MaterialSnapshotId,
+                            out RemoteRecordedMaterialSnapshot material))
+                    {
+                        error = "A recorded inspector object snapshot is no longer available.";
+                        return false;
+                    }
+
+                    string[] componentIds = reference.ComponentSnapshotIds ?? Array.Empty<string>();
+                    var components = new RemoteComponentDescriptor[componentIds.Length];
+                    for (int componentIndex = 0; componentIndex < componentIds.Length;
+                         componentIndex++)
+                    {
+                        if (!TryReadBlob(componentIds[componentIndex],
+                                out RemoteComponentDescriptor component))
+                        {
+                            error = "A recorded inspector component snapshot is no longer available.";
+                            return false;
+                        }
+                        components[componentIndex] = component;
+                    }
+
+                    inspections[i] = new RemoteObjectDetails
+                    {
+                        Id = header.Id,
+                        Name = header.Name,
+                        Active = header.Active,
+                        ActiveReadOnly = header.ActiveReadOnly,
+                        Tag = header.Tag,
+                        Layer = header.Layer,
+                        LayerReadOnly = header.LayerReadOnly,
+                        Components = components,
+                        MaterialsAndShaders = material.MaterialsAndShaders
+                    };
+                }
+
+                bytes = Compress(Encoding.UTF8.GetBytes(JsonUtility.ToJson(
+                    new RemoteRecordedInspectorSnapshot
+                    {
+                        Inspections = inspections,
+                        Error = frame.InspectorManifest.Error
+                    })));
+                return true;
+            }
+            catch (Exception exception)
+            {
+                error = exception.GetType().Name + ": " + exception.Message;
+                return false;
+            }
+        }
+
+        private bool TryReadBlob<T>(string snapshotId, out T value) where T : class
+        {
+            value = null;
+            if (!_recorder.TryGetSceneGraphBlob(snapshotId, out byte[] bytes))
+                return false;
+            value = DeserializeCompressed<T>(bytes);
+            return value != null;
+        }
+
+        private static T DeserializeCompressed<T>(byte[] bytes)
+        {
+            return JsonUtility.FromJson<T>(Encoding.UTF8.GetString(Decompress(bytes)));
         }
 
         private static byte[] Compress(byte[] bytes)

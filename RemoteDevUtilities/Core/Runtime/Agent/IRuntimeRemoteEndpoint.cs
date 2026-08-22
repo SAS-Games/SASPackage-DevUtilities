@@ -34,21 +34,24 @@ namespace SAS.Utilities.RemoteDevUtilities.Agent
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     internal sealed class RuntimeRemoteEndpointAttribute : Attribute
     {
-        public RuntimeRemoteEndpointAttribute(string id, int order)
+        public RuntimeRemoteEndpointAttribute(string id, int order, bool experimental = false)
         {
             Id = string.IsNullOrWhiteSpace(id)
                 ? throw new ArgumentException("A remote endpoint id is required.", nameof(id))
                 : id;
             Order = order;
+            Experimental = experimental;
         }
 
         public string Id { get; }
         public int Order { get; }
+        public bool Experimental { get; }
     }
 
     internal static class RuntimeRemoteEndpointRegistry
     {
-        internal static IReadOnlyList<IRuntimeRemoteEndpoint> CreateEndpoints()
+        internal static IReadOnlyList<IRuntimeRemoteEndpoint> CreateEndpoints(
+            bool includeExperimentalFeatures = true)
         {
             var registrations = new List<(RuntimeRemoteEndpointAttribute Attribute, Type Type)>();
             foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
@@ -69,6 +72,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Agent
             var endpoints = new List<IRuntimeRemoteEndpoint>(registrations.Count);
             foreach ((RuntimeRemoteEndpointAttribute attribute, Type type) in registrations)
             {
+                if (attribute.Experimental && !includeExperimentalFeatures)
+                    continue;
                 if (!ids.Add(attribute.Id))
                     throw new InvalidOperationException($"A runtime remote endpoint with id '{attribute.Id}' is already registered.");
 

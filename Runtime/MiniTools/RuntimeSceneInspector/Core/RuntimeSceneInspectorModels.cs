@@ -249,6 +249,9 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
     /// </summary>
     internal static class RuntimeInspectorControlMetadata
     {
+        private static readonly Dictionary<OptionCacheKey, IReadOnlyList<RuntimeInspectorOption>>
+            OptionCache = new();
+
         internal static void Populate(RuntimeMemberDescriptor descriptor, Type valueType,
             string displayName, string memberId,
             RuntimeInspectorControlKind requestedKind = RuntimeInspectorControlKind.Automatic,
@@ -327,19 +330,37 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
         private static IReadOnlyList<RuntimeInspectorOption> BuildOptions(
             RuntimeInspectorControlKind kind, Type valueType)
         {
+            if (kind != RuntimeInspectorControlKind.Enum &&
+                kind != RuntimeInspectorControlKind.EnumFlags &&
+                kind != RuntimeInspectorControlKind.Layer &&
+                kind != RuntimeInspectorControlKind.LayerMask &&
+                kind != RuntimeInspectorControlKind.SortingLayer)
+                return Array.Empty<RuntimeInspectorOption>();
+
+            var key = new OptionCacheKey(kind, valueType);
+            if (OptionCache.TryGetValue(key, out IReadOnlyList<RuntimeInspectorOption> cached))
+                return cached;
+
+            IReadOnlyList<RuntimeInspectorOption> options;
             switch (kind)
             {
                 case RuntimeInspectorControlKind.Enum:
                 case RuntimeInspectorControlKind.EnumFlags:
-                    return BuildEnumOptions(valueType);
+                    options = BuildEnumOptions(valueType);
+                    break;
                 case RuntimeInspectorControlKind.Layer:
                 case RuntimeInspectorControlKind.LayerMask:
-                    return BuildLayerOptions();
+                    options = BuildLayerOptions();
+                    break;
                 case RuntimeInspectorControlKind.SortingLayer:
-                    return BuildSortingLayerOptions(valueType);
+                    options = BuildSortingLayerOptions(valueType);
+                    break;
                 default:
-                    return Array.Empty<RuntimeInspectorOption>();
+                    options = Array.Empty<RuntimeInspectorOption>();
+                    break;
             }
+            OptionCache[key] = options;
+            return options;
         }
 
         private static IReadOnlyList<RuntimeInspectorOption> BuildEnumOptions(Type enumType)
@@ -430,6 +451,27 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
             return target.IndexOf("SortingLayer", StringComparison.OrdinalIgnoreCase) >= 0 ||
                    target.IndexOf("Sorting", StringComparison.OrdinalIgnoreCase) >= 0 &&
                    target.IndexOf("Layer", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private readonly struct OptionCacheKey : IEquatable<OptionCacheKey>
+        {
+            private readonly RuntimeInspectorControlKind _kind;
+            private readonly Type _valueType;
+
+            internal OptionCacheKey(RuntimeInspectorControlKind kind, Type valueType)
+            {
+                _kind = kind;
+                _valueType = valueType;
+            }
+
+            public bool Equals(OptionCacheKey other) =>
+                _kind == other._kind && _valueType == other._valueType;
+
+            public override bool Equals(object obj) =>
+                obj is OptionCacheKey other && Equals(other);
+
+            public override int GetHashCode() =>
+                ((int)_kind * 397) ^ (_valueType?.GetHashCode() ?? 0);
         }
     }
 }

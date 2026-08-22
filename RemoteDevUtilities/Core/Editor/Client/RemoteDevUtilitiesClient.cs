@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using SAS.Utilities.RemoteDevUtilities.Editor.Connection;
+using SAS.Utilities.RemoteDevUtilities.Editor.Configuration;
 using SAS.Utilities.RemoteDevUtilities.Protocol;
 using SAS.Utilities.RemoteDevUtilities.Protocol.Connection;
 using SAS.Utilities.RemoteDevUtilities.Protocol.Serialization;
@@ -30,7 +31,9 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
 
         public RemoteDevUtilitiesClient()
         {
-            foreach (IRemoteEditorFeatureClient feature in RemoteEditorFeatureRegistry.CreateFeatures(this))
+            foreach (IRemoteEditorFeatureClient feature in RemoteEditorFeatureRegistry.CreateFeatures(
+                         this, RemoteDevUtilitiesProjectSettings.instance.Runtime
+                             .EnableExperimentalFrameRecorder))
                 AddFeature(feature);
 
             foreach (IRemoteEditorTransport transport in RemoteEditorTransportRegistry.CreateTransports())

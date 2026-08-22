@@ -31,6 +31,50 @@ namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector.Capture
         }
     }
 
+    /// <summary>
+    /// Unity's Play Mode Game View can render the Editor selection outline into ScreenCapture
+    /// results. Temporarily clearing the Editor selection keeps remote captures identical to the
+    /// Player view. A selection made while capture is active is never overwritten on release.
+    /// </summary>
+    internal sealed class RuntimeEditorSelectionSuppressionLease
+    {
+#if UNITY_EDITOR
+        private static int s_LeaseCount;
+        private static UnityEngine.Object[] s_SavedSelection = Array.Empty<UnityEngine.Object>();
+        private bool _acquired;
+#endif
+
+        internal void Acquire()
+        {
+#if UNITY_EDITOR
+            if (_acquired)
+                return;
+            _acquired = true;
+            if (s_LeaseCount++ > 0)
+                return;
+
+            s_SavedSelection = UnityEditor.Selection.objects ?? Array.Empty<UnityEngine.Object>();
+            UnityEditor.Selection.objects = Array.Empty<UnityEngine.Object>();
+#endif
+        }
+
+        internal void Release()
+        {
+#if UNITY_EDITOR
+            if (!_acquired)
+                return;
+            _acquired = false;
+            s_LeaseCount = Mathf.Max(0, s_LeaseCount - 1);
+            if (s_LeaseCount != 0)
+                return;
+
+            if (UnityEditor.Selection.objects == null || UnityEditor.Selection.objects.Length == 0)
+                UnityEditor.Selection.objects = s_SavedSelection;
+            s_SavedSelection = Array.Empty<UnityEngine.Object>();
+#endif
+        }
+    }
+
     internal sealed class RuntimeRemoteSceneCaptureResult
     {
         internal long CaptureId;
@@ -47,6 +91,7 @@ namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector.Capture
     {
         private const float ActiveCaptureTimeoutSeconds = 300f;
         private readonly RuntimeTimeScaleFreezeLease _timeScaleFreeze = new();
+        private readonly RuntimeEditorSelectionSuppressionLease _selectionSuppression = new();
         private Coroutine _captureCoroutine;
         private long _activeCaptureId;
         private float _releaseAtRealtime;
@@ -62,6 +107,7 @@ namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector.Capture
             _releaseAtRealtime = Time.realtimeSinceStartup + ActiveCaptureTimeoutSeconds;
             if (freezeWhilePicking)
                 _timeScaleFreeze.Acquire();
+            _selectionSuppression.Acquire();
 
             int width = Mathf.Clamp(maximumWidth, 320, 1280);
             int quality = Mathf.Clamp(jpegQuality, 35, 90);
@@ -80,6 +126,7 @@ namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector.Capture
             }
 
             _timeScaleFreeze.Release();
+            _selectionSuppression.Release();
 
             _activeCaptureId = 0;
             _releaseAtRealtime = 0f;
@@ -116,6 +163,10 @@ namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector.Capture
             {
                 result.Error = exception.GetType().Name + ": " + exception.Message;
             }
+            finally
+            {
+                _selectionSuppression.Release();
+            }
 
             _captureCoroutine = null;
             if (_activeCaptureId == captureId)
@@ -149,8 +200,16 @@ namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector.Capture
             RenderTexture previousActive = RenderTexture.active;
             try
             {
-                source = ScreenCapture.CaptureScreenshotAsTexture();
-                if (source == null || source.width < 1 || source.height < 1)
+                int sourceWidth = Mathf.Max(1, Screen.width);
+                int sourceHeight = Mathf.Max(1, Screen.height);
+                // CaptureScreenshotAsTexture produces gamma-shifted pixels in Linear color-space
+                // Players on affected Unity versions. Reading the completed backbuffer at the
+                // end of the frame preserves the same display-ready values the user sees.
+                source = new Texture2D(sourceWidth, sourceHeight, TextureFormat.RGB24, false, false);
+                RenderTexture.active = null;
+                source.ReadPixels(new Rect(0f, 0f, sourceWidth, sourceHeight), 0, 0, false);
+                source.Apply(false, false);
+                if (source.width < 1 || source.height < 1)
                     throw new InvalidOperationException("The Player did not produce a readable screen capture.");
 
                 int targetWidth = Mathf.Min(Mathf.Clamp(maximumWidth, 320, 1280), source.width);
@@ -160,11 +219,11 @@ namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector.Capture
                 if (targetWidth != source.width || targetHeight != source.height)
                 {
                     temporary = RenderTexture.GetTemporary(targetWidth, targetHeight, 0,
-                        RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
+                        RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
                     temporary.filterMode = FilterMode.Bilinear;
-                    Graphics.Blit(source, temporary);
+                    BlitDisplayPixels(source, temporary);
                     RenderTexture.active = temporary;
-                    scaled = new Texture2D(targetWidth, targetHeight, TextureFormat.RGB24, false);
+                    scaled = new Texture2D(targetWidth, targetHeight, TextureFormat.RGB24, false, false);
                     scaled.ReadPixels(new Rect(0f, 0f, targetWidth, targetHeight), 0, 0, false);
                     scaled.Apply(false, false);
                     captured = scaled;
@@ -188,6 +247,39 @@ namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector.Capture
                     UnityEngine.Object.Destroy(scaled);
                 if (source != null)
                     UnityEngine.Object.Destroy(source);
+            }
+        }
+
+        /// <summary>
+        /// Resizes display-ready color pixels without inheriting a stale sRGB-write state from
+        /// the active render pipeline. In Linear projects, the sRGB source sampling and target
+        /// write conversions cancel each other and preserve the visible framebuffer colors.
+        /// </summary>
+        internal static void BlitDisplayPixels(Texture source, RenderTexture destination,
+            bool flipVertically = false)
+        {
+            bool previousSrgbWrite = GL.sRGBWrite;
+            bool requiredSrgbWrite = QualitySettings.activeColorSpace == ColorSpace.Linear &&
+                                     destination != null && destination.sRGB;
+            try
+            {
+                if (previousSrgbWrite != requiredSrgbWrite)
+                    GL.sRGBWrite = requiredSrgbWrite;
+
+                if (flipVertically)
+                {
+                    Graphics.Blit(source, destination,
+                        new Vector2(1f, -1f), new Vector2(0f, 1f));
+                }
+                else
+                {
+                    Graphics.Blit(source, destination);
+                }
+            }
+            finally
+            {
+                if (GL.sRGBWrite != previousSrgbWrite)
+                    GL.sRGBWrite = previousSrgbWrite;
             }
         }
     }

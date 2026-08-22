@@ -1,4 +1,5 @@
 using System;
+using SAS.Utilities.RuntimeSceneInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -26,6 +27,14 @@ namespace SAS.Utilities.RemoteDevUtilities
         [SerializeField] private bool _allowMiniTools = true;
 
         [FormerlySerializedAs("_allowRuntimeDebugger")] [SerializeField] private bool _allowRuntimeSceneInspector = true;
+
+        [SerializeField, InspectorName("Runtime Scene Inspector")]
+        private RuntimeSceneInspectorConfiguration _runtimeSceneInspector = new();
+
+        [Header("Experimental Features")]
+        [SerializeField, InspectorName("Enable Frame Recorder (Experimental)")]
+        [Tooltip("Enables the experimental frame-recording endpoint and its Native Workspace UI. Keep this disabled unless the recorder is actively being evaluated.")]
+        private bool _enableExperimentalFrameRecorder;
 
         [SerializeField] private bool _keepPlayerRunningInBackground = true;
 
@@ -70,6 +79,9 @@ namespace SAS.Utilities.RemoteDevUtilities
         internal bool StreamLogs => _streamLogs;
         internal bool AllowMiniTools => _allowMiniTools;
         internal bool AllowRuntimeSceneInspector => _allowRuntimeSceneInspector;
+        internal RuntimeSceneInspectorConfiguration RuntimeSceneInspector =>
+            _runtimeSceneInspector ??= new RuntimeSceneInspectorConfiguration();
+        internal bool EnableExperimentalFrameRecorder => _enableExperimentalFrameRecorder;
         internal bool KeepPlayerRunningInBackground => _keepPlayerRunningInBackground;
         internal int TcpPort => Mathf.Clamp(_tcpPort, 1024, 65535);
         internal bool EnableTcpPortFallback => _enableTcpPortFallback;
@@ -92,6 +104,8 @@ namespace SAS.Utilities.RemoteDevUtilities
             _streamLogs = settings.StreamLogs;
             _allowMiniTools = settings.AllowMiniTools;
             _allowRuntimeSceneInspector = settings.AllowRuntimeSceneInspector;
+            RuntimeSceneInspector.CopyFrom(settings.RuntimeSceneInspector);
+            _enableExperimentalFrameRecorder = settings.EnableExperimentalFrameRecorder;
             _keepPlayerRunningInBackground = settings.KeepPlayerRunningInBackground;
             _tcpPort = settings.TcpPort;
             _enableTcpPortFallback = settings.EnableTcpPortFallback;
@@ -123,6 +137,14 @@ namespace SAS.Utilities.RemoteDevUtilities
         [SerializeField] private bool m_AllowMiniTools = true;
 
         [FormerlySerializedAs("m_AllowRuntimeDebugger")] [SerializeField] private bool m_AllowRuntimeSceneInspector = true;
+
+        [SerializeField, InspectorName("Runtime Scene Inspector")]
+        private RuntimeSceneInspectorConfiguration m_RuntimeSceneInspector = new();
+
+        [Header("Experimental Features")]
+        [SerializeField, InspectorName("Enable Frame Recorder (Experimental)")]
+        [Tooltip("Enables the experimental frame-recording endpoint and its Native Workspace UI. Keep this disabled unless the recorder is actively being evaluated.")]
+        private bool m_EnableExperimentalFrameRecorder;
 
         [SerializeField] private bool m_KeepPlayerRunningInBackground = true;
 
@@ -169,6 +191,9 @@ namespace SAS.Utilities.RemoteDevUtilities
         public bool StreamLogs => m_StreamLogs;
         public bool AllowMiniTools => m_AllowMiniTools;
         public bool AllowRuntimeSceneInspector => m_AllowRuntimeSceneInspector;
+        public RuntimeSceneInspectorConfiguration RuntimeSceneInspector =>
+            m_RuntimeSceneInspector ??= new RuntimeSceneInspectorConfiguration();
+        public bool EnableExperimentalFrameRecorder => m_EnableExperimentalFrameRecorder;
         public bool KeepPlayerRunningInBackground => m_KeepPlayerRunningInBackground;
         public int TcpPort => Mathf.Clamp(m_TcpPort, 1024, 65535);
         public bool EnableTcpPortFallback => m_EnableTcpPortFallback;
@@ -200,6 +225,7 @@ namespace SAS.Utilities.RemoteDevUtilities
         void ISerializationCallbackReceiver.OnAfterDeserialize()
         {
             m_BuildDebugUiVisibility = NormalizeBuildUiVisibility(m_BuildDebugUiVisibility);
+            m_RuntimeSceneInspector ??= new RuntimeSceneInspectorConfiguration();
         }
 
         private void OnValidate()
@@ -230,6 +256,8 @@ namespace SAS.Utilities.RemoteDevUtilities
             m_StreamLogs = configuration.StreamLogs;
             m_AllowMiniTools = configuration.AllowMiniTools;
             m_AllowRuntimeSceneInspector = configuration.AllowRuntimeSceneInspector;
+            RuntimeSceneInspector.CopyFrom(configuration.RuntimeSceneInspector);
+            m_EnableExperimentalFrameRecorder = configuration.EnableExperimentalFrameRecorder;
             m_KeepPlayerRunningInBackground = configuration.KeepPlayerRunningInBackground;
             m_TcpPort = configuration.TcpPort;
             m_EnableTcpPortFallback = configuration.EnableTcpPortFallback;
@@ -248,24 +276,31 @@ namespace SAS.Utilities.RemoteDevUtilities
         internal static RemoteDevUtilitiesRuntimeSettings LoadOrCreateDefaults()
         {
             if (s_BuildSnapshot != null)
-                return s_BuildSnapshot;
+                return ConfigureSceneInspectorDefaults(s_BuildSnapshot);
 
             foreach (RemoteDevUtilitiesRuntimeSettings candidate in Resources.FindObjectsOfTypeAll<RemoteDevUtilitiesRuntimeSettings>())
             {
                 if (candidate != null && candidate.m_IsBuildSnapshot)
                 {
                     s_BuildSnapshot = candidate;
-                    return candidate;
+                    return ConfigureSceneInspectorDefaults(candidate);
                 }
             }
 
             RemoteDevUtilitiesRuntimeSettings settings = Resources.Load<RemoteDevUtilitiesRuntimeSettings>(ResourceName);
             if (settings != null)
-                return settings;
+                return ConfigureSceneInspectorDefaults(settings);
 
             Debug.LogWarning($"[RemoteDevUtilities] Resources/{ResourceName}.asset could not be loaded. " + "Using in-memory runtime defaults.");
             settings = CreateInstance<RemoteDevUtilitiesRuntimeSettings>();
             settings.hideFlags = HideFlags.HideAndDontSave;
+            return ConfigureSceneInspectorDefaults(settings);
+        }
+
+        private static RemoteDevUtilitiesRuntimeSettings ConfigureSceneInspectorDefaults(
+            RemoteDevUtilitiesRuntimeSettings settings)
+        {
+            RuntimeSceneInspectorSettings.ConfigureDefaults(settings.RuntimeSceneInspector);
             return settings;
         }
     }

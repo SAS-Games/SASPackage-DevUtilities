@@ -3,9 +3,23 @@ using UnityEngine;
 
 namespace SAS.Utilities.RuntimeSceneInspector
 {
-    [CreateAssetMenu(fileName = "RuntimeSceneInspectorSettings", menuName = "HP/Dev Utilities/Runtime Scene Inspector Settings")]
-    public sealed class RuntimeSceneInspectorSettings : ScriptableObject
+    [Serializable]
+    public sealed class RuntimeSceneInspectorConfiguration
     {
+        internal RuntimeSceneInspectorConfiguration(bool enableShaderInspectionDefaults)
+        {
+            if (!enableShaderInspectionDefaults)
+                return;
+            m_AllowShaderInspection = true;
+            m_AllowShaderValueChanges = true;
+            m_AllowMaterialPropertyBlockChanges = true;
+            m_AllowMaterialInstantiation = true;
+        }
+
+        public RuntimeSceneInspectorConfiguration()
+        {
+        }
+
         [Header("Availability")] [SerializeField] private bool m_EnableInspector = true;
 
         [SerializeField] private bool m_AutomaticallyCreateBootstrap = true;
@@ -31,11 +45,11 @@ namespace SAS.Utilities.RuntimeSceneInspector
         [SerializeField] private string[] m_BlockedNamespaces = { "UnityEditor" };
         [SerializeField] private string[] m_BlockedComponentTypes = Array.Empty<string>();
 
-        [Header("Shader Inspection")] [SerializeField] private bool m_AllowShaderInspection = true;
+        [Header("Shader Inspection")] [SerializeField] private bool m_AllowShaderInspection;
 
-        [SerializeField] private bool m_AllowShaderValueChanges = true;
-        [SerializeField] private bool m_AllowMaterialPropertyBlockChanges = true;
-        [SerializeField] private bool m_AllowMaterialInstantiation = true;
+        [SerializeField] private bool m_AllowShaderValueChanges;
+        [SerializeField] private bool m_AllowMaterialPropertyBlockChanges;
+        [SerializeField] private bool m_AllowMaterialInstantiation;
         [SerializeField] private bool m_AllowSharedMaterialChanges;
         [SerializeField] private bool m_AllowGlobalShaderChanges;
         [SerializeField] private bool m_AllowTextureChanges;
@@ -102,13 +116,120 @@ namespace SAS.Utilities.RuntimeSceneInspector
         public Font RegularFont => m_RegularFont;
         public Font BoldFont => m_BoldFont != null ? m_BoldFont : m_RegularFont;
 
+        internal void CopyFrom(RuntimeSceneInspectorConfiguration source)
+        {
+            if (source == null)
+                return;
+
+            m_EnableInspector = source.m_EnableInspector;
+            m_AutomaticallyCreateBootstrap = source.m_AutomaticallyCreateBootstrap;
+            m_PauseWhenOpen = source.m_PauseWhenOpen;
+            m_ConsumeInput = source.m_ConsumeInput;
+            m_HierarchyRefreshInterval = source.m_HierarchyRefreshInterval;
+            m_IncludeInactiveObjects = source.m_IncludeInactiveObjects;
+            m_AutomaticRefresh = source.m_AutomaticRefresh;
+            m_AllowObjectPicking = source.m_AllowObjectPicking;
+            m_ObjectPickingLayerMask = source.m_ObjectPickingLayerMask;
+            m_PickUiObjects = source.m_PickUiObjects;
+            m_PickTriggerColliders = source.m_PickTriggerColliders;
+            m_UseRendererBoundsFallback = source.m_UseRendererBoundsFallback;
+            m_AllowValueChanges = source.m_AllowValueChanges;
+            m_AllowActivationChanges = source.m_AllowActivationChanges;
+            m_AllowComponentEnableChanges = source.m_AllowComponentEnableChanges;
+            m_BlockedNamespaces = source.m_BlockedNamespaces == null
+                ? Array.Empty<string>()
+                : (string[])source.m_BlockedNamespaces.Clone();
+            m_BlockedComponentTypes = source.m_BlockedComponentTypes == null
+                ? Array.Empty<string>()
+                : (string[])source.m_BlockedComponentTypes.Clone();
+            m_AllowShaderInspection = source.m_AllowShaderInspection;
+            m_AllowShaderValueChanges = source.m_AllowShaderValueChanges;
+            m_AllowMaterialPropertyBlockChanges = source.m_AllowMaterialPropertyBlockChanges;
+            m_AllowMaterialInstantiation = source.m_AllowMaterialInstantiation;
+            m_AllowSharedMaterialChanges = source.m_AllowSharedMaterialChanges;
+            m_AllowGlobalShaderChanges = source.m_AllowGlobalShaderChanges;
+            m_AllowTextureChanges = source.m_AllowTextureChanges;
+            m_ShowHiddenShaderProperties = source.m_ShowHiddenShaderProperties;
+            m_MaxInspectorMaterialInstances = source.m_MaxInspectorMaterialInstances;
+            m_MaxVisibleShaderProperties = source.m_MaxVisibleShaderProperties;
+            m_NormalNumericStep = source.m_NormalNumericStep;
+            m_LargeNumericStep = source.m_LargeNumericStep;
+            m_SmallNumericStep = source.m_SmallNumericStep;
+            m_NavigationRepeatDelay = source.m_NavigationRepeatDelay;
+            m_NavigationRepeatRate = source.m_NavigationRepeatRate;
+            m_ControllerDeadZone = source.m_ControllerDeadZone;
+            m_UiScale = source.m_UiScale;
+            m_BackgroundColor = source.m_BackgroundColor;
+            m_FocusColor = source.m_FocusColor;
+            m_HierarchyPanelWidth = source.m_HierarchyPanelWidth;
+            m_RegularFont = source.m_RegularFont;
+            m_BoldFont = source.m_BoldFont;
+        }
+    }
+
+    public sealed class RuntimeSceneInspectorSettings : ScriptableObject
+    {
+        private static readonly RuntimeSceneInspectorConfiguration RuntimeDefaults = new();
+
+        [SerializeField] private RuntimeSceneInspectorConfiguration m_Configuration = new(true);
+
+        private RuntimeSceneInspectorConfiguration Configuration =>
+            m_Configuration ??= new RuntimeSceneInspectorConfiguration();
+
+        public bool EnableInspector => Configuration.EnableInspector;
+        public bool AutomaticallyCreateBootstrap => Configuration.AutomaticallyCreateBootstrap;
+        public bool PauseWhenOpen => Configuration.PauseWhenOpen;
+        public bool ConsumeInput => Configuration.ConsumeInput;
+        public float HierarchyRefreshInterval => Configuration.HierarchyRefreshInterval;
+        public bool IncludeInactiveObjects => Configuration.IncludeInactiveObjects;
+        public bool AutomaticRefresh => Configuration.AutomaticRefresh;
+        public bool AllowObjectPicking => Configuration.AllowObjectPicking;
+        public int ObjectPickingLayerMask => Configuration.ObjectPickingLayerMask;
+        public bool PickUiObjects => Configuration.PickUiObjects;
+        public bool PickTriggerColliders => Configuration.PickTriggerColliders;
+        public bool UseRendererBoundsFallback => Configuration.UseRendererBoundsFallback;
+        public bool AllowValueChanges => Configuration.AllowValueChanges;
+        public bool AllowActivationChanges => Configuration.AllowActivationChanges;
+        public bool AllowComponentEnableChanges => Configuration.AllowComponentEnableChanges;
+        public string[] BlockedNamespaces => Configuration.BlockedNamespaces;
+        public string[] BlockedComponentTypes => Configuration.BlockedComponentTypes;
+        public bool AllowShaderInspection => Configuration.AllowShaderInspection;
+        public bool AllowShaderValueChanges => Configuration.AllowShaderValueChanges;
+        public bool AllowMaterialPropertyBlockChanges => Configuration.AllowMaterialPropertyBlockChanges;
+        public bool AllowMaterialInstantiation => Configuration.AllowMaterialInstantiation;
+        public bool AllowSharedMaterialChanges => Configuration.AllowSharedMaterialChanges;
+        public bool AllowGlobalShaderChanges => Configuration.AllowGlobalShaderChanges;
+        public bool AllowTextureChanges => Configuration.AllowTextureChanges;
+        public bool ShowHiddenShaderProperties => Configuration.ShowHiddenShaderProperties;
+        public int MaxInspectorMaterialInstances => Configuration.MaxInspectorMaterialInstances;
+        public int MaxVisibleShaderProperties => Configuration.MaxVisibleShaderProperties;
+        public float NormalNumericStep => Configuration.NormalNumericStep;
+        public float LargeNumericStep => Configuration.LargeNumericStep;
+        public float SmallNumericStep => Configuration.SmallNumericStep;
+        public float NavigationRepeatDelay => Configuration.NavigationRepeatDelay;
+        public float NavigationRepeatRate => Configuration.NavigationRepeatRate;
+        public float ControllerDeadZone => Configuration.ControllerDeadZone;
+        public float UiScale => Configuration.UiScale;
+        public Color BackgroundColor => Configuration.BackgroundColor;
+        public Color FocusColor => Configuration.FocusColor;
+        public float HierarchyPanelWidth => Configuration.HierarchyPanelWidth;
+        public Font RegularFont => Configuration.RegularFont;
+        public Font BoldFont => Configuration.BoldFont;
+
+        internal void Apply(RuntimeSceneInspectorConfiguration configuration)
+        {
+            Configuration.CopyFrom(configuration);
+        }
+
+        internal static void ConfigureDefaults(RuntimeSceneInspectorConfiguration configuration)
+        {
+            RuntimeDefaults.CopyFrom(configuration);
+        }
+
         internal static RuntimeSceneInspectorSettings LoadOrCreateDefaults()
         {
-            RuntimeSceneInspectorSettings settings = Resources.Load<RuntimeSceneInspectorSettings>("RuntimeSceneInspectorSettings");
-            if (settings != null)
-                return settings;
-
-            settings = CreateInstance<RuntimeSceneInspectorSettings>();
+            RuntimeSceneInspectorSettings settings = CreateInstance<RuntimeSceneInspectorSettings>();
+            settings.Apply(RuntimeDefaults);
             settings.hideFlags = HideFlags.HideAndDontSave;
             return settings;
         }

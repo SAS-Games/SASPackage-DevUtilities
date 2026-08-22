@@ -37,15 +37,20 @@ namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector
             };
         }
 
-        public static RemoteObjectDetails ToRemote(RuntimeObjectDetails details)
+        public static RemoteObjectDetails ToRemote(RuntimeObjectDetails details) =>
+            ToRemote(details, ToRemote);
+
+        internal static RemoteObjectDetails ToRemote(RuntimeObjectDetails details,
+            Func<RuntimeComponentDescriptor, RemoteComponentDescriptor> componentMapper)
         {
             if (details == null)
                 return null;
+            componentMapper ??= ToRemote;
 
             IReadOnlyList<RuntimeComponentDescriptor> sourceComponents = details.Components ?? Array.Empty<RuntimeComponentDescriptor>();
             var components = new RemoteComponentDescriptor[sourceComponents.Count];
             for (int i = 0; i < sourceComponents.Count; i++)
-                components[i] = ToRemote(sourceComponents[i]);
+                components[i] = componentMapper(sourceComponents[i]);
 
             return new RemoteObjectDetails
             {
@@ -61,7 +66,7 @@ namespace SAS.Utilities.RemoteDevUtilities.RuntimeSceneInspector
             };
         }
 
-        private static RemoteComponentDescriptor ToRemote(RuntimeComponentDescriptor component)
+        internal static RemoteComponentDescriptor ToRemote(RuntimeComponentDescriptor component)
         {
             IReadOnlyList<RuntimeMemberDescriptor> sourceMembers = component.Members ?? Array.Empty<RuntimeMemberDescriptor>();
             var members = new RemoteMemberDescriptor[sourceMembers.Count];

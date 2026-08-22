@@ -83,7 +83,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Agent
             _connectionEndpoint.SessionStateChanged += OnSessionStateChanged;
 
             AddEndpoint(_connectionEndpoint, context);
-            foreach (IRuntimeRemoteEndpoint endpoint in RuntimeRemoteEndpointRegistry.CreateEndpoints())
+            foreach (IRuntimeRemoteEndpoint endpoint in RuntimeRemoteEndpointRegistry.CreateEndpoints(
+                         _settings.EnableExperimentalFrameRecorder))
                 AddEndpoint(endpoint, context);
             _transport.Start();
             var serviceContext = new RuntimeRemoteConnectionServiceContext

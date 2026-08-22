@@ -23,19 +23,22 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     internal sealed class RemoteEditorFeatureAttribute : Attribute
     {
-        public RemoteEditorFeatureAttribute(string id, int order)
+        public RemoteEditorFeatureAttribute(string id, int order, bool experimental = false)
         {
             Id = string.IsNullOrWhiteSpace(id) ? throw new ArgumentException("A remote editor feature id is required.", nameof(id)) : id;
             Order = order;
+            Experimental = experimental;
         }
 
         public string Id { get; }
         public int Order { get; }
+        public bool Experimental { get; }
     }
 
     internal static class RemoteEditorFeatureRegistry
     {
-        internal static IReadOnlyList<IRemoteEditorFeatureClient> CreateFeatures(IRemoteEditorSession session)
+        internal static IReadOnlyList<IRemoteEditorFeatureClient> CreateFeatures(
+            IRemoteEditorSession session, bool includeExperimentalFeatures = true)
         {
             var registrations = new List<(RemoteEditorFeatureAttribute Attribute, Type Type)>();
             foreach (Type type in TypeCache.GetTypesWithAttribute<RemoteEditorFeatureAttribute>())
@@ -53,6 +56,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
             var features = new List<IRemoteEditorFeatureClient>(registrations.Count);
             foreach ((RemoteEditorFeatureAttribute attribute, Type type) in registrations)
             {
+                if (attribute.Experimental && !includeExperimentalFeatures)
+                    continue;
                 if (!ids.Add(attribute.Id))
                     throw new InvalidOperationException($"A remote editor feature with id '{attribute.Id}' is already registered.");
 

@@ -117,7 +117,15 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector.Capture
             Rect viewport = GUILayoutUtility.GetRect(200f, previewHeight, GUILayout.ExpandWidth(true));
             GUI.Box(viewport, GUIContent.none, EditorStyles.helpBox);
             Rect imageRect = Fit(viewport, capture.Width, capture.Height, 4f);
+            // The capture must not inherit a disabled/tinted GUI state from another workspace
+            // control. Such a state looks like a translucent overlay over an otherwise clean JPEG.
+            bool previousEnabled = GUI.enabled;
+            Color previousColor = GUI.color;
+            GUI.enabled = true;
+            GUI.color = Color.white;
             GUI.DrawTexture(imageRect, _texture, ScaleMode.StretchToFill, false);
+            GUI.color = previousColor;
+            GUI.enabled = previousEnabled;
 
             if (_lastPickUv.x >= 0f && _lastPickUv.y >= 0f)
             {

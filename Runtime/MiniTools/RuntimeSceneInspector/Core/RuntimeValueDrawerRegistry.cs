@@ -22,6 +22,7 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
     public sealed class RuntimeValueDrawerRegistry
     {
         private readonly List<IRuntimeValueDrawer> _drawers = new();
+        private readonly Dictionary<Type, IRuntimeValueDrawer> _resolvedDrawers = new();
 
         public RuntimeValueDrawerRegistry()
         {
@@ -33,10 +34,22 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
         public void Register(IRuntimeValueDrawer drawer)
         {
             if (drawer != null)
+            {
                 _drawers.Insert(0, drawer);
+                _resolvedDrawers.Clear();
+            }
         }
 
-        public IRuntimeValueDrawer Resolve(Type type) => _drawers.Find(drawer => drawer.CanDraw(type));
+        public IRuntimeValueDrawer Resolve(Type type)
+        {
+            if (type == null)
+                return null;
+            if (_resolvedDrawers.TryGetValue(type, out IRuntimeValueDrawer resolved))
+                return resolved;
+            resolved = _drawers.Find(drawer => drawer.CanDraw(type));
+            _resolvedDrawers[type] = resolved;
+            return resolved;
+        }
     }
 
     internal sealed class RuntimeScalarDrawer : IRuntimeValueDrawer

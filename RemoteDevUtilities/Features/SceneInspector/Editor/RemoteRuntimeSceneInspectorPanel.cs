@@ -11,6 +11,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
     internal interface IRemoteSceneInspectorMode : IDisposable
     {
         string DisplayName { get; }
+        bool IsAvailable { get; }
         void Initialize(Action repaint);
         bool Draw(RemoteDevUtilitiesClient client, bool connected, Rect windowRect);
         void Deactivate();
@@ -40,6 +41,11 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
                     continue;
                 if (Activator.CreateInstance(type, true) is not IRemoteSceneInspectorMode mode)
                     continue;
+                if (!mode.IsAvailable)
+                {
+                    mode.Dispose();
+                    continue;
+                }
                 mode.Initialize(repaint);
                 _additionalModes.Add(mode);
             }
