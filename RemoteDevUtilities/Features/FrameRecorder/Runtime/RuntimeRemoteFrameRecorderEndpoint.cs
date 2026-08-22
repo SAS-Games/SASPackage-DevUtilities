@@ -1,8 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
+using System.Text;
 using SAS.Utilities.RemoteDevUtilities.Agent;
 using SAS.Utilities.RemoteDevUtilities.Protocol;
 using SAS.Utilities.RemoteDevUtilities.Protocol.FrameRecorder;
+using SAS.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector;
 using SAS.Utilities.RemoteDevUtilities.Protocol.Serialization;
 using UnityEngine;
 using UnityEngine.Scripting;
@@ -189,8 +193,61 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
             }
 
             string imageBase64 = Convert.ToBase64String(frame.JpegBytes ?? Array.Empty<byte>());
-            string graphBase64 = Convert.ToBase64String(frame.SceneGraphGzipBytes ?? Array.Empty<byte>());
-            if (imageBase64.Length + graphBase64.Length > RemoteProtocolConstants.MaximumMessageBytes - 8192)
+            if (request.SupportedSceneGraphFormatVersion <
+                RemoteRecordedSceneGraphFormats.ContentAddressedSections)
+            {
+                if (!TryBuildLegacySceneGraph(frame, out string legacyGraphBase64, out string legacyError))
+                {
+                    SendFrameError(envelope.RequestId, request.RecordingId, request.UnityFrame,
+                        legacyError);
+                    return;
+                }
+                if (imageBase64.Length + legacyGraphBase64.Length >
+                    RemoteProtocolConstants.MaximumMessageBytes - 8192)
+                {
+                    SendFrameError(envelope.RequestId, request.RecordingId, request.UnityFrame,
+                        "The recorded frame exceeded the remote message limit. Use a smaller capture width.");
+                    return;
+                }
+                _context.Sender.Send(RemoteFrameRecorderMessageTypes.FrameResponse, envelope.RequestId,
+                    new RemoteFrameRecorderFrameResponse
+                    {
+                        RecordingId = request.RecordingId,
+                        UnityFrame = request.UnityFrame,
+                        ImageBase64 = imageBase64,
+                        SceneGraphGzipBase64 = legacyGraphBase64
+                    });
+                return;
+            }
+
+            string hierarchyBase64 = string.Empty;
+            if (!string.Equals(request.KnownHierarchySnapshotId, frame.HierarchySnapshotId,
+                    StringComparison.Ordinal))
+            {
+                if (!_recorder.TryGetSceneGraphBlob(frame.HierarchySnapshotId, out byte[] hierarchyBytes))
+                {
+                    SendFrameError(envelope.RequestId, request.RecordingId, request.UnityFrame,
+                        "The recorded hierarchy snapshot is no longer available.");
+                    return;
+                }
+                hierarchyBase64 = Convert.ToBase64String(hierarchyBytes);
+            }
+
+            string inspectorBase64 = string.Empty;
+            if (!string.Equals(request.KnownInspectorSnapshotId, frame.InspectorSnapshotId,
+                    StringComparison.Ordinal))
+            {
+                if (!_recorder.TryGetSceneGraphBlob(frame.InspectorSnapshotId, out byte[] inspectorBytes))
+                {
+                    SendFrameError(envelope.RequestId, request.RecordingId, request.UnityFrame,
+                        "The recorded inspector snapshot is no longer available.");
+                    return;
+                }
+                inspectorBase64 = Convert.ToBase64String(inspectorBytes);
+            }
+
+            if (imageBase64.Length + hierarchyBase64.Length + inspectorBase64.Length >
+                RemoteProtocolConstants.MaximumMessageBytes - 8192)
             {
                 SendFrameError(envelope.RequestId, request.RecordingId, request.UnityFrame,
                     "The recorded frame exceeded the remote message limit. Use a smaller capture width.");
@@ -203,8 +260,69 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
                     RecordingId = request.RecordingId,
                     UnityFrame = request.UnityFrame,
                     ImageBase64 = imageBase64,
-                    SceneGraphGzipBase64 = graphBase64
+                    SceneGraphFormatVersion = RemoteRecordedSceneGraphFormats.ContentAddressedSections,
+                    HierarchySnapshotId = frame.HierarchySnapshotId,
+                    HierarchyGzipBase64 = hierarchyBase64,
+                    InspectorSnapshotId = frame.InspectorSnapshotId,
+                    InspectorGzipBase64 = inspectorBase64
                 });
+        }
+
+        private bool TryBuildLegacySceneGraph(RuntimeRecordedFrameData frame, out string base64,
+            out string error)
+        {
+            base64 = null;
+            error = null;
+            try
+            {
+                if (!_recorder.TryGetSceneGraphBlob(frame.HierarchySnapshotId,
+                        out byte[] hierarchyBytes) ||
+                    !_recorder.TryGetSceneGraphBlob(frame.InspectorSnapshotId,
+                        out byte[] inspectorBytes))
+                {
+                    error = "The recorded scene graph is no longer available.";
+                    return false;
+                }
+
+                RemoteSceneInspectorHierarchyResponse hierarchy =
+                    JsonUtility.FromJson<RemoteSceneInspectorHierarchyResponse>(
+                        Encoding.UTF8.GetString(Decompress(hierarchyBytes)));
+                RemoteRecordedInspectorSnapshot inspector =
+                    JsonUtility.FromJson<RemoteRecordedInspectorSnapshot>(
+                        Encoding.UTF8.GetString(Decompress(inspectorBytes)));
+                var graph = new RemoteRecordedSceneGraph
+                {
+                    Hierarchy = hierarchy ?? new RemoteSceneInspectorHierarchyResponse(),
+                    Inspections = inspector?.Inspections ?? Array.Empty<RemoteObjectDetails>(),
+                    Error = inspector?.Error
+                };
+                byte[] json = Encoding.UTF8.GetBytes(JsonUtility.ToJson(graph));
+                base64 = Convert.ToBase64String(Compress(json));
+                return true;
+            }
+            catch (Exception exception)
+            {
+                error = exception.GetType().Name + ": " + exception.Message;
+                return false;
+            }
+        }
+
+        private static byte[] Compress(byte[] bytes)
+        {
+            using var output = new MemoryStream();
+            using (var gzip = new GZipStream(output,
+                       System.IO.Compression.CompressionLevel.Fastest, true))
+                gzip.Write(bytes, 0, bytes.Length);
+            return output.ToArray();
+        }
+
+        private static byte[] Decompress(byte[] bytes)
+        {
+            using var input = new MemoryStream(bytes ?? Array.Empty<byte>());
+            using var gzip = new GZipStream(input, CompressionMode.Decompress);
+            using var output = new MemoryStream();
+            gzip.CopyTo(output);
+            return output.ToArray();
         }
 
         private void SendControl(long requestId, RemoteFrameRecorderAction action)
@@ -227,6 +345,7 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
                     FirstUnityFrame = firstFrame,
                     LastUnityFrame = lastFrame,
                     StoredBytes = _recorder?.StoredBytes ?? 0,
+                    SceneGraphBytesSaved = _recorder?.SceneGraphBytesSaved ?? 0,
                     UsesAsyncGpuReadback = _recorder?.UsesAsyncGpuReadback == true,
                     PlayerFrozen = _recorder?.PlayerFrozen == true,
                     InspectorScope = _recorder?.InspectorScope ??

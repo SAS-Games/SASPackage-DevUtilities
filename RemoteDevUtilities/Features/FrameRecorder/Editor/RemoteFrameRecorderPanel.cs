@@ -230,8 +230,11 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
                     string readback = status.UsesAsyncGpuReadback
                         ? "async GPU readback"
                         : "synchronous readback fallback";
+                    string graphSavings = status.SceneGraphBytesSaved > 0
+                        ? $", graph reuse saved {FormatBytes(status.SceneGraphBytesSaved)}"
+                        : string.Empty;
                     EditorGUILayout.LabelField(
-                        $"Sealed: {status.CapturedFrameCount}/{status.Capacity} frames, {gaps}, {FormatBytes(status.StoredBytes)}, {readback} + background encoding",
+                        $"Sealed: {status.CapturedFrameCount}/{status.Capacity} frames, {gaps}, {FormatBytes(status.StoredBytes)}{graphSavings}, {readback} + background encoding",
                         EditorStyles.centeredGreyMiniLabel);
                     if (!string.IsNullOrEmpty(status.Warning))
                         EditorGUILayout.HelpBox(status.Warning, MessageType.Warning);

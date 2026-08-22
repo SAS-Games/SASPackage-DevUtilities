@@ -10,6 +10,12 @@ namespace SAS.Utilities.RemoteDevUtilities.Protocol.FrameRecorder
         public const int DefaultCapacity = 30;
     }
 
+    public static class RemoteRecordedSceneGraphFormats
+    {
+        public const int LegacyFullSnapshot = 0;
+        public const int ContentAddressedSections = 1;
+    }
+
     public static class RemoteFrameRecorderMessageTypes
     {
         public const string ControlRequest = "frame-recorder.control.request";
@@ -69,6 +75,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Protocol.FrameRecorder
         public int FirstUnityFrame;
         public int LastUnityFrame;
         public long StoredBytes;
+        public long SceneGraphBytesSaved;
         public bool UsesAsyncGpuReadback;
         public bool PlayerFrozen;
         public RemoteFrameRecorderInspectorScope InspectorScope;
@@ -108,6 +115,9 @@ namespace SAS.Utilities.RemoteDevUtilities.Protocol.FrameRecorder
     {
         public long RecordingId;
         public int UnityFrame;
+        public int SupportedSceneGraphFormatVersion;
+        public string KnownHierarchySnapshotId;
+        public string KnownInspectorSnapshotId;
     }
 
     [Serializable]
@@ -116,6 +126,12 @@ namespace SAS.Utilities.RemoteDevUtilities.Protocol.FrameRecorder
         public long RecordingId;
         public int UnityFrame;
         public string ImageBase64;
+        public int SceneGraphFormatVersion;
+        public string HierarchySnapshotId;
+        public string HierarchyGzipBase64;
+        public string InspectorSnapshotId;
+        public string InspectorGzipBase64;
+        // Retained so the current Editor can still read recordings produced by older Players.
         public string SceneGraphGzipBase64;
         public string Error;
     }
@@ -124,6 +140,13 @@ namespace SAS.Utilities.RemoteDevUtilities.Protocol.FrameRecorder
     public sealed class RemoteRecordedSceneGraph
     {
         public RemoteSceneInspectorHierarchyResponse Hierarchy = new();
+        public RemoteObjectDetails[] Inspections = Array.Empty<RemoteObjectDetails>();
+        public string Error;
+    }
+
+    [Serializable]
+    public sealed class RemoteRecordedInspectorSnapshot
+    {
         public RemoteObjectDetails[] Inspections = Array.Empty<RemoteObjectDetails>();
         public string Error;
     }

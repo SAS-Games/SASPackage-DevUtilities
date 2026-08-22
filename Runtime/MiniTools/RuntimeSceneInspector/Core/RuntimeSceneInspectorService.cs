@@ -95,10 +95,54 @@ namespace SAS.Utilities.RuntimeSceneInspector.Core
                 }
 
                 _registry.EndReconciliation();
-                _snapshot = new RuntimeHierarchySnapshot { Revision = _snapshot.Revision + 1, Entries = entries };
+                if (!HierarchyEquals(_snapshot.Entries, entries))
+                {
+                    _snapshot = new RuntimeHierarchySnapshot
+                    {
+                        Revision = _snapshot.Revision + 1,
+                        Entries = entries
+                    };
+                }
                 _rootObjectBuffer.Clear();
                 _sceneHandleBuffer.Clear();
             }
+        }
+
+        private static bool HierarchyEquals(IReadOnlyList<RuntimeHierarchyEntry> left,
+            IReadOnlyList<RuntimeHierarchyEntry> right)
+        {
+            if (ReferenceEquals(left, right))
+                return true;
+            if (left == null || right == null || left.Count != right.Count)
+                return false;
+
+            for (int i = 0; i < left.Count; i++)
+            {
+                RuntimeHierarchyEntry a = left[i];
+                RuntimeHierarchyEntry b = right[i];
+                if (a.Id != b.Id || a.ParentId != b.ParentId || a.SceneId != b.SceneId ||
+                    a.Kind != b.Kind || !string.Equals(a.Name, b.Name, StringComparison.Ordinal) ||
+                    a.ActiveSelf != b.ActiveSelf || a.ActiveInHierarchy != b.ActiveInHierarchy ||
+                    !StringArraysEqual(a.ComponentTypeNames, b.ComponentTypeNames))
+                    return false;
+            }
+
+            return true;
+        }
+
+        private static bool StringArraysEqual(string[] left, string[] right)
+        {
+            if (ReferenceEquals(left, right))
+                return true;
+            if (left == null || right == null || left.Length != right.Length)
+                return false;
+            for (int i = 0; i < left.Length; i++)
+            {
+                if (!string.Equals(left[i], right[i], StringComparison.Ordinal))
+                    return false;
+            }
+
+            return true;
         }
 
         public RuntimeObjectDetails InspectObject(RuntimeObjectId objectId)

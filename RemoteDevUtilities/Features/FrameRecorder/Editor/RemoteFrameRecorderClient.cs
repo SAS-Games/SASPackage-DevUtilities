@@ -6,6 +6,7 @@ using System.Text;
 using SAS.Utilities.RemoteDevUtilities.Editor.Client;
 using SAS.Utilities.RemoteDevUtilities.Protocol;
 using SAS.Utilities.RemoteDevUtilities.Protocol.FrameRecorder;
+using SAS.Utilities.RemoteDevUtilities.Protocol.RuntimeSceneInspector;
 using SAS.Utilities.RemoteDevUtilities.Protocol.Serialization;
 using UnityEngine;
 
@@ -34,6 +35,10 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
         private long _manifestRequestId;
         private long _frameRequestId;
         private int _nextDownloadIndex;
+        private string _knownHierarchySnapshotId;
+        private string _knownInspectorSnapshotId;
+        private RemoteSceneInspectorHierarchyResponse _knownHierarchy;
+        private RemoteRecordedInspectorSnapshot _knownInspector;
 
         public RemoteFrameRecorderClient(IRemoteEditorSession session) => _session = session;
 
@@ -184,7 +189,11 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
                 new RemoteFrameRecorderFrameRequest
                 {
                     RecordingId = Manifest.RecordingId,
-                    UnityFrame = frames[_nextDownloadIndex].UnityFrame
+                    UnityFrame = frames[_nextDownloadIndex].UnityFrame,
+                    SupportedSceneGraphFormatVersion =
+                        RemoteRecordedSceneGraphFormats.ContentAddressedSections,
+                    KnownHierarchySnapshotId = _knownHierarchySnapshotId,
+                    KnownInspectorSnapshotId = _knownInspectorSnapshotId
                 });
         }
 
@@ -208,9 +217,10 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
 
             try
             {
-                byte[] compressedGraph = Convert.FromBase64String(response.SceneGraphGzipBase64 ?? string.Empty);
-                string graphJson = Encoding.UTF8.GetString(Decompress(compressedGraph));
-                RemoteRecordedSceneGraph graph = JsonUtility.FromJson<RemoteRecordedSceneGraph>(graphJson);
+                RemoteRecordedSceneGraph graph = response.SceneGraphFormatVersion >=
+                                                 RemoteRecordedSceneGraphFormats.ContentAddressedSections
+                    ? ResolveSectionedSceneGraph(response)
+                    : ResolveLegacySceneGraph(response);
                 RemoteRecordedFrameInfo info = Manifest.Frames[_nextDownloadIndex];
                 _replayFrames.Add(new RemoteFrameReplayFrame
                 {
@@ -235,6 +245,63 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
             _manifestRequestId = 0;
             _frameRequestId = 0;
             _replayFrames.Clear();
+            _knownHierarchySnapshotId = null;
+            _knownInspectorSnapshotId = null;
+            _knownHierarchy = null;
+            _knownInspector = null;
+        }
+
+        private RemoteRecordedSceneGraph ResolveSectionedSceneGraph(
+            RemoteFrameRecorderFrameResponse response)
+        {
+            if (string.IsNullOrEmpty(response.HierarchySnapshotId) ||
+                string.IsNullOrEmpty(response.InspectorSnapshotId))
+                throw new InvalidDataException("The recorded frame has incomplete scene-graph references.");
+
+            if (!string.IsNullOrEmpty(response.HierarchyGzipBase64))
+            {
+                _knownHierarchy = DeserializeCompressed<RemoteSceneInspectorHierarchyResponse>(
+                    response.HierarchyGzipBase64);
+                _knownHierarchySnapshotId = response.HierarchySnapshotId;
+            }
+            else if (!string.Equals(_knownHierarchySnapshotId, response.HierarchySnapshotId,
+                         StringComparison.Ordinal) || _knownHierarchy == null)
+            {
+                throw new InvalidDataException("The hierarchy delta references an unavailable snapshot.");
+            }
+
+            if (!string.IsNullOrEmpty(response.InspectorGzipBase64))
+            {
+                _knownInspector = DeserializeCompressed<RemoteRecordedInspectorSnapshot>(
+                    response.InspectorGzipBase64);
+                _knownInspectorSnapshotId = response.InspectorSnapshotId;
+            }
+            else if (!string.Equals(_knownInspectorSnapshotId, response.InspectorSnapshotId,
+                         StringComparison.Ordinal) || _knownInspector == null)
+            {
+                throw new InvalidDataException("The inspector delta references an unavailable snapshot.");
+            }
+
+            return new RemoteRecordedSceneGraph
+            {
+                Hierarchy = _knownHierarchy ?? new RemoteSceneInspectorHierarchyResponse(),
+                Inspections = _knownInspector?.Inspections ?? Array.Empty<RemoteObjectDetails>(),
+                Error = _knownInspector?.Error
+            };
+        }
+
+        private static RemoteRecordedSceneGraph ResolveLegacySceneGraph(
+            RemoteFrameRecorderFrameResponse response)
+        {
+            return DeserializeCompressed<RemoteRecordedSceneGraph>(response.SceneGraphGzipBase64) ??
+                   new RemoteRecordedSceneGraph();
+        }
+
+        private static T DeserializeCompressed<T>(string base64)
+        {
+            byte[] compressed = Convert.FromBase64String(base64 ?? string.Empty);
+            string json = Encoding.UTF8.GetString(Decompress(compressed));
+            return JsonUtility.FromJson<T>(json);
         }
 
         private static byte[] Decompress(byte[] compressed)
