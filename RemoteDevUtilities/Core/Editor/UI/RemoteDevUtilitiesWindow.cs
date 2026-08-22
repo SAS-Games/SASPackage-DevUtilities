@@ -143,7 +143,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI
         private IReadOnlyList<RemoteWorkspacePanelInstance> _workspacePanels =
             Array.Empty<RemoteWorkspacePanelInstance>();
         private string _initializationError;
-        [SerializeField] private bool _showNativeWorkspace;
+        [SerializeField] private bool _showNativeWorkspace = true;
         [SerializeField] private string _selectedWorkspacePanelId = "commands";
         [SerializeField] private Vector2 _windowScroll;
 
@@ -182,9 +182,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI
 
         private void OnGUI()
         {
-            _windowScroll = EditorGUILayout.BeginScrollView(_windowScroll);
             DrawWindowContent();
-            EditorGUILayout.EndScrollView();
         }
 
         private void DrawWindowContent()
@@ -201,15 +199,14 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI
             bool previouslyShowingNativeWorkspace = _showNativeWorkspace;
             for (int i = 0; i < _workspaceHeaders.Count; i++)
                 _showNativeWorkspace = _workspaceHeaders[i].Draw(_client, _showNativeWorkspace);
+
+            DrawWorkspaceVisibilityToolbar();
             if (previouslyShowingNativeWorkspace && !_showNativeWorkspace)
                 DeactivateSelectedWorkspacePanel();
-            EditorGUILayout.Space(4f);
 
             if (!_showNativeWorkspace)
                 return;
 
-            EditorGUILayout.Space(5f);
-            EditorGUILayout.LabelField("Native Workspace", EditorStyles.boldLabel);
             if (_workspacePanels.Count == 0)
             {
                 EditorGUILayout.HelpBox("No Remote Dev Utilities workspace features are installed.", MessageType.Info);
@@ -227,11 +224,32 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI
                 _workspacePanels[selectedIndex].Panel.Deactivate();
                 selectedIndex = nextIndex;
                 _selectedWorkspacePanelId = _workspacePanels[selectedIndex].Registration.Id;
+                _windowScroll = Vector2.zero;
             }
 
             EditorGUILayout.Space(3f);
-            if (_workspacePanels[selectedIndex].Panel.Draw(_client, _client.IsConnected, position))
-                _windowScroll.y = float.MaxValue;
+            _windowScroll = EditorGUILayout.BeginScrollView(_windowScroll,
+                GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
+            try
+            {
+                if (_workspacePanels[selectedIndex].Panel.Draw(_client, _client.IsConnected, position))
+                    _windowScroll.y = float.MaxValue;
+            }
+            finally
+            {
+                EditorGUILayout.EndScrollView();
+            }
+        }
+
+        private void DrawWorkspaceVisibilityToolbar()
+        {
+            EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
+            GUILayout.Label("Native Workspace", EditorStyles.miniBoldLabel);
+            GUILayout.FlexibleSpace();
+            string label = _showNativeWorkspace ? "Hide Workspace" : "Show Workspace";
+            if (GUILayout.Button(label, EditorStyles.toolbarButton, GUILayout.Width(104f)))
+                _showNativeWorkspace = !_showNativeWorkspace;
+            EditorGUILayout.EndHorizontal();
         }
 
         private int FindSelectedWorkspacePanelIndex()

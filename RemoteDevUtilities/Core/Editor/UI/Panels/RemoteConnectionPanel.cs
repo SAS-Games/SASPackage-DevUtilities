@@ -16,6 +16,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
         private readonly IReadOnlyList<RemoteConnectionPanelContributionInstance> _contributions;
         private bool _expanded;
         private string _selectedMethodId;
+        private bool _connectionStateInitialized;
+        private bool _wasConnected;
 
         public RemoteConnectionPanel(EditorWindow owner, Action repaint)
         {
@@ -26,9 +28,21 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
 
         public void Draw(RemoteDevUtilitiesClient client)
         {
+            SynchronizeExpansion(client.IsConnected);
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             EditorGUILayout.BeginHorizontal();
             bool expanded = EditorGUILayout.Foldout(_expanded, BuildHeader(client), true, EditorStyles.foldoutHeader);
+            if (!expanded && (client.IsConnected || client.IsHandshakePending))
+            {
+                string action = client.IsConnected ? "Disconnect" : "Cancel";
+                if (GUILayout.Button(action, EditorStyles.miniButton, GUILayout.Width(78f)))
+                {
+                    if (client.IsConnected)
+                        client.Disconnect();
+                    else
+                        client.CancelConnect();
+                }
+            }
             if (GUILayout.Button(
                     new GUIContent("Settings", "Open the Remote Dev Utilities project settings."),
                     EditorStyles.miniButton,
@@ -65,6 +79,31 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
             if (!string.IsNullOrEmpty(client.ConnectionError))
                 EditorGUILayout.HelpBox(client.ConnectionError, MessageType.Error);
             EditorGUILayout.EndVertical();
+        }
+
+        private void SynchronizeExpansion(bool connected)
+        {
+            if (!_connectionStateInitialized)
+            {
+                _connectionStateInitialized = true;
+                _wasConnected = connected;
+                SetExpanded(!connected);
+                return;
+            }
+
+            if (connected == _wasConnected)
+                return;
+
+            _wasConnected = connected;
+            SetExpanded(!connected);
+        }
+
+        private void SetExpanded(bool expanded)
+        {
+            if (_expanded == expanded)
+                return;
+            _expanded = expanded;
+            EditorPrefs.SetBool(ExpandedPreferenceKey, _expanded);
         }
 
         public void Dispose()

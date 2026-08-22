@@ -11,7 +11,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
     {
         private const string ExpandedPreferenceKey = "RemoteDevUtilities.DebugHostPanelExpanded";
 
-        private bool _expanded = EditorPrefs.GetBool(ExpandedPreferenceKey, true);
+        private bool _expanded = EditorPrefs.GetBool(ExpandedPreferenceKey, false);
 
         public bool Draw(RemoteDevUtilitiesClient client, bool showNativeWorkspace)
         {
@@ -81,12 +81,6 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
                     if (GUILayout.Button("Launch Play Mode Debug Host", GUILayout.Height(28f)))
                         RemoteDebugHostLauncher.Launch();
                 }
-            }
-
-            string workspaceButtonLabel = showNativeWorkspace ? "Hide Native Workspace" : "Open Native Workspace";
-            if (GUILayout.Button(workspaceButtonLabel, GUILayout.Width(150f), GUILayout.Height(28f)))
-            {
-                showNativeWorkspace = !showNativeWorkspace;
             }
 
             EditorGUILayout.EndHorizontal();
