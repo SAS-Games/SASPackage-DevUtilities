@@ -34,14 +34,14 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector.Capture
             RemoteSceneCaptureResponse capture = client.Capture;
             if (client.IsCapturePending)
             {
-                EditorGUILayout.HelpBox("Capturing the Player at the end of its current frame...", MessageType.Info);
+                EditorGUILayout.HelpBox("Capturing a frame at the end of the Player's current frame...", MessageType.Info);
                 return;
             }
 
             if (capture == null)
             {
                 DestroyTexture();
-                EditorGUILayout.HelpBox("Capture the connected Player, then click the captured frame to inspect an object.", MessageType.None);
+                EditorGUILayout.HelpBox("Capture a frame, then click it to inspect an object.", MessageType.None);
                 return;
             }
 
@@ -82,7 +82,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector.Capture
             using (new EditorGUI.DisabledScope(client.IsCapturePending || client.IsPickPending ||
                                                 client.IsCaptureReleasePending))
             {
-                if (GUILayout.Button("Capture Player View", EditorStyles.toolbarButton, GUILayout.Width(130f)))
+                if (GUILayout.Button("Capture Frame", EditorStyles.toolbarButton, GUILayout.Width(96f)))
                 {
                     _lastPickUv = new Vector2(-1f, -1f);
                     client.RequestCapture(_freezeWhilePicking, CaptureWidthValues[_captureWidthIndex]);
@@ -92,16 +92,16 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector.Capture
             GUILayout.FlexibleSpace();
             using (new EditorGUI.DisabledScope(!client.CanReleaseCapture))
             {
-                string releaseLabel = client.IsCapturePending ? "Cancel" : "Release";
-                if (GUILayout.Button(releaseLabel, EditorStyles.toolbarButton, GUILayout.Width(58f)))
+                string releaseLabel = client.IsCapturePending ? "Cancel" : "Close Capture";
+                if (GUILayout.Button(releaseLabel, EditorStyles.toolbarButton, GUILayout.Width(86f)))
                     client.ReleaseCapture();
             }
             EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.BeginHorizontal(availableWidth < 520f ? EditorStyles.toolbar : GUIStyle.none);
-            _freezeWhilePicking = GUILayout.Toggle(_freezeWhilePicking, "Freeze while picking",
+            _freezeWhilePicking = GUILayout.Toggle(_freezeWhilePicking, "Pause Player while inspecting",
                 availableWidth < 520f ? EditorStyles.toolbarButton : EditorStyles.miniButton,
-                GUILayout.Width(125f));
+                GUILayout.Width(174f));
             GUILayout.FlexibleSpace();
             GUILayout.Label("Width", EditorStyles.miniLabel, GUILayout.Width(36f));
             _captureWidthIndex = EditorGUILayout.Popup(_captureWidthIndex, CaptureWidths,
@@ -166,7 +166,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector.Capture
                 return;
             }
 
-            string freezeStatus = capture.PlayerFrozen ? "Player frozen while selecting" : "Player continues running";
+            string freezeStatus = capture.PlayerFrozen ? "Player paused while inspecting" : "Player continues running";
             EditorGUILayout.LabelField($"Frame {capture.FrameCount}  •  {capture.Width}×{capture.Height}  •  {freezeStatus}",
                 EditorStyles.centeredGreyMiniLabel);
         }

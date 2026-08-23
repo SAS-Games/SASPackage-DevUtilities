@@ -23,6 +23,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
         private readonly RemoteHierarchyView _hierarchy = new();
         private readonly RemoteInspectorView _inspector = new();
         private readonly RemoteSceneCaptureView _capture = new();
+        private readonly RemoteSceneInspectorWorkspaceLayout _layout = new();
+        private readonly RemoteSceneInspectorSelectionBreadcrumb _breadcrumb = new();
         private readonly List<IRemoteSceneInspectorMode> _additionalModes = new();
         private int _observedPickRevision;
         private long _pendingPickedObjectId;
@@ -88,36 +90,32 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
             {
                 _observedPickRevision = client.PickRevision;
                 _pendingPickedObjectId = client.LastPickedObjectId;
+                _layout.ShowInspector();
             }
             if (_pendingPickedObjectId > 0 && _hierarchy.SelectAndReveal(_pendingPickedObjectId, client.Hierarchy))
                 _pendingPickedObjectId = 0;
 
-            float contentWidth = Mathf.Max(680f, windowRect.width - 24f);
-            float hierarchyWidth = Mathf.Clamp(contentWidth * 0.24f, 190f, 300f);
-            float captureWidth = Mathf.Clamp(contentWidth * 0.4f, 320f, 720f);
-            float columnHeight = Mathf.Max(300f, windowRect.height - 230f);
-
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.BeginVertical(EditorStyles.helpBox, GUILayout.Width(hierarchyWidth),
-                GUILayout.Height(columnHeight));
-            _hierarchyScroll = EditorGUILayout.BeginScrollView(_hierarchyScroll);
-            _hierarchy.Draw(client);
-            EditorGUILayout.EndScrollView();
-            EditorGUILayout.EndVertical();
-
-            EditorGUILayout.BeginVertical(EditorStyles.helpBox, GUILayout.Width(captureWidth),
-                GUILayout.Height(columnHeight));
-            _captureScroll = EditorGUILayout.BeginScrollView(_captureScroll);
-            _capture.Draw(client, captureWidth);
-            EditorGUILayout.EndScrollView();
-            EditorGUILayout.EndVertical();
-
-            EditorGUILayout.BeginVertical(EditorStyles.helpBox, GUILayout.Height(columnHeight));
-            _inspectorScroll = EditorGUILayout.BeginScrollView(_inspectorScroll);
-            _inspector.Draw(client);
-            EditorGUILayout.EndScrollView();
-            EditorGUILayout.EndVertical();
-            EditorGUILayout.EndHorizontal();
+            _breadcrumb.Draw(client, "LIVE INSPECTOR");
+            _layout.Draw(windowRect, 255f,
+                "Hierarchy", "Captured Frame", "Inspector",
+                (width, _) =>
+                {
+                    _hierarchyScroll = EditorGUILayout.BeginScrollView(_hierarchyScroll);
+                    _hierarchy.Draw(client, _layout.ShowInspector);
+                    EditorGUILayout.EndScrollView();
+                },
+                (width, _) =>
+                {
+                    _captureScroll = EditorGUILayout.BeginScrollView(_captureScroll);
+                    _capture.Draw(client, width);
+                    EditorGUILayout.EndScrollView();
+                },
+                (_, _) =>
+                {
+                    _inspectorScroll = EditorGUILayout.BeginScrollView(_inspectorScroll);
+                    _inspector.Draw(client);
+                    EditorGUILayout.EndScrollView();
+                });
         }
 
         public void Dispose()
@@ -135,10 +133,13 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
             if (_additionalModes.Count == 0)
                 return;
             var labels = new string[_additionalModes.Count + 1];
-            labels[0] = "Live Capture";
+            labels[0] = "Live Inspector";
             for (int i = 0; i < _additionalModes.Count; i++)
                 labels[i + 1] = _additionalModes[i].DisplayName;
+            EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
+            GUILayout.Label("MODE", EditorStyles.miniBoldLabel, GUILayout.Width(38f));
             _selectedMode = GUILayout.Toolbar(_selectedMode, labels, EditorStyles.toolbarButton);
+            EditorGUILayout.EndHorizontal();
         }
 
         private void SynchronizeMode()

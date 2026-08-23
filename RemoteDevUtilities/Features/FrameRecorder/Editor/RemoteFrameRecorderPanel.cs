@@ -16,7 +16,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
         private static readonly string[] PlaybackSpeedLabels = { "0.25x", "0.5x", "1x", "2x" };
         private static readonly float[] PlaybackSpeedValues = { 0.25f, 0.5f, 1f, 2f };
         private static readonly string[] InspectorScopeLabels =
-            { "Selected object", "Hierarchy only", "All objects (optimized)" };
+            { "Selected Object", "Hierarchy Only", "All Objects" };
         private static readonly RemoteFrameRecorderInspectorScope[] InspectorScopeValues =
         {
             RemoteFrameRecorderInspectorScope.SelectedObject,
@@ -28,6 +28,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
         private readonly RemoteInspectorView _inspector = new();
         private readonly RemoteHierarchyView _liveHierarchy = new();
         private readonly RemoteInspectorView _liveInspector = new();
+        private readonly RemoteSceneInspectorWorkspaceLayout _layout = new();
+        private readonly RemoteSceneInspectorSelectionBreadcrumb _breadcrumb = new();
         private Action _repaint;
         private RemoteRuntimeSceneInspectorClient _replayClient;
         private Texture2D _texture;
@@ -49,7 +51,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
         private Vector2 _captureScroll;
         private Vector2 _inspectorScroll;
 
-        public string DisplayName => "Frame Recording";
+        public string DisplayName => "Frame Recorder";
         public bool IsAvailable => RemoteDevUtilitiesProjectSettings.instance.Runtime
             .EnableExperimentalFrameRecorder;
 
@@ -73,7 +75,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
 
             if (!connected)
             {
-                EditorGUILayout.HelpBox("Connect to a development Player to record recent frames.",
+                EditorGUILayout.HelpBox("Connect to a development Player to use the Frame Recorder.",
                     MessageType.Info);
                 return false;
             }
@@ -111,7 +113,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
             using (new EditorGUI.DisabledScope(busy || state == RemoteFrameRecorderState.Recording ||
                                                 missingSelection))
             {
-                if (GUILayout.Button("Arm Recorder", EditorStyles.toolbarButton, GUILayout.Width(92f)))
+                if (GUILayout.Button("Start Recording", EditorStyles.toolbarButton, GUILayout.Width(100f)))
                 {
                     ResetReplayView();
                     client.Start(_capacity, WidthValues[_widthIndex], _jpegQuality,
@@ -125,8 +127,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
             {
                 string fetchLabel = state == RemoteFrameRecorderState.Sealed
                     ? "Download Frames"
-                    : "Fetch Last Frames";
-                if (GUILayout.Button(fetchLabel, EditorStyles.toolbarButton, GUILayout.Width(112f)))
+                    : "Stop & Download";
+                if (GUILayout.Button(fetchLabel, EditorStyles.toolbarButton, GUILayout.Width(110f)))
                 {
                     ResetReplayView();
                     client.SealAndFetch(_freezeWhenFetched);
@@ -135,7 +137,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
 
             using (new EditorGUI.DisabledScope(busy || state == RemoteFrameRecorderState.Idle))
             {
-                if (GUILayout.Button("Release", EditorStyles.toolbarButton, GUILayout.Width(56f)))
+                if (GUILayout.Button("Release Player Memory", EditorStyles.toolbarButton,
+                        GUILayout.Width(136f)))
                 {
                     _playing = false;
                     client.Release();
@@ -143,43 +146,43 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
             }
 
             GUILayout.FlexibleSpace();
-            GUILayout.Label("Frames", EditorStyles.miniLabel, GUILayout.Width(42f));
+            GUILayout.Label("Frame Count", EditorStyles.miniLabel, GUILayout.Width(68f));
             _capacity = Mathf.Clamp(EditorGUILayout.DelayedIntField(_capacity, GUILayout.Width(48f)),
                 RemoteFrameRecorderLimits.MinimumCapacity,
                 RemoteFrameRecorderLimits.MaximumCapacity);
-            GUILayout.Label("Width", EditorStyles.miniLabel, GUILayout.Width(34f));
+            GUILayout.Label("Image Width", EditorStyles.miniLabel, GUILayout.Width(66f));
             _widthIndex = EditorGUILayout.Popup(_widthIndex, WidthLabels,
                 EditorStyles.toolbarPopup, GUILayout.Width(48f));
             EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.BeginHorizontal();
-            GUILayout.Label("Inspector", GUILayout.Width(58f));
+            GUILayout.Label("Recorded Data", GUILayout.Width(86f));
             _inspectorScopeIndex = EditorGUILayout.Popup(_inspectorScopeIndex, InspectorScopeLabels,
                 GUILayout.Width(140f));
             if (scope == RemoteFrameRecorderInspectorScope.SelectedObject)
             {
                 string selectedName = liveInspector.Inspection?.Details?.Name;
                 GUILayout.Label(inspectedObjectId > 0
-                        ? $"Recording: {selectedName ?? inspectedObjectId.ToString()}"
-                        : "Select an object in the Live Hierarchy below",
+                        ? $"Selected: {selectedName ?? inspectedObjectId.ToString()}"
+                        : "Select an object in the Hierarchy below",
                     EditorStyles.miniLabel, GUILayout.MinWidth(180f));
             }
-            _freezeWhenFetched = EditorGUILayout.ToggleLeft("Freeze Player when fetched",
-                _freezeWhenFetched, GUILayout.Width(178f));
-            GUILayout.Label("JPEG quality", GUILayout.Width(76f));
+            _freezeWhenFetched = EditorGUILayout.ToggleLeft("Pause Player after stopping",
+                _freezeWhenFetched, GUILayout.Width(190f));
+            GUILayout.Label("Image Quality", GUILayout.Width(82f));
             _jpegQuality = EditorGUILayout.IntSlider(_jpegQuality, 35, 90, GUILayout.MaxWidth(280f));
             EditorGUILayout.EndHorizontal();
 
             if (scope == RemoteFrameRecorderInspectorScope.AllObjects)
             {
                 EditorGUILayout.HelpBox(
-                    "All objects uses cached metadata, curated Unity component readers, and granular snapshot reuse. Unity values must still be read on the main thread, so large or shader-heavy scenes can remain expensive.",
+                    "All Objects uses cached metadata, curated Unity component readers, and granular snapshot reuse. Unity values must still be read on the main thread, so large or shader-heavy scenes can remain expensive.",
                     MessageType.Warning);
             }
             if (_capacity > 100)
             {
                 EditorGUILayout.HelpBox(
-                    "Large recordings use more Player memory and take longer to download. Use a smaller width and Selected object or Hierarchy only when approaching 300 frames.",
+                    "Large recordings use more Player memory and take longer to download. Use a smaller image width and Selected Object or Hierarchy Only when approaching 300 frames.",
                     MessageType.Info);
             }
         }
@@ -237,14 +240,14 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
                         ? $", graph reuse saved {FormatBytes(status.SceneGraphBytesSaved)}"
                         : string.Empty;
                     EditorGUILayout.LabelField(
-                        $"Sealed: {status.CapturedFrameCount}/{status.Capacity} frames, {gaps}, {FormatBytes(status.StoredBytes)}{graphSavings}, {readback} + background encoding",
+                        $"Stopped: {status.CapturedFrameCount}/{status.Capacity} frames, {gaps}, {FormatBytes(status.StoredBytes)}{graphSavings}, {readback} + background encoding",
                         EditorStyles.centeredGreyMiniLabel);
                     if (!string.IsNullOrEmpty(status.Warning))
                         EditorGUILayout.HelpBox(status.Warning, MessageType.Warning);
                     break;
                 default:
                     EditorGUILayout.HelpBox(
-                        "Arm the recorder, reproduce the problem, then fetch the latest consecutive frames.",
+                        "Start recording, reproduce the problem, then stop and download the latest consecutive frames.",
                         MessageType.None);
                     break;
             }
@@ -271,85 +274,70 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
             if (!string.IsNullOrEmpty(frame.SceneGraph?.Error))
                 EditorGUILayout.HelpBox(frame.SceneGraph.Error, MessageType.Warning);
 
-            float contentWidth = Mathf.Max(680f, windowRect.width - 24f);
-            float hierarchyWidth = Mathf.Clamp(contentWidth * 0.24f, 190f, 300f);
-            float captureWidth = Mathf.Clamp(contentWidth * 0.4f, 320f, 720f);
-            float columnHeight = Mathf.Max(300f, windowRect.height - 285f);
-
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.BeginVertical(EditorStyles.helpBox, GUILayout.Width(hierarchyWidth),
-                GUILayout.Height(columnHeight));
-            _hierarchyScroll = EditorGUILayout.BeginScrollView(_hierarchyScroll);
-            EditorGUILayout.LabelField("Recorded Hierarchy", EditorStyles.boldLabel);
-            _hierarchy.Draw(_replayClient);
-            EditorGUILayout.EndScrollView();
-            EditorGUILayout.EndVertical();
-
-            EditorGUILayout.BeginVertical(EditorStyles.helpBox, GUILayout.Width(captureWidth),
-                GUILayout.Height(columnHeight));
-            _captureScroll = EditorGUILayout.BeginScrollView(_captureScroll);
-            DrawImage(frame, captureWidth);
-            EditorGUILayout.EndScrollView();
-            EditorGUILayout.EndVertical();
-
-            EditorGUILayout.BeginVertical(EditorStyles.helpBox, GUILayout.Height(columnHeight));
-            _inspectorScroll = EditorGUILayout.BeginScrollView(_inspectorScroll);
-            EditorGUILayout.LabelField("Recorded Inspector", EditorStyles.boldLabel);
-            _inspector.Draw(_replayClient);
-            EditorGUILayout.EndScrollView();
-            EditorGUILayout.EndVertical();
-            EditorGUILayout.EndHorizontal();
+            _breadcrumb.Draw(_replayClient, "FRAME REPLAY");
+            _layout.Draw(windowRect, 310f,
+                "Hierarchy", "Recorded Frame", "Inspector",
+                (_, _) =>
+                {
+                    _hierarchyScroll = EditorGUILayout.BeginScrollView(_hierarchyScroll);
+                    _hierarchy.Draw(_replayClient, _layout.ShowInspector);
+                    EditorGUILayout.EndScrollView();
+                },
+                (width, _) =>
+                {
+                    _captureScroll = EditorGUILayout.BeginScrollView(_captureScroll);
+                    DrawImage(frame, width);
+                    EditorGUILayout.EndScrollView();
+                },
+                (_, _) =>
+                {
+                    _inspectorScroll = EditorGUILayout.BeginScrollView(_inspectorScroll);
+                    _inspector.Draw(_replayClient);
+                    EditorGUILayout.EndScrollView();
+                });
         }
 
         private void DrawLiveSelection(RemoteRuntimeSceneInspectorClient liveInspector,
             RemoteFrameRecorderState recorderState, Rect windowRect)
         {
-            float contentWidth = Mathf.Max(680f, windowRect.width - 24f);
-            float hierarchyWidth = Mathf.Clamp(contentWidth * 0.24f, 190f, 300f);
-            float centerWidth = Mathf.Clamp(contentWidth * 0.4f, 320f, 720f);
-            float columnHeight = Mathf.Max(300f, windowRect.height - 265f);
-
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.BeginVertical(EditorStyles.helpBox, GUILayout.Width(hierarchyWidth),
-                GUILayout.Height(columnHeight));
-            _hierarchyScroll = EditorGUILayout.BeginScrollView(_hierarchyScroll);
-            EditorGUILayout.LabelField("Live Hierarchy", EditorStyles.boldLabel);
-            _liveHierarchy.Draw(liveInspector);
-            EditorGUILayout.EndScrollView();
-            EditorGUILayout.EndVertical();
-
-            EditorGUILayout.BeginVertical(EditorStyles.helpBox, GUILayout.Width(centerWidth),
-                GUILayout.Height(columnHeight));
-            _captureScroll = EditorGUILayout.BeginScrollView(_captureScroll);
-            EditorGUILayout.LabelField("Frame Recording", EditorStyles.boldLabel);
-            if (liveInspector.InspectionObjectId <= 0)
-            {
-                EditorGUILayout.HelpBox(
-                    "Select a GameObject from the Live Hierarchy. Selected-object recording stores that object's complete historical inspector on every frame.",
-                    MessageType.Info);
-            }
-            else if (recorderState == RemoteFrameRecorderState.Recording)
-            {
-                EditorGUILayout.HelpBox(
-                    "Recording is armed. The object chosen when Arm Recorder was pressed is being recorded; changing the live selection does not change the active recording.",
-                    MessageType.Info);
-            }
-            else
-            {
-                EditorGUILayout.HelpBox(
-                    $"Selected: {liveInspector.Inspection?.Details?.Name ?? liveInspector.InspectionObjectId.ToString()}. Press Arm Recorder, reproduce the issue, then Fetch Last Frames.",
-                    MessageType.None);
-            }
-            EditorGUILayout.EndScrollView();
-            EditorGUILayout.EndVertical();
-
-            EditorGUILayout.BeginVertical(EditorStyles.helpBox, GUILayout.Height(columnHeight));
-            _inspectorScroll = EditorGUILayout.BeginScrollView(_inspectorScroll);
-            EditorGUILayout.LabelField("Live Inspector", EditorStyles.boldLabel);
-            _liveInspector.Draw(liveInspector);
-            EditorGUILayout.EndScrollView();
-            EditorGUILayout.EndVertical();
-            EditorGUILayout.EndHorizontal();
+            _breadcrumb.Draw(liveInspector, "RECORDING SETUP");
+            _layout.Draw(windowRect, 290f,
+                "Hierarchy", "Recorder Setup", "Inspector",
+                (_, _) =>
+                {
+                    _hierarchyScroll = EditorGUILayout.BeginScrollView(_hierarchyScroll);
+                    _liveHierarchy.Draw(liveInspector, _layout.ShowInspector);
+                    EditorGUILayout.EndScrollView();
+                },
+                (_, _) =>
+                {
+                    _captureScroll = EditorGUILayout.BeginScrollView(_captureScroll);
+                    if (liveInspector.InspectionObjectId <= 0)
+                    {
+                        EditorGUILayout.HelpBox(
+                            "Select a GameObject from the Hierarchy. Selected Object recording stores that object's complete historical Inspector data on every frame.",
+                            MessageType.Info);
+                    }
+                    else if (recorderState == RemoteFrameRecorderState.Recording)
+                    {
+                        EditorGUILayout.HelpBox(
+                            "Recording is active. The object chosen when Start Recording was pressed is being recorded; changing the current selection does not change the active recording.",
+                            MessageType.Info);
+                    }
+                    else
+                    {
+                        EditorGUILayout.HelpBox(
+                            $"Selected: {liveInspector.Inspection?.Details?.Name ?? liveInspector.InspectionObjectId.ToString()}. Start recording, reproduce the issue, then select Stop & Download.",
+                            MessageType.None);
+                    }
+                    EditorGUILayout.EndScrollView();
+                },
+                (_, _) =>
+                {
+                    _inspectorScroll = EditorGUILayout.BeginScrollView(_inspectorScroll);
+                    _liveInspector.Draw(liveInspector);
+                    EditorGUILayout.EndScrollView();
+                });
         }
 
         private void DrawTimeline(IReadOnlyList<RemoteFrameReplayFrame> frames)
@@ -401,7 +389,6 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
 
         private void DrawImage(RemoteFrameReplayFrame frame, float width)
         {
-            EditorGUILayout.LabelField("Recorded Player View", EditorStyles.boldLabel);
             if (_texture == null)
             {
                 EditorGUILayout.HelpBox("The recorded JPEG could not be decoded.", MessageType.Error);

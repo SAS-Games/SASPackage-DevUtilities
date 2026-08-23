@@ -36,7 +36,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
             return true;
         }
 
-        public void Draw(RemoteRuntimeSceneInspectorClient client)
+        public void Draw(RemoteRuntimeSceneInspectorClient client, Action selectionChanged = null)
         {
             SynchronizeSession(client.SessionGeneration);
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
@@ -57,11 +57,11 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
             }
             else if (string.IsNullOrWhiteSpace(_search))
             {
-                DrawChildren(client, 0L, 0);
+                DrawChildren(client, 0L, 0, selectionChanged);
             }
             else
             {
-                DrawSearchResults(client, hierarchy.Entries);
+                DrawSearchResults(client, hierarchy.Entries, selectionChanged);
             }
         }
 
@@ -99,7 +99,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
             }
         }
 
-        private void DrawChildren(RemoteRuntimeSceneInspectorClient client, long parentId, int depth)
+        private void DrawChildren(RemoteRuntimeSceneInspectorClient client, long parentId, int depth,
+            Action selectionChanged)
         {
             if (!_children.TryGetValue(parentId, out List<RemoteHierarchyEntry> entries))
                 return;
@@ -107,24 +108,26 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
             foreach (RemoteHierarchyEntry entry in entries)
             {
                 bool hasChildren = _children.ContainsKey(entry.Id);
-                DrawRow(client, entry, depth, hasChildren);
+                DrawRow(client, entry, depth, hasChildren, selectionChanged);
                 if (hasChildren && _expanded.Contains(entry.Id))
-                    DrawChildren(client, entry.Id, depth + 1);
+                    DrawChildren(client, entry.Id, depth + 1, selectionChanged);
             }
         }
 
-        private void DrawSearchResults(RemoteRuntimeSceneInspectorClient client, RemoteHierarchyEntry[] entries)
+        private void DrawSearchResults(RemoteRuntimeSceneInspectorClient client,
+            RemoteHierarchyEntry[] entries, Action selectionChanged)
         {
             string search = _search.Trim();
             foreach (RemoteHierarchyEntry entry in entries)
             {
                 if (entry.Kind == 0 ||
                     RuntimeHierarchySearch.Matches(entry.Name, entry.ComponentTypeNames, search))
-                    DrawRow(client, entry, 0, false);
+                    DrawRow(client, entry, 0, false, selectionChanged);
             }
         }
 
-        private void DrawRow(RemoteRuntimeSceneInspectorClient client, RemoteHierarchyEntry entry, int depth, bool hasChildren)
+        private void DrawRow(RemoteRuntimeSceneInspectorClient client, RemoteHierarchyEntry entry,
+            int depth, bool hasChildren, Action selectionChanged)
         {
             EditorGUILayout.BeginHorizontal(entry.Id == SelectedObjectId ? "SelectionRect" : GUIStyle.none);
             GUILayout.Space(depth * 14f);
@@ -163,6 +166,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
                 {
                     SelectedObjectId = entry.Id;
                     client.Inspect(entry.Id);
+                    selectionChanged?.Invoke();
                 }
             }
 
