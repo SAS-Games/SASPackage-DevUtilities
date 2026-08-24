@@ -18,8 +18,11 @@ namespace SAS.Utilities.DeveloperConsole.Editor
             return true;
         }
 
-        private static void ModifyDefineSymbols(string symbol, bool add)
+        internal static void ModifyDefineSymbols(string symbol, bool add)
         {
+            if (HasSymbol(symbol) == add)
+                return;
+
             var buildTargetGroup = EditorUserBuildSettings.selectedBuildTargetGroup;
             var defines = PlayerSettings.GetScriptingDefineSymbols(NamedBuildTarget.FromBuildTargetGroup(buildTargetGroup));
 
@@ -33,7 +36,7 @@ namespace SAS.Utilities.DeveloperConsole.Editor
             Debug.Log($"{(add ? "Added" : "Removed")} define symbol: {symbol}");
         }
 
-        private static bool HasSymbol(string symbol, string[] defineList = null)
+        internal static bool HasSymbol(string symbol, string[] defineList = null)
         {
             var buildTargetGroup = EditorUserBuildSettings.selectedBuildTargetGroup;
             if (defineList == null)

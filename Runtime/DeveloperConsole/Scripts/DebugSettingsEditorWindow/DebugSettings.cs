@@ -33,25 +33,21 @@ namespace SAS.Utilities.DeveloperConsole
 
             PauseOnEnable = settings.pauseOnEnable;
             LogLevel = settings.logLevel;
-            _allowedTags = settings.allowedTags ?? new List<string>();
+            _allowedTags = settings.allowedTags == null
+                ? new List<string>()
+                : new List<string>(settings.allowedTags);
         }
 #endif
 
         private static void LoadFromRuntimeAsset()
         {
-            var config = Resources.Load<DebugRuntimeConfig>("DebugRuntimeConfig");
-
-            if (config == null)
-            {
-                PauseOnEnable = false;
-                LogLevel = LogLevel.Info | LogLevel.Warning | LogLevel.Error;
-                _allowedTags = new List<string>();
-                return;
-            }
+            DebugRuntimeConfig config = DebugRuntimeConfig.LoadOrCreateDefaults();
 
             PauseOnEnable = config.pauseOnEnable;
             LogLevel = config.logLevel;
-            _allowedTags = config.allowedTags ?? new List<string>();
+            _allowedTags = config.allowedTags == null
+                ? new List<string>()
+                : new List<string>(config.allowedTags);
         }
 
         private static void Apply()

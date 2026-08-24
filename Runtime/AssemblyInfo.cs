@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("DevUtilities.RemoteDevUtilities.Logging.Runtime")]
 [assembly: InternalsVisibleTo("DevUtilities.RemoteDevUtilities.MiniTools.Runtime")]
 [assembly: InternalsVisibleTo("DevUtilities.RemoteDevUtilities.FrameRecorder.Runtime")]
+[assembly: InternalsVisibleTo("DevUtilitiesEditor")]
 [assembly: InternalsVisibleTo("DevUtilities.RemoteDevUtilities.Editor")]
 [assembly: InternalsVisibleTo("DevUtilities.RemoteDevUtilities.SceneInspector.Editor")]
 [assembly: InternalsVisibleTo("DevUtilities.RemoteDevUtilities.DebugHost.Editor")]

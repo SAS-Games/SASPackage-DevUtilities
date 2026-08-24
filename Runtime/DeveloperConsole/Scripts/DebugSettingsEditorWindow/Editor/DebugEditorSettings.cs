@@ -1,9 +1,10 @@
 #if UNITY_EDITOR
-using UnityEditor;
 using System.Collections.Generic;
+using UnityEditor;
 
 namespace SAS.Utilities.DeveloperConsole.Editor
 {
+    [FilePath("ProjectSettings/DevUtilitiesSettings.asset", FilePathAttribute.Location.ProjectFolder)]
     public class DebugEditorSettings : ScriptableSingleton<DebugEditorSettings>
     {
         public bool pauseOnEnable = false;
