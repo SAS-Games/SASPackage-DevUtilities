@@ -182,8 +182,6 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Configuration
                             new GUIContent("Log Streaming"));
                         EditorGUILayout.PropertyField(Property(runtime, "_allowMiniTools"),
                             new GUIContent("Mini Tools"));
-                        EditorGUILayout.PropertyField(Property(runtime, "_allowRuntimeSceneInspector"),
-                            new GUIContent("Remote Scene Inspector"));
                     }
                 });
 

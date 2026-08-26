@@ -31,14 +31,12 @@ namespace SAS.Utilities.RemoteDevUtilities
         [SerializeField, InspectorName("Runtime Scene Inspector")]
         private RuntimeSceneInspectorConfiguration _runtimeSceneInspector = new();
 
-        [Header("Experimental Features")]
         [SerializeField, InspectorName("Enable Frame Recorder (Experimental)")]
         [Tooltip("Enables the experimental frame-recording endpoint and its Native Workspace UI. Keep this disabled unless the recorder is actively being evaluated.")]
         private bool _enableExperimentalFrameRecorder;
 
         [SerializeField] private bool _keepPlayerRunningInBackground = true;
 
-        [Header("Network Transport")]
         [Tooltip("Direct-IP TCP port used by Development and non-Development Players built with ENABLE_DEBUG.")]
         [SerializeField, Range(1024, 65535)]
         private int _tcpPort = Protocol.RemoteProtocolConstants.DefaultTcpPort;

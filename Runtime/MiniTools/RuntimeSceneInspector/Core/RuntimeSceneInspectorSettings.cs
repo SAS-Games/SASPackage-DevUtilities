@@ -20,32 +20,32 @@ namespace SAS.Utilities.RuntimeSceneInspector
         {
         }
 
-        [Header("Availability")] [SerializeField] private bool m_EnableInspector = true;
+        [SerializeField] private bool m_EnableInspector = true;
 
         [SerializeField] private bool m_AutomaticallyCreateBootstrap = true;
-        [Header("Behaviour")] [SerializeField] private bool m_PauseWhenOpen;
+        [SerializeField] private bool m_PauseWhenOpen;
         [SerializeField] private bool m_ConsumeInput = true;
 
-        [Header("Hierarchy")] [SerializeField, Min(0.1f)] private float m_HierarchyRefreshInterval = 1f;
+        [SerializeField, Min(0.1f)] private float m_HierarchyRefreshInterval = 1f;
 
         [SerializeField] private bool m_IncludeInactiveObjects = true;
         [SerializeField] private bool m_AutomaticRefresh = true;
 
-        [Header("Object Picking")] [SerializeField] private bool m_AllowObjectPicking = true;
+        [SerializeField] private bool m_AllowObjectPicking = true;
 
         [SerializeField] private LayerMask m_ObjectPickingLayerMask = ~0;
         [SerializeField] private bool m_PickUiObjects = true;
         [SerializeField] private bool m_PickTriggerColliders = true;
         [SerializeField] private bool m_UseRendererBoundsFallback = true;
 
-        [Header("Permissions")] [SerializeField] private bool m_AllowValueChanges = true;
+        [SerializeField] private bool m_AllowValueChanges = true;
 
         [SerializeField] private bool m_AllowActivationChanges = true;
         [SerializeField] private bool m_AllowComponentEnableChanges = true;
         [SerializeField] private string[] m_BlockedNamespaces = { "UnityEditor" };
         [SerializeField] private string[] m_BlockedComponentTypes = Array.Empty<string>();
 
-        [Header("Shader Inspection")] [SerializeField] private bool m_AllowShaderInspection;
+        [SerializeField] private bool m_AllowShaderInspection;
 
         [SerializeField] private bool m_AllowShaderValueChanges;
         [SerializeField] private bool m_AllowMaterialPropertyBlockChanges;
@@ -57,22 +57,22 @@ namespace SAS.Utilities.RuntimeSceneInspector
         [SerializeField, Min(1)] private int m_MaxInspectorMaterialInstances = 256;
         [SerializeField, Min(1)] private int m_MaxVisibleShaderProperties = 256;
 
-        [Header("Editing")] [SerializeField] private float m_NormalNumericStep = 1f;
+        [SerializeField] private float m_NormalNumericStep = 1f;
         [SerializeField] private float m_LargeNumericStep = 10f;
         [SerializeField] private float m_SmallNumericStep = 0.1f;
 
-        [Header("Input")] [SerializeField, Min(0.05f)] private float m_NavigationRepeatDelay = 0.35f;
+        [SerializeField, Min(0.05f)] private float m_NavigationRepeatDelay = 0.35f;
 
         [SerializeField, Min(0.02f)] private float m_NavigationRepeatRate = 0.08f;
         [SerializeField, Range(0.1f, 0.95f)] private float m_ControllerDeadZone = 0.55f;
 
-        [Header("Appearance")] [SerializeField, Range(0.75f, 2f)] private float m_UiScale = 1f;
+        [SerializeField, Range(0.75f, 2f)] private float m_UiScale = 1f;
 
         [SerializeField] private Color m_BackgroundColor = new(0.055f, 0.065f, 0.085f, 0.86f);
         [SerializeField] private Color m_FocusColor = new(0.22f, 0.75f, 1f);
         [SerializeField, Range(0.25f, 0.75f)] private float m_HierarchyPanelWidth = 0.42f;
 
-        [Header("Fonts")] [SerializeField] private Font m_RegularFont;
+        [SerializeField] private Font m_RegularFont;
 
         [SerializeField] private Font m_BoldFont;
 
