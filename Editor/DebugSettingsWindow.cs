@@ -60,7 +60,9 @@ namespace SAS.Utilities.DeveloperConsole.Editor
                 "Controls console behavior when it is opened in the Editor or an ENABLE_DEBUG Player.",
                 () => EditorGUILayout.PropertyField(
                     serializedSettings.FindProperty("pauseOnEnable"),
-                    new GUIContent("Pause On Enable")));
+                    new GUIContent(
+                        "Pause When Developer Console Opens",
+                        "Pauses the Player while the Developer Console is open.")));
             DrawSection("Logging",
                 "Choose the log levels and optional tags accepted by the Dev Utilities logger.",
                 () =>

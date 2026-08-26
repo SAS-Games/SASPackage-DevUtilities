@@ -23,7 +23,8 @@ namespace SAS.Utilities.RuntimeSceneInspector
         [SerializeField] private bool m_EnableInspector = true;
 
         [SerializeField] private bool m_AutomaticallyCreateBootstrap = true;
-        [SerializeField] private bool m_PauseWhenOpen;
+        [SerializeField, InspectorName("Pause When In-Game Inspector Opens")]
+        private bool m_PauseWhenOpen;
         [SerializeField] private bool m_ConsumeInput = true;
 
         [SerializeField, Min(0.1f)] private float m_HierarchyRefreshInterval = 1f;

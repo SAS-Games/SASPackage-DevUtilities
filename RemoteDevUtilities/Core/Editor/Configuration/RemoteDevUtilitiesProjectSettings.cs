@@ -3,6 +3,7 @@ using SAS.Utilities.RemoteDevUtilities;
 using SAS.Utilities.RemoteDevUtilities.Editor.MiniTools.Configuration;
 using SAS.Utilities.RuntimeSceneInspector;
 using UnityEditor;
+using UnityEditor.Build;
 using UnityEngine;
 
 namespace SAS.Utilities.RemoteDevUtilities.Editor.Configuration
@@ -11,6 +12,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Configuration
     internal sealed class RemoteDevUtilitiesProjectSettings : ScriptableSingleton<RemoteDevUtilitiesProjectSettings>
     {
         internal const string SettingsPath = "Project/Dev Utilities/Remote Dev Utilities";
+        private const string DebugSettingsPath = "Project/Dev Utilities/Debug";
+        private const string DebugDefineSymbol = "ENABLE_DEBUG";
 
         private static readonly GUIContent[] SettingsPages =
         {
@@ -84,6 +87,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Configuration
                 {
                     "Remote",
                     "Debug",
+                    "ENABLE_DEBUG",
                     "TCP",
                     "Port",
                     "LAN Discovery",
@@ -104,9 +108,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Configuration
             RemoteDevUtilitiesProjectSettings settings = instance;
             _ = settings.Runtime;
 
-            EditorGUILayout.HelpBox(
-                "These settings are baked into Players built with ENABLE_DEBUG. Changes apply to the next build; Editor-only mini-tool preferences are stored separately in this ProjectSettings file.",
-                MessageType.Info);
+            DrawDebugBuildStatus();
 
             var serializedSettings = new SerializedObject(settings);
             serializedSettings.Update();
@@ -153,6 +155,57 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Configuration
                 EditorApplication.delayCall += EditorUtility.RequestScriptReload;
         }
 
+        private static void DrawDebugBuildStatus()
+        {
+            BuildTargetGroup selectedTarget = EditorUserBuildSettings.selectedBuildTargetGroup;
+            bool hasSelectedTarget = selectedTarget != BuildTargetGroup.Unknown;
+            bool debugEnabled = hasSelectedTarget && HasScriptingDefine(selectedTarget, DebugDefineSymbol);
+
+            string status = hasSelectedTarget
+                ? $"{DebugDefineSymbol} is {(debugEnabled ? "enabled" : "disabled")}."
+                : "No valid build target is selected.";
+            string details = !hasSelectedTarget
+                ? "Select a build target before configuring debug build inclusion."
+                : debugEnabled
+                    ? "Remote Dev Utilities can be included in the next build. Changes below are applied at build time."
+                    : "Remote Dev Utilities runtime features are excluded for this target. Open Debug Settings to enable them.";
+
+            using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
+            {
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    using (new EditorGUILayout.VerticalScope())
+                    {
+                        EditorGUILayout.LabelField("Debug Build Status", EditorStyles.boldLabel);
+                        EditorGUILayout.LabelField(status, EditorStyles.wordWrappedLabel);
+                        EditorGUILayout.LabelField(
+                            $"Selected target: {(hasSelectedTarget ? selectedTarget.ToString() : "None")}",
+                            EditorStyles.miniLabel);
+                        EditorGUILayout.LabelField(details, EditorStyles.wordWrappedMiniLabel);
+                    }
+
+                    GUILayout.Space(8f);
+                    if (GUILayout.Button("Open Debug Settings", GUILayout.Width(155f), GUILayout.Height(24f)))
+                        SettingsService.OpenProjectSettings(DebugSettingsPath);
+                }
+            }
+
+            GUILayout.Space(6f);
+        }
+
+        private static bool HasScriptingDefine(BuildTargetGroup targetGroup, string symbol)
+        {
+            string defineSymbols = PlayerSettings.GetScriptingDefineSymbols(
+                NamedBuildTarget.FromBuildTargetGroup(targetGroup));
+            foreach (string definedSymbol in defineSymbols.Split(';'))
+            {
+                if (string.Equals(definedSymbol.Trim(), symbol, System.StringComparison.Ordinal))
+                    return true;
+            }
+
+            return false;
+        }
+
         private static void DrawGeneralSettings(SerializedProperty runtime)
         {
             SerializedProperty enableAgent = Property(runtime, "_enableRemoteAgent");
@@ -164,7 +217,9 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Configuration
                     using (new EditorGUI.DisabledScope(!enableAgent.boolValue))
                     {
                         EditorGUILayout.PropertyField(Property(runtime, "_buildDebugUiVisibility"),
-                            new GUIContent("Debug UI in Build"));
+                            new GUIContent(
+                                "Local Debug UI Visibility",
+                                "Controls whether local in-game debug interfaces remain visible in the Player."));
                         EditorGUILayout.PropertyField(Property(runtime, "_keepPlayerRunningInBackground"),
                             new GUIContent("Keep Player Running in Background"));
                     }
@@ -177,7 +232,9 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Configuration
                     using (new EditorGUI.DisabledScope(!enableAgent.boolValue))
                     {
                         EditorGUILayout.PropertyField(Property(runtime, "_allowCommandExecution"),
-                            new GUIContent("Command Execution"));
+                            new GUIContent(
+                                "Allow Remote Command Execution",
+                                "Allows connected Editor clients to execute supported commands on the Player."));
                         EditorGUILayout.PropertyField(Property(runtime, "_streamLogs"),
                             new GUIContent("Log Streaming"));
                         EditorGUILayout.PropertyField(Property(runtime, "_allowMiniTools"),
@@ -238,7 +295,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Configuration
                 () =>
                 {
                     EditorGUILayout.PropertyField(allowRemoteInspector,
-                        new GUIContent("Remote Inspector",
+                        new GUIContent("Enable Remote Inspection",
                             "Makes hierarchy, capture, object picking, and Inspector data available to the Editor workspace."));
                     EditorGUILayout.PropertyField(enableInspector,
                         new GUIContent("In-Game Inspector UI",
@@ -257,7 +314,9 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Configuration
                     () =>
                     {
                         EditorGUILayout.PropertyField(Property(inspector, "m_PauseWhenOpen"),
-                            new GUIContent("Pause Player When Open"));
+                            new GUIContent(
+                                "Pause When In-Game Inspector Opens",
+                                "Pauses the Player while the in-game Inspector UI is open."));
                         EditorGUILayout.PropertyField(Property(inspector, "m_ConsumeInput"),
                             new GUIContent("Consume Player Input"));
                     });

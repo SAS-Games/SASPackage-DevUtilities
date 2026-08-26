@@ -18,15 +18,18 @@ namespace SAS.Utilities.RemoteDevUtilities
     {
         [SerializeField] private bool _enableRemoteAgent = true;
 
-        [SerializeField, InspectorName("Debug UI in Build")]
-        [Tooltip("Controls debug-tool UI rendered inside the game build. Debug Host and Remote Dev Utilities Editor UI are configured separately.")]
+        [SerializeField, InspectorName("Local Debug UI Visibility")]
+        [Tooltip("Controls local in-game debug-tool UI. Debug Host and Remote Dev Utilities Editor UI are configured separately.")]
         private BuildDebugUiVisibility _buildDebugUiVisibility = BuildDebugUiVisibility.HiddenWhileEditorConnected;
 
-        [SerializeField] private bool _allowCommandExecution = true;
+        [SerializeField, InspectorName("Allow Remote Command Execution")]
+        private bool _allowCommandExecution = true;
         [SerializeField] private bool _streamLogs = true;
         [SerializeField] private bool _allowMiniTools = true;
 
-        [FormerlySerializedAs("_allowRuntimeDebugger")] [SerializeField] private bool _allowRuntimeSceneInspector = true;
+        [FormerlySerializedAs("_allowRuntimeDebugger")]
+        [SerializeField, InspectorName("Enable Remote Inspection")]
+        private bool _allowRuntimeSceneInspector = true;
 
         [SerializeField, InspectorName("Runtime Scene Inspector")]
         private RuntimeSceneInspectorConfiguration _runtimeSceneInspector = new();
@@ -126,15 +129,18 @@ namespace SAS.Utilities.RemoteDevUtilities
 
         [FormerlySerializedAs("m_PresentationMode")]
         [FormerlySerializedAs("m_PlayerDebugUiMode")]
-        [SerializeField, InspectorName("Debug UI in Build")]
-        [Tooltip("Controls debug-tool UI rendered inside the game build. Debug Host and Remote Dev Utilities Editor UI are configured separately.")]
+        [SerializeField, InspectorName("Local Debug UI Visibility")]
+        [Tooltip("Controls local in-game debug-tool UI. Debug Host and Remote Dev Utilities Editor UI are configured separately.")]
         private BuildDebugUiVisibility m_BuildDebugUiVisibility = BuildDebugUiVisibility.ShowWhenEnabled;
 
-        [SerializeField] private bool m_AllowCommandExecution = true;
+        [SerializeField, InspectorName("Allow Remote Command Execution")]
+        private bool m_AllowCommandExecution = true;
         [SerializeField] private bool m_StreamLogs = true;
         [SerializeField] private bool m_AllowMiniTools = true;
 
-        [FormerlySerializedAs("m_AllowRuntimeDebugger")] [SerializeField] private bool m_AllowRuntimeSceneInspector = true;
+        [FormerlySerializedAs("m_AllowRuntimeDebugger")]
+        [SerializeField, InspectorName("Enable Remote Inspection")]
+        private bool m_AllowRuntimeSceneInspector = true;
 
         [SerializeField, InspectorName("Runtime Scene Inspector")]
         private RuntimeSceneInspectorConfiguration m_RuntimeSceneInspector = new();
