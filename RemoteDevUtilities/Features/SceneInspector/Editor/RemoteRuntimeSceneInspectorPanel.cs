@@ -133,13 +133,32 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
             if (_additionalModes.Count == 0)
                 return;
             var labels = new string[_additionalModes.Count + 1];
-            labels[0] = "Live Inspector";
+            labels[0] = "Inspector";
             for (int i = 0; i < _additionalModes.Count; i++)
                 labels[i + 1] = _additionalModes[i].DisplayName;
+
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
-            GUILayout.Label("MODE", EditorStyles.miniBoldLabel, GUILayout.Width(38f));
-            _selectedMode = GUILayout.Toolbar(_selectedMode, labels, EditorStyles.toolbarButton);
+            GUILayout.FlexibleSpace();
+            _selectedMode = GUILayout.Toolbar(
+                _selectedMode,
+                labels,
+                EditorStyles.toolbarButton,
+                GUILayout.Width(CalculateModeToolbarWidth(labels)));
+            GUILayout.FlexibleSpace();
             EditorGUILayout.EndHorizontal();
+        }
+
+        private static float CalculateModeToolbarWidth(IReadOnlyList<string> labels)
+        {
+            float width = 0f;
+            for (int i = 0; i < labels.Count; i++)
+            {
+                float contentWidth = EditorStyles.toolbarButton
+                    .CalcSize(new GUIContent(labels[i])).x + 20f;
+                width += Mathf.Max(92f, contentWidth);
+            }
+
+            return width;
         }
 
         private void SynchronizeMode()
