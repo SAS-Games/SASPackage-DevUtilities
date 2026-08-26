@@ -9,84 +9,58 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
     [RemoteWorkspaceHeader(400)]
     internal sealed class EditorDebugWorkspacePanel : IRemoteWorkspaceHeader
     {
-        private const string ExpandedPreferenceKey = "RemoteDevUtilities.DebugHostPanelExpanded";
-
-        private bool _expanded = EditorPrefs.GetBool(ExpandedPreferenceKey, false);
-
         public bool Draw(RemoteDevUtilitiesClient client, bool showNativeWorkspace)
         {
-            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             bool active = RemoteDebugHostLauncher.IsActive;
-            bool expanded = EditorGUILayout.Foldout(_expanded, active ? "Editor Debug Workspace - Debug Host Active" : "Editor Debug Workspace", true, EditorStyles.foldoutHeader);
-            if (expanded != _expanded)
-            {
-                _expanded = expanded;
-                EditorPrefs.SetBool(ExpandedPreferenceKey, _expanded);
-            }
+            GUILayout.Label("Debug Host", EditorStyles.miniBoldLabel);
+            GUILayout.Label(active ? "Active" : "Inactive", EditorStyles.miniLabel,
+                GUILayout.Width(active ? 38f : 46f));
 
-            if (!_expanded)
-            {
-                EditorGUILayout.EndVertical();
-                return showNativeWorkspace;
-            }
-
-            EditorGUILayout.LabelField("Use Editor-native panels, or launch Runtime Scene Inspector and mini-tool prefabs in an isolated Play Mode Host. The Developer Console UI is optional.", EditorStyles.wordWrappedMiniLabel);
-            EditorGUILayout.Space(6f);
-
-            RemoteDebugHostSettings settings = RemoteDebugHostSettings.instance;
-            bool includeConsoleUi = EditorGUILayout.ToggleLeft(
-                new GUIContent(
-                    "Include Developer Console UI",
-                    "Instantiate the Developer Console inside the Host. Commands and Sequences remain available when this is disabled."),
-                settings.IncludeDeveloperConsoleUi);
-            if (includeConsoleUi != settings.IncludeDeveloperConsoleUi)
-                settings.SetIncludeDeveloperConsoleUi(includeConsoleUi);
-
-            bool launchOnConnect = EditorGUILayout.ToggleLeft(
-                new GUIContent(
-                    "Launch Debug Host on Player Connect",
-                    "Launch after a successful Player handshake. Stopping the Host suppresses relaunch until the Player disconnects."),
-                settings.LaunchDebugHostOnPlayerConnect);
-            if (launchOnConnect != settings.LaunchDebugHostOnPlayerConnect)
-                settings.SetLaunchDebugHostOnPlayerConnect(launchOnConnect);
-
-            EditorGUILayout.Space(4f);
+            if (GUILayout.Button("Options", EditorStyles.toolbarDropDown, GUILayout.Width(70f)))
+                ShowOptionsMenu();
 
             if (active)
             {
-                EditorGUILayout.HelpBox("The Debug Host is active. Commands and edits target the connected Player.", MessageType.Info);
-            }
-            else
-            {
-                if (!client.IsConnected)
-                {
-                    EditorGUILayout.HelpBox("Connect to a runtime Player before launching the Debug Host.", MessageType.None);
-                }
-                else if (EditorApplication.isPlaying)
-                {
-                    EditorGUILayout.HelpBox("Exit the current Play Mode session before launching the isolated " + "Debug Host scene.", MessageType.None);
-                }
-            }
-
-            EditorGUILayout.BeginHorizontal();
-            if (active)
-            {
-                if (GUILayout.Button("Stop Debug Host", GUILayout.Height(28f)))
+                if (GUILayout.Button("Stop", EditorStyles.toolbarButton, GUILayout.Width(58f)))
                     RemoteDebugHostLauncher.Stop();
             }
             else
             {
-                using (new EditorGUI.DisabledScope(!client.IsConnected || EditorApplication.isPlaying))
+                bool canLaunch = client.IsConnected && !EditorApplication.isPlaying;
+                using (new EditorGUI.DisabledScope(!canLaunch))
                 {
-                    if (GUILayout.Button("Launch Play Mode Debug Host", GUILayout.Height(28f)))
+                    if (GUILayout.Button(GetLaunchContent(client), EditorStyles.toolbarButton,
+                            GUILayout.Width(62f)))
                         RemoteDebugHostLauncher.Launch();
                 }
             }
 
-            EditorGUILayout.EndHorizontal();
-
-            EditorGUILayout.EndVertical();
             return showNativeWorkspace;
+        }
+
+        private static GUIContent GetLaunchContent(RemoteDevUtilitiesClient client)
+        {
+            string tooltip = !client.IsConnected
+                ? "Connect to a runtime Player before launching the Debug Host."
+                : EditorApplication.isPlaying
+                    ? "Exit the current Play Mode session before launching the isolated Debug Host."
+                    : "Launch the isolated Play Mode Debug Host for the connected Player.";
+            return new GUIContent("Launch", tooltip);
+        }
+
+        private static void ShowOptionsMenu()
+        {
+            RemoteDebugHostSettings settings = RemoteDebugHostSettings.instance;
+            var menu = new GenericMenu();
+            menu.AddItem(
+                new GUIContent("Include Developer Console UI"),
+                settings.IncludeDeveloperConsoleUi,
+                () => settings.SetIncludeDeveloperConsoleUi(!settings.IncludeDeveloperConsoleUi));
+            menu.AddItem(
+                new GUIContent("Launch Debug Host on Player Connect"),
+                settings.LaunchDebugHostOnPlayerConnect,
+                () => settings.SetLaunchDebugHostOnPlayerConnect(!settings.LaunchDebugHostOnPlayerConnect));
+            menu.ShowAsContext();
         }
     }
 }

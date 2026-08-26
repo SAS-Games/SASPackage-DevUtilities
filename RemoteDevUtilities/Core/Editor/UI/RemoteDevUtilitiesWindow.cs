@@ -197,9 +197,6 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI
 
             _connectionPanel.Draw(_client);
             bool previouslyShowingNativeWorkspace = _showNativeWorkspace;
-            for (int i = 0; i < _workspaceHeaders.Count; i++)
-                _showNativeWorkspace = _workspaceHeaders[i].Draw(_client, _showNativeWorkspace);
-
             DrawWorkspaceVisibilityToolbar();
             if (previouslyShowingNativeWorkspace && !_showNativeWorkspace)
                 DeactivateSelectedWorkspacePanel();
@@ -246,8 +243,15 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
             GUILayout.Label("Native Workspace", EditorStyles.miniBoldLabel);
             GUILayout.FlexibleSpace();
-            string label = _showNativeWorkspace ? "Hide Workspace" : "Show Workspace";
-            if (GUILayout.Button(label, EditorStyles.toolbarButton, GUILayout.Width(104f)))
+
+            for (int i = 0; i < _workspaceHeaders.Count; i++)
+            {
+                _showNativeWorkspace = _workspaceHeaders[i].Draw(_client, _showNativeWorkspace);
+                GUILayout.Space(8f);
+            }
+
+            string label = _showNativeWorkspace ? "Hide" : "Show";
+            if (GUILayout.Button(label, EditorStyles.toolbarButton, GUILayout.Width(48f)))
                 _showNativeWorkspace = !_showNativeWorkspace;
             EditorGUILayout.EndHorizontal();
         }
