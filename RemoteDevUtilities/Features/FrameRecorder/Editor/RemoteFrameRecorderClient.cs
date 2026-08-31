@@ -25,19 +25,17 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
     internal sealed class RemoteFrameRecordingArchive
     {
         internal RemoteFrameRecorderManifestResponse Manifest;
-        internal RemoteFrameRecorderFrameResponse[] FrameResponses =
-            Array.Empty<RemoteFrameRecorderFrameResponse>();
+        internal RemoteFrameRecorderFrameResponse[] FrameResponses = Array.Empty<RemoteFrameRecorderFrameResponse>();
     }
 
     internal static class RemoteFrameRecordingStore
     {
-        internal const string FileExtension = "sasframerecording";
+        internal const string FileExtension = "framerecording";
         private const int CurrentFormatVersion = 1;
         private const int MaximumJsonEntryBytes = 64 * 1024 * 1024;
         private const string HeaderEntryName = "recording.json";
 
-        internal static void Save(string path, RemoteFrameRecorderManifestResponse manifest,
-            IReadOnlyList<RemoteFrameReplayFrame> frames)
+        internal static void Save(string path, RemoteFrameRecorderManifestResponse manifest, IReadOnlyList<RemoteFrameReplayFrame> frames)
         {
             if (string.IsNullOrWhiteSpace(path))
                 throw new ArgumentException("A recording file path is required.", nameof(path));
@@ -54,8 +52,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
             string temporaryPath = fullPath + ".tmp-" + Guid.NewGuid().ToString("N");
             try
             {
-                using (var stream = new FileStream(temporaryPath, FileMode.CreateNew,
-                           FileAccess.Write, FileShare.None))
+                using (var stream = new FileStream(temporaryPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
                 using (var archive = new ZipArchive(stream, ZipArchiveMode.Create, false))
                 {
                     WriteJson(archive, HeaderEntryName, new RemoteFrameRecordingArchiveHeader
@@ -70,14 +67,10 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
                     {
                         RemoteFrameReplayFrame frame = frames[i];
                         RemoteRecordedFrameInfo info = manifest.Frames[i];
-                        if (frame?.Info == null || info == null ||
-                            frame.Info.UnityFrame != info.UnityFrame)
-                            throw new InvalidDataException(
-                                $"Downloaded frame {i + 1} does not match its manifest entry.");
+                        if (frame?.Info == null || info == null || frame.Info.UnityFrame != info.UnityFrame)
+                            throw new InvalidDataException($"Downloaded frame {i + 1} does not match its manifest entry.");
 
-                        RemoteFrameRecorderFrameResponse response = frame.SourceResponse ??
-                                                                    CreateLegacyResponse(
-                                                                        manifest.RecordingId, frame);
+                        RemoteFrameRecorderFrameResponse response = frame.SourceResponse ?? CreateLegacyResponse(manifest.RecordingId, frame);
                         ValidateResponse(response, manifest.RecordingId, info.UnityFrame, i);
                         WriteJson(archive, GetFrameEntryName(i), response);
                     }
@@ -102,14 +95,10 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
 
             using var stream = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
             using var archive = new ZipArchive(stream, ZipArchiveMode.Read, false);
-            RemoteFrameRecordingArchiveHeader header =
-                ReadJson<RemoteFrameRecordingArchiveHeader>(archive, HeaderEntryName);
+            RemoteFrameRecordingArchiveHeader header = ReadJson<RemoteFrameRecordingArchiveHeader>(archive, HeaderEntryName);
             if (header == null || header.FormatVersion != CurrentFormatVersion)
-                throw new InvalidDataException(
-                    $"This frame recording uses an unsupported format version ({header?.FormatVersion ?? 0}).");
-            if (header.Manifest?.Frames == null || header.FrameCount <= 0 ||
-                header.FrameCount != header.Manifest.Frames.Length ||
-                header.FrameCount > RemoteFrameRecorderLimits.MaximumCapacity)
+                throw new InvalidDataException($"This frame recording uses an unsupported format version ({header?.FormatVersion ?? 0}).");
+            if (header.Manifest?.Frames == null || header.FrameCount <= 0 || header.FrameCount != header.Manifest.Frames.Length || header.FrameCount > RemoteFrameRecorderLimits.MaximumCapacity)
                 throw new InvalidDataException("The frame recording manifest is invalid.");
 
             var responses = new RemoteFrameRecorderFrameResponse[header.FrameCount];
@@ -117,10 +106,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
             {
                 RemoteRecordedFrameInfo info = header.Manifest.Frames[i];
                 if (info == null)
-                    throw new InvalidDataException(
-                        $"Frame recording manifest entry {i + 1} is invalid.");
-                responses[i] = ReadJson<RemoteFrameRecorderFrameResponse>(archive,
-                    GetFrameEntryName(i));
+                    throw new InvalidDataException($"Frame recording manifest entry {i + 1} is invalid.");
+                responses[i] = ReadJson<RemoteFrameRecorderFrameResponse>(archive, GetFrameEntryName(i));
                 ValidateResponse(responses[i], header.Manifest.RecordingId, info.UnityFrame, i);
             }
 
@@ -131,25 +118,20 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
             };
         }
 
-        private static void ValidateResponse(RemoteFrameRecorderFrameResponse response,
-            long recordingId, int unityFrame, int index)
+        private static void ValidateResponse(RemoteFrameRecorderFrameResponse response, long recordingId, int unityFrame, int index)
         {
-            if (response == null || response.RecordingId != recordingId ||
-                response.UnityFrame != unityFrame || !string.IsNullOrEmpty(response.Error))
-                throw new InvalidDataException(
-                    $"Stored frame {index + 1} does not match the recording manifest.");
+            if (response == null || response.RecordingId != recordingId || response.UnityFrame != unityFrame || !string.IsNullOrEmpty(response.Error))
+                throw new InvalidDataException($"Stored frame {index + 1} does not match the recording manifest.");
             if (string.IsNullOrEmpty(response.ImageBase64))
                 throw new InvalidDataException($"Stored frame {index + 1} has no image data.");
         }
 
-        private static RemoteFrameRecorderFrameResponse CreateLegacyResponse(long recordingId,
-            RemoteFrameReplayFrame frame)
+        private static RemoteFrameRecorderFrameResponse CreateLegacyResponse(long recordingId, RemoteFrameReplayFrame frame)
         {
             string json = JsonUtility.ToJson(frame.SceneGraph ?? new RemoteRecordedSceneGraph());
             byte[] input = Encoding.UTF8.GetBytes(json);
             using var output = new MemoryStream();
-            using (var gzip = new GZipStream(output,
-                       System.IO.Compression.CompressionLevel.Fastest, true))
+            using (var gzip = new GZipStream(output, System.IO.Compression.CompressionLevel.Fastest, true))
                 gzip.Write(input, 0, input.Length);
             return new RemoteFrameRecorderFrameResponse
             {
@@ -163,8 +145,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
 
         private static void WriteJson<T>(ZipArchive archive, string entryName, T value)
         {
-            ZipArchiveEntry entry = archive.CreateEntry(entryName,
-                System.IO.Compression.CompressionLevel.Optimal);
+            ZipArchiveEntry entry = archive.CreateEntry(entryName, System.IO.Compression.CompressionLevel.Optimal);
             using Stream stream = entry.Open();
             using var writer = new StreamWriter(stream, new UTF8Encoding(false));
             writer.Write(JsonUtility.ToJson(value));
@@ -176,15 +157,13 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
             if (entry == null)
                 throw new InvalidDataException($"The frame recording is missing '{entryName}'.");
             if (entry.Length <= 0 || entry.Length > MaximumJsonEntryBytes)
-                throw new InvalidDataException(
-                    $"The frame recording entry '{entryName}' has an invalid size.");
+                throw new InvalidDataException($"The frame recording entry '{entryName}' has an invalid size.");
             using Stream stream = entry.Open();
             using var reader = new StreamReader(stream, Encoding.UTF8, true);
             return JsonUtility.FromJson<T>(reader.ReadToEnd());
         }
 
-        private static string GetFrameEntryName(int index) =>
-            "frames/" + index.ToString("D4", CultureInfo.InvariantCulture) + ".json";
+        private static string GetFrameEntryName(int index) => "frames/" + index.ToString("D4", CultureInfo.InvariantCulture) + ".json";
 
         private static void ReplaceDestination(string temporaryPath, string destinationPath)
         {
@@ -248,10 +227,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
         private RemoteSceneInspectorHierarchyResponse _knownHierarchy;
         private RemoteRecordedInspectorSnapshot _knownInspector;
         private RemoteRecordedInspectorManifest _knownInspectorManifest;
-        private readonly Dictionary<string, string> _knownInspectorBlobs =
-            new(StringComparer.Ordinal);
-        private readonly Dictionary<string, object> _decodedInspectorBlobs =
-            new(StringComparer.Ordinal);
+        private readonly Dictionary<string, string> _knownInspectorBlobs = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, object> _decodedInspectorBlobs = new(StringComparer.Ordinal);
         private Dictionary<long, CachedRemoteObject> _knownInspectorObjects = new();
 
         public RemoteFrameRecorderClient(IRemoteEditorSession session) => _session = session;
@@ -266,32 +243,28 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
         internal bool IsDownloading => _manifestRequestId != 0 || _frameRequestId != 0;
         internal int DownloadedFrameCount => _replayFrames.Count;
         internal int DownloadFrameCount => Manifest?.Frames?.Length ?? 0;
-        internal bool CanSaveRecording => !IsDownloading && _replayFrames.Count > 0 &&
-                                          Manifest?.Frames?.Length == _replayFrames.Count;
+        internal bool CanSaveRecording => !IsDownloading && _replayFrames.Count > 0 && Manifest?.Frames?.Length == _replayFrames.Count;
         internal string RecordingFilePath { get; private set; }
 
         public void OnConnected() => Query();
 
         internal void Query()
         {
-            _controlRequestId = _session.Send(RemoteFrameRecorderMessageTypes.ControlRequest,
-                new RemoteFrameRecorderControlRequest { Action = RemoteFrameRecorderAction.Query });
+            _controlRequestId = _session.Send(RemoteFrameRecorderMessageTypes.ControlRequest, new RemoteFrameRecorderControlRequest { Action = RemoteFrameRecorderAction.Query });
         }
 
-        internal void Start(int capacity, int maximumWidth, int jpegQuality,
-            RemoteFrameRecorderInspectorScope inspectorScope, long inspectedObjectId)
+        internal void Start(int capacity, int maximumWidth, int jpegQuality, RemoteFrameRecorderInspectorScope inspectorScope, long inspectedObjectId)
         {
             ClearReplay();
-            _controlRequestId = _session.Send(RemoteFrameRecorderMessageTypes.ControlRequest,
-                new RemoteFrameRecorderControlRequest
-                {
-                    Action = RemoteFrameRecorderAction.Start,
-                    Capacity = capacity,
-                    MaximumWidth = maximumWidth,
-                    JpegQuality = jpegQuality,
-                    InspectorScope = inspectorScope,
-                    InspectedObjectId = inspectedObjectId
-                });
+            _controlRequestId = _session.Send(RemoteFrameRecorderMessageTypes.ControlRequest, new RemoteFrameRecorderControlRequest
+            {
+                Action = RemoteFrameRecorderAction.Start,
+                Capacity = capacity,
+                MaximumWidth = maximumWidth,
+                JpegQuality = jpegQuality,
+                InspectorScope = inspectorScope,
+                InspectedObjectId = inspectedObjectId
+            });
         }
 
         internal void SealAndFetch(bool freezePlayer)
@@ -299,18 +272,16 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
             if (Status.RecordingId == 0)
                 return;
             ClearReplay();
-            _controlRequestId = _session.Send(RemoteFrameRecorderMessageTypes.ControlRequest,
-                new RemoteFrameRecorderControlRequest
-                {
-                    Action = RemoteFrameRecorderAction.Seal,
-                    FreezePlayerWhenSealed = freezePlayer
-                });
+            _controlRequestId = _session.Send(RemoteFrameRecorderMessageTypes.ControlRequest, new RemoteFrameRecorderControlRequest
+            {
+                Action = RemoteFrameRecorderAction.Seal,
+                FreezePlayerWhenSealed = freezePlayer
+            });
         }
 
         internal void Release()
         {
-            _controlRequestId = _session.Send(RemoteFrameRecorderMessageTypes.ControlRequest,
-                new RemoteFrameRecorderControlRequest { Action = RemoteFrameRecorderAction.Release });
+            _controlRequestId = _session.Send(RemoteFrameRecorderMessageTypes.ControlRequest, new RemoteFrameRecorderControlRequest { Action = RemoteFrameRecorderAction.Release });
         }
 
         internal bool SaveRecording(string path)
@@ -369,6 +340,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
                     HandleFrame(envelope);
                     break;
             }
+
             _session.NotifyStateChanged();
         }
 
@@ -395,8 +367,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
             if (envelope.RequestId != _controlRequestId)
                 return;
             _controlRequestId = 0;
-            if (!RemoteProtocolSerializer.TryDeserializePayload(envelope,
-                    out RemoteFrameRecorderControlResponse response, out string error))
+            if (!RemoteProtocolSerializer.TryDeserializePayload(envelope, out RemoteFrameRecorderControlResponse response, out string error))
             {
                 DownloadError = error;
                 return;
@@ -409,15 +380,13 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
                 return;
             }
 
-            if (response.Action == RemoteFrameRecorderAction.Seal &&
-                response.State == RemoteFrameRecorderState.Sealed && response.RecordingId != 0)
+            if (response.Action == RemoteFrameRecorderAction.Seal && response.State == RemoteFrameRecorderState.Sealed && response.RecordingId != 0)
                 RequestManifest(response.RecordingId);
         }
 
         private void RequestManifest(long recordingId)
         {
-            _manifestRequestId = _session.Send(RemoteFrameRecorderMessageTypes.ManifestRequest,
-                new RemoteFrameRecorderManifestRequest { RecordingId = recordingId });
+            _manifestRequestId = _session.Send(RemoteFrameRecorderMessageTypes.ManifestRequest, new RemoteFrameRecorderManifestRequest { RecordingId = recordingId });
         }
 
         private void HandleManifest(RemoteEnvelope envelope)
@@ -425,8 +394,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
             if (envelope.RequestId != _manifestRequestId)
                 return;
             _manifestRequestId = 0;
-            if (!RemoteProtocolSerializer.TryDeserializePayload(envelope,
-                    out RemoteFrameRecorderManifestResponse response, out string error))
+            if (!RemoteProtocolSerializer.TryDeserializePayload(envelope, out RemoteFrameRecorderManifestResponse response, out string error))
             {
                 DownloadError = error;
                 return;
@@ -452,16 +420,14 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
                 return;
             }
 
-            _frameRequestId = _session.Send(RemoteFrameRecorderMessageTypes.FrameRequest,
-                new RemoteFrameRecorderFrameRequest
-                {
-                    RecordingId = Manifest.RecordingId,
-                    UnityFrame = frames[_nextDownloadIndex].UnityFrame,
-                    SupportedSceneGraphFormatVersion =
-                        RemoteRecordedSceneGraphFormats.ContentAddressedObjects,
-                    KnownHierarchySnapshotId = _knownHierarchySnapshotId,
-                    KnownInspectorSnapshotId = _knownInspectorSnapshotId
-                });
+            _frameRequestId = _session.Send(RemoteFrameRecorderMessageTypes.FrameRequest, new RemoteFrameRecorderFrameRequest
+            {
+                RecordingId = Manifest.RecordingId,
+                UnityFrame = frames[_nextDownloadIndex].UnityFrame,
+                SupportedSceneGraphFormatVersion = RemoteRecordedSceneGraphFormats.ContentAddressedObjects,
+                KnownHierarchySnapshotId = _knownHierarchySnapshotId,
+                KnownInspectorSnapshotId = _knownInspectorSnapshotId
+            });
         }
 
         private void HandleFrame(RemoteEnvelope envelope)
@@ -469,8 +435,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
             if (envelope.RequestId != _frameRequestId)
                 return;
             _frameRequestId = 0;
-            if (!RemoteProtocolSerializer.TryDeserializePayload(envelope,
-                    out RemoteFrameRecorderFrameResponse response, out string error))
+            if (!RemoteProtocolSerializer.TryDeserializePayload(envelope, out RemoteFrameRecorderFrameResponse response, out string error))
             {
                 DownloadError = error;
                 return;
@@ -522,29 +487,23 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
         private void ImportRecording(RemoteFrameRecordingArchive archive)
         {
             ClearReplay();
-            Manifest = archive?.Manifest ??
-                       throw new InvalidDataException("The frame recording has no manifest.");
-            RemoteFrameRecorderFrameResponse[] responses = archive.FrameResponses ??
-                                                            Array.Empty<RemoteFrameRecorderFrameResponse>();
+            Manifest = archive?.Manifest ?? throw new InvalidDataException("The frame recording has no manifest.");
+            RemoteFrameRecorderFrameResponse[] responses = archive.FrameResponses ?? Array.Empty<RemoteFrameRecorderFrameResponse>();
             if (Manifest.Frames == null || Manifest.Frames.Length != responses.Length)
                 throw new InvalidDataException("The frame recording is incomplete.");
             for (int i = 0; i < responses.Length; i++)
                 AddDecodedFrame(responses[i], Manifest.Frames[i]);
         }
 
-        private void AddDecodedFrame(RemoteFrameRecorderFrameResponse response,
-            RemoteRecordedFrameInfo info)
+        private void AddDecodedFrame(RemoteFrameRecorderFrameResponse response, RemoteRecordedFrameInfo info)
         {
-            if (response == null || info == null || response.RecordingId != Manifest.RecordingId ||
-                response.UnityFrame != info.UnityFrame)
+            if (response == null || info == null || response.RecordingId != Manifest.RecordingId || response.UnityFrame != info.UnityFrame)
                 throw new InvalidDataException("The recorded frame does not match its manifest entry.");
 
             RemoteRecordedSceneGraph graph;
-            if (response.SceneGraphFormatVersion >=
-                RemoteRecordedSceneGraphFormats.ContentAddressedObjects)
+            if (response.SceneGraphFormatVersion >= RemoteRecordedSceneGraphFormats.ContentAddressedObjects)
                 graph = ResolveObjectSectionedSceneGraph(response);
-            else if (response.SceneGraphFormatVersion >=
-                     RemoteRecordedSceneGraphFormats.ContentAddressedSections)
+            else if (response.SceneGraphFormatVersion >= RemoteRecordedSceneGraphFormats.ContentAddressedSections)
                 graph = ResolveSectionedSceneGraph(response);
             else
                 graph = ResolveLegacySceneGraph(response);
@@ -557,33 +516,27 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
             });
         }
 
-        private RemoteRecordedSceneGraph ResolveSectionedSceneGraph(
-            RemoteFrameRecorderFrameResponse response)
+        private RemoteRecordedSceneGraph ResolveSectionedSceneGraph(RemoteFrameRecorderFrameResponse response)
         {
-            if (string.IsNullOrEmpty(response.HierarchySnapshotId) ||
-                string.IsNullOrEmpty(response.InspectorSnapshotId))
+            if (string.IsNullOrEmpty(response.HierarchySnapshotId) || string.IsNullOrEmpty(response.InspectorSnapshotId))
                 throw new InvalidDataException("The recorded frame has incomplete scene-graph references.");
 
             if (!string.IsNullOrEmpty(response.HierarchyGzipBase64))
             {
-                _knownHierarchy = DeserializeCompressed<RemoteSceneInspectorHierarchyResponse>(
-                    response.HierarchyGzipBase64);
+                _knownHierarchy = DeserializeCompressed<RemoteSceneInspectorHierarchyResponse>(response.HierarchyGzipBase64);
                 _knownHierarchySnapshotId = response.HierarchySnapshotId;
             }
-            else if (!string.Equals(_knownHierarchySnapshotId, response.HierarchySnapshotId,
-                         StringComparison.Ordinal) || _knownHierarchy == null)
+            else if (!string.Equals(_knownHierarchySnapshotId, response.HierarchySnapshotId, StringComparison.Ordinal) || _knownHierarchy == null)
             {
                 throw new InvalidDataException("The hierarchy delta references an unavailable snapshot.");
             }
 
             if (!string.IsNullOrEmpty(response.InspectorGzipBase64))
             {
-                _knownInspector = DeserializeCompressed<RemoteRecordedInspectorSnapshot>(
-                    response.InspectorGzipBase64);
+                _knownInspector = DeserializeCompressed<RemoteRecordedInspectorSnapshot>(response.InspectorGzipBase64);
                 _knownInspectorSnapshotId = response.InspectorSnapshotId;
             }
-            else if (!string.Equals(_knownInspectorSnapshotId, response.InspectorSnapshotId,
-                         StringComparison.Ordinal) || _knownInspector == null)
+            else if (!string.Equals(_knownInspectorSnapshotId, response.InspectorSnapshotId, StringComparison.Ordinal) || _knownInspector == null)
             {
                 throw new InvalidDataException("The inspector delta references an unavailable snapshot.");
             }
@@ -596,8 +549,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
             };
         }
 
-        private RemoteRecordedSceneGraph ResolveObjectSectionedSceneGraph(
-            RemoteFrameRecorderFrameResponse response)
+        private RemoteRecordedSceneGraph ResolveObjectSectionedSceneGraph(RemoteFrameRecorderFrameResponse response)
         {
             ResolveHierarchy(response);
             if (string.IsNullOrEmpty(response.InspectorSnapshotId))
@@ -605,33 +557,25 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
 
             if (!string.IsNullOrEmpty(response.InspectorManifestGzipBase64))
             {
-                _knownInspectorManifest =
-                    DeserializeCompressed<RemoteRecordedInspectorManifest>(
-                        response.InspectorManifestGzipBase64);
+                _knownInspectorManifest = DeserializeCompressed<RemoteRecordedInspectorManifest>(response.InspectorManifestGzipBase64);
                 _knownInspectorSnapshotId = response.InspectorSnapshotId;
             }
-            else if (!string.Equals(_knownInspectorSnapshotId, response.InspectorSnapshotId,
-                         StringComparison.Ordinal) || _knownInspectorManifest == null)
+            else if (!string.Equals(_knownInspectorSnapshotId, response.InspectorSnapshotId, StringComparison.Ordinal) || _knownInspectorManifest == null)
             {
-                throw new InvalidDataException(
-                    "The inspector manifest references an unavailable snapshot.");
+                throw new InvalidDataException("The inspector manifest references an unavailable snapshot.");
             }
 
-            RemoteRecordedSceneGraphBlob[] suppliedBlobs = response.InspectorBlobs ??
-                                                           Array.Empty<RemoteRecordedSceneGraphBlob>();
+            RemoteRecordedSceneGraphBlob[] suppliedBlobs = response.InspectorBlobs ?? Array.Empty<RemoteRecordedSceneGraphBlob>();
             for (int i = 0; i < suppliedBlobs.Length; i++)
             {
                 RemoteRecordedSceneGraphBlob blob = suppliedBlobs[i];
-                if (blob == null || string.IsNullOrEmpty(blob.SnapshotId) ||
-                    string.IsNullOrEmpty(blob.GzipBase64))
+                if (blob == null || string.IsNullOrEmpty(blob.SnapshotId) || string.IsNullOrEmpty(blob.GzipBase64))
                     throw new InvalidDataException("The inspector response contains an invalid object snapshot.");
                 _knownInspectorBlobs[blob.SnapshotId] = blob.GzipBase64;
                 _decodedInspectorBlobs.Remove(blob.SnapshotId);
             }
 
-            RemoteRecordedObjectSnapshotReference[] references =
-                _knownInspectorManifest.Objects ??
-                Array.Empty<RemoteRecordedObjectSnapshotReference>();
+            RemoteRecordedObjectSnapshotReference[] references = _knownInspectorManifest.Objects ?? Array.Empty<RemoteRecordedObjectSnapshotReference>();
             var inspections = new RemoteObjectDetails[references.Length];
             var nextObjects = new Dictionary<long, CachedRemoteObject>();
             var requiredPayloads = new HashSet<string>(StringComparer.Ordinal);
@@ -641,28 +585,22 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
                 if (reference == null || reference.IsNull)
                     continue;
                 AddRequiredPayloads(reference, requiredPayloads);
-                if (_knownInspectorObjects.TryGetValue(reference.ObjectId,
-                        out CachedRemoteObject cached) && cached.Matches(reference))
+                if (_knownInspectorObjects.TryGetValue(reference.ObjectId, out CachedRemoteObject cached) && cached.Matches(reference))
                 {
                     inspections[i] = cached.Details;
                     nextObjects[reference.ObjectId] = cached;
                     continue;
                 }
 
-                RemoteRecordedObjectHeader header = ReadInspectorBlob<RemoteRecordedObjectHeader>(
-                    reference.HeaderSnapshotId);
+                RemoteRecordedObjectHeader header = ReadInspectorBlob<RemoteRecordedObjectHeader>(reference.HeaderSnapshotId);
                 if (header == null || header.Id != reference.ObjectId)
                     throw new InvalidDataException("A recorded object header is invalid.");
-                RemoteRecordedMaterialSnapshot material =
-                    ReadInspectorBlob<RemoteRecordedMaterialSnapshot>(
-                        reference.MaterialSnapshotId);
+                RemoteRecordedMaterialSnapshot material = ReadInspectorBlob<RemoteRecordedMaterialSnapshot>(reference.MaterialSnapshotId);
                 string[] componentIds = reference.ComponentSnapshotIds ?? Array.Empty<string>();
                 var components = new RemoteComponentDescriptor[componentIds.Length];
-                for (int componentIndex = 0; componentIndex < componentIds.Length;
-                     componentIndex++)
+                for (int componentIndex = 0; componentIndex < componentIds.Length; componentIndex++)
                 {
-                    components[componentIndex] = ReadInspectorBlob<RemoteComponentDescriptor>(
-                        componentIds[componentIndex]);
+                    components[componentIndex] = ReadInspectorBlob<RemoteComponentDescriptor>(componentIds[componentIndex]);
                 }
 
                 var details = new RemoteObjectDetails
@@ -697,12 +635,10 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
                 throw new InvalidDataException("The recorded frame has no hierarchy reference.");
             if (!string.IsNullOrEmpty(response.HierarchyGzipBase64))
             {
-                _knownHierarchy = DeserializeCompressed<RemoteSceneInspectorHierarchyResponse>(
-                    response.HierarchyGzipBase64);
+                _knownHierarchy = DeserializeCompressed<RemoteSceneInspectorHierarchyResponse>(response.HierarchyGzipBase64);
                 _knownHierarchySnapshotId = response.HierarchySnapshotId;
             }
-            else if (!string.Equals(_knownHierarchySnapshotId, response.HierarchySnapshotId,
-                         StringComparison.Ordinal) || _knownHierarchy == null)
+            else if (!string.Equals(_knownHierarchySnapshotId, response.HierarchySnapshotId, StringComparison.Ordinal) || _knownHierarchy == null)
             {
                 throw new InvalidDataException("The hierarchy delta references an unavailable snapshot.");
             }
@@ -710,8 +646,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
 
         private T ReadInspectorBlob<T>(string snapshotId) where T : class
         {
-            if (string.IsNullOrEmpty(snapshotId) ||
-                !_knownInspectorBlobs.TryGetValue(snapshotId, out string base64))
+            if (string.IsNullOrEmpty(snapshotId) || !_knownInspectorBlobs.TryGetValue(snapshotId, out string base64))
                 throw new InvalidDataException("An inspector object snapshot is unavailable.");
             if (_decodedInspectorBlobs.TryGetValue(snapshotId, out object decoded))
             {
@@ -727,8 +662,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
             return value;
         }
 
-        private static void AddRequiredPayloads(RemoteRecordedObjectSnapshotReference reference,
-            ISet<string> destination)
+        private static void AddRequiredPayloads(RemoteRecordedObjectSnapshotReference reference, ISet<string> destination)
         {
             if (!string.IsNullOrEmpty(reference.HeaderSnapshotId))
                 destination.Add(reference.HeaderSnapshotId);
@@ -750,6 +684,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
                 if (!requiredPayloads.Contains(snapshotId))
                     obsolete.Add(snapshotId);
             }
+
             for (int i = 0; i < obsolete.Count; i++)
             {
                 _knownInspectorBlobs.Remove(obsolete[i]);
@@ -757,11 +692,9 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
             }
         }
 
-        private static RemoteRecordedSceneGraph ResolveLegacySceneGraph(
-            RemoteFrameRecorderFrameResponse response)
+        private static RemoteRecordedSceneGraph ResolveLegacySceneGraph(RemoteFrameRecorderFrameResponse response)
         {
-            return DeserializeCompressed<RemoteRecordedSceneGraph>(response.SceneGraphGzipBase64) ??
-                   new RemoteRecordedSceneGraph();
+            return DeserializeCompressed<RemoteRecordedSceneGraph>(response.SceneGraphGzipBase64) ?? new RemoteRecordedSceneGraph();
         }
 
         private static T DeserializeCompressed<T>(string base64)
@@ -786,8 +719,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
             private readonly string _materialSnapshotId;
             private readonly string[] _componentSnapshotIds;
 
-            internal CachedRemoteObject(RemoteRecordedObjectSnapshotReference reference,
-                RemoteObjectDetails details)
+            internal CachedRemoteObject(RemoteRecordedObjectSnapshotReference reference, RemoteObjectDetails details)
             {
                 _headerSnapshotId = reference.HeaderSnapshotId;
                 _materialSnapshotId = reference.MaterialSnapshotId;
@@ -799,20 +731,17 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
 
             internal bool Matches(RemoteRecordedObjectSnapshotReference reference)
             {
-                if (!string.Equals(_headerSnapshotId, reference.HeaderSnapshotId,
-                        StringComparison.Ordinal) ||
-                    !string.Equals(_materialSnapshotId, reference.MaterialSnapshotId,
-                        StringComparison.Ordinal))
+                if (!string.Equals(_headerSnapshotId, reference.HeaderSnapshotId, StringComparison.Ordinal) || !string.Equals(_materialSnapshotId, reference.MaterialSnapshotId, StringComparison.Ordinal))
                     return false;
                 string[] componentIds = reference.ComponentSnapshotIds ?? Array.Empty<string>();
                 if (_componentSnapshotIds.Length != componentIds.Length)
                     return false;
                 for (int i = 0; i < componentIds.Length; i++)
                 {
-                    if (!string.Equals(_componentSnapshotIds[i], componentIds[i],
-                            StringComparison.Ordinal))
+                    if (!string.Equals(_componentSnapshotIds[i], componentIds[i], StringComparison.Ordinal))
                         return false;
                 }
+
                 return true;
             }
         }
