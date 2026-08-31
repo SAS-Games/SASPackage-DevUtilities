@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
@@ -12,11 +13,218 @@ using UnityEngine;
 
 namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
 {
+    [Serializable]
+    internal sealed class RemoteFrameRecordingArchiveHeader
+    {
+        public int FormatVersion;
+        public string CreatedUtc;
+        public int FrameCount;
+        public RemoteFrameRecorderManifestResponse Manifest;
+    }
+
+    internal sealed class RemoteFrameRecordingArchive
+    {
+        internal RemoteFrameRecorderManifestResponse Manifest;
+        internal RemoteFrameRecorderFrameResponse[] FrameResponses =
+            Array.Empty<RemoteFrameRecorderFrameResponse>();
+    }
+
+    internal static class RemoteFrameRecordingStore
+    {
+        internal const string FileExtension = "sasframerecording";
+        private const int CurrentFormatVersion = 1;
+        private const int MaximumJsonEntryBytes = 64 * 1024 * 1024;
+        private const string HeaderEntryName = "recording.json";
+
+        internal static void Save(string path, RemoteFrameRecorderManifestResponse manifest,
+            IReadOnlyList<RemoteFrameReplayFrame> frames)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+                throw new ArgumentException("A recording file path is required.", nameof(path));
+            if (manifest?.Frames == null || frames == null || frames.Count == 0)
+                throw new InvalidOperationException("There are no downloaded frames to save.");
+            if (manifest.Frames.Length != frames.Count)
+                throw new InvalidDataException("The downloaded frame manifest is incomplete.");
+
+            string fullPath = Path.GetFullPath(path);
+            string directory = Path.GetDirectoryName(fullPath);
+            if (string.IsNullOrEmpty(directory) || !Directory.Exists(directory))
+                throw new DirectoryNotFoundException("The selected recording directory does not exist.");
+
+            string temporaryPath = fullPath + ".tmp-" + Guid.NewGuid().ToString("N");
+            try
+            {
+                using (var stream = new FileStream(temporaryPath, FileMode.CreateNew,
+                           FileAccess.Write, FileShare.None))
+                using (var archive = new ZipArchive(stream, ZipArchiveMode.Create, false))
+                {
+                    WriteJson(archive, HeaderEntryName, new RemoteFrameRecordingArchiveHeader
+                    {
+                        FormatVersion = CurrentFormatVersion,
+                        CreatedUtc = DateTime.UtcNow.ToString("O", CultureInfo.InvariantCulture),
+                        FrameCount = frames.Count,
+                        Manifest = manifest
+                    });
+
+                    for (int i = 0; i < frames.Count; i++)
+                    {
+                        RemoteFrameReplayFrame frame = frames[i];
+                        RemoteRecordedFrameInfo info = manifest.Frames[i];
+                        if (frame?.Info == null || info == null ||
+                            frame.Info.UnityFrame != info.UnityFrame)
+                            throw new InvalidDataException(
+                                $"Downloaded frame {i + 1} does not match its manifest entry.");
+
+                        RemoteFrameRecorderFrameResponse response = frame.SourceResponse ??
+                                                                    CreateLegacyResponse(
+                                                                        manifest.RecordingId, frame);
+                        ValidateResponse(response, manifest.RecordingId, info.UnityFrame, i);
+                        WriteJson(archive, GetFrameEntryName(i), response);
+                    }
+                }
+
+                ReplaceDestination(temporaryPath, fullPath);
+            }
+            finally
+            {
+                if (File.Exists(temporaryPath))
+                    File.Delete(temporaryPath);
+            }
+        }
+
+        internal static RemoteFrameRecordingArchive Load(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+                throw new ArgumentException("A recording file path is required.", nameof(path));
+            string fullPath = Path.GetFullPath(path);
+            if (!File.Exists(fullPath))
+                throw new FileNotFoundException("The selected frame recording does not exist.", fullPath);
+
+            using var stream = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            using var archive = new ZipArchive(stream, ZipArchiveMode.Read, false);
+            RemoteFrameRecordingArchiveHeader header =
+                ReadJson<RemoteFrameRecordingArchiveHeader>(archive, HeaderEntryName);
+            if (header == null || header.FormatVersion != CurrentFormatVersion)
+                throw new InvalidDataException(
+                    $"This frame recording uses an unsupported format version ({header?.FormatVersion ?? 0}).");
+            if (header.Manifest?.Frames == null || header.FrameCount <= 0 ||
+                header.FrameCount != header.Manifest.Frames.Length ||
+                header.FrameCount > RemoteFrameRecorderLimits.MaximumCapacity)
+                throw new InvalidDataException("The frame recording manifest is invalid.");
+
+            var responses = new RemoteFrameRecorderFrameResponse[header.FrameCount];
+            for (int i = 0; i < responses.Length; i++)
+            {
+                RemoteRecordedFrameInfo info = header.Manifest.Frames[i];
+                if (info == null)
+                    throw new InvalidDataException(
+                        $"Frame recording manifest entry {i + 1} is invalid.");
+                responses[i] = ReadJson<RemoteFrameRecorderFrameResponse>(archive,
+                    GetFrameEntryName(i));
+                ValidateResponse(responses[i], header.Manifest.RecordingId, info.UnityFrame, i);
+            }
+
+            return new RemoteFrameRecordingArchive
+            {
+                Manifest = header.Manifest,
+                FrameResponses = responses
+            };
+        }
+
+        private static void ValidateResponse(RemoteFrameRecorderFrameResponse response,
+            long recordingId, int unityFrame, int index)
+        {
+            if (response == null || response.RecordingId != recordingId ||
+                response.UnityFrame != unityFrame || !string.IsNullOrEmpty(response.Error))
+                throw new InvalidDataException(
+                    $"Stored frame {index + 1} does not match the recording manifest.");
+            if (string.IsNullOrEmpty(response.ImageBase64))
+                throw new InvalidDataException($"Stored frame {index + 1} has no image data.");
+        }
+
+        private static RemoteFrameRecorderFrameResponse CreateLegacyResponse(long recordingId,
+            RemoteFrameReplayFrame frame)
+        {
+            string json = JsonUtility.ToJson(frame.SceneGraph ?? new RemoteRecordedSceneGraph());
+            byte[] input = Encoding.UTF8.GetBytes(json);
+            using var output = new MemoryStream();
+            using (var gzip = new GZipStream(output,
+                       System.IO.Compression.CompressionLevel.Fastest, true))
+                gzip.Write(input, 0, input.Length);
+            return new RemoteFrameRecorderFrameResponse
+            {
+                RecordingId = recordingId,
+                UnityFrame = frame.Info.UnityFrame,
+                ImageBase64 = frame.ImageBase64,
+                SceneGraphFormatVersion = RemoteRecordedSceneGraphFormats.LegacyFullSnapshot,
+                SceneGraphGzipBase64 = Convert.ToBase64String(output.ToArray())
+            };
+        }
+
+        private static void WriteJson<T>(ZipArchive archive, string entryName, T value)
+        {
+            ZipArchiveEntry entry = archive.CreateEntry(entryName,
+                System.IO.Compression.CompressionLevel.Optimal);
+            using Stream stream = entry.Open();
+            using var writer = new StreamWriter(stream, new UTF8Encoding(false));
+            writer.Write(JsonUtility.ToJson(value));
+        }
+
+        private static T ReadJson<T>(ZipArchive archive, string entryName) where T : class
+        {
+            ZipArchiveEntry entry = archive.GetEntry(entryName);
+            if (entry == null)
+                throw new InvalidDataException($"The frame recording is missing '{entryName}'.");
+            if (entry.Length <= 0 || entry.Length > MaximumJsonEntryBytes)
+                throw new InvalidDataException(
+                    $"The frame recording entry '{entryName}' has an invalid size.");
+            using Stream stream = entry.Open();
+            using var reader = new StreamReader(stream, Encoding.UTF8, true);
+            return JsonUtility.FromJson<T>(reader.ReadToEnd());
+        }
+
+        private static string GetFrameEntryName(int index) =>
+            "frames/" + index.ToString("D4", CultureInfo.InvariantCulture) + ".json";
+
+        private static void ReplaceDestination(string temporaryPath, string destinationPath)
+        {
+            if (!File.Exists(destinationPath))
+            {
+                File.Move(temporaryPath, destinationPath);
+                return;
+            }
+
+            string backupPath = destinationPath + ".backup-" + Guid.NewGuid().ToString("N");
+            File.Move(destinationPath, backupPath);
+            try
+            {
+                File.Move(temporaryPath, destinationPath);
+            }
+            catch
+            {
+                if (!File.Exists(destinationPath) && File.Exists(backupPath))
+                    File.Move(backupPath, destinationPath);
+                throw;
+            }
+
+            try
+            {
+                File.Delete(backupPath);
+            }
+            catch
+            {
+                // The new recording is already safely in place. A stale backup is preferable to
+                // reporting a failed save or risking the destination while cleaning it up.
+            }
+        }
+    }
+
     internal sealed class RemoteFrameReplayFrame
     {
         internal RemoteRecordedFrameInfo Info;
         internal string ImageBase64;
         internal RemoteRecordedSceneGraph SceneGraph;
+        internal RemoteFrameRecorderFrameResponse SourceResponse;
     }
 
     [RemoteEditorFeature("frame-recorder", 410, experimental: true)]
@@ -58,6 +266,9 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
         internal bool IsDownloading => _manifestRequestId != 0 || _frameRequestId != 0;
         internal int DownloadedFrameCount => _replayFrames.Count;
         internal int DownloadFrameCount => Manifest?.Frames?.Length ?? 0;
+        internal bool CanSaveRecording => !IsDownloading && _replayFrames.Count > 0 &&
+                                          Manifest?.Frames?.Length == _replayFrames.Count;
+        internal string RecordingFilePath { get; private set; }
 
         public void OnConnected() => Query();
 
@@ -102,6 +313,48 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
                 new RemoteFrameRecorderControlRequest { Action = RemoteFrameRecorderAction.Release });
         }
 
+        internal bool SaveRecording(string path)
+        {
+            try
+            {
+                RemoteFrameRecordingStore.Save(path, Manifest, _replayFrames);
+                RecordingFilePath = Path.GetFullPath(path);
+                DownloadError = null;
+                _session.NotifyStateChanged();
+                return true;
+            }
+            catch (Exception exception)
+            {
+                DownloadError = "Could not save the frame recording. " + exception.Message;
+                _session.NotifyStateChanged();
+                return false;
+            }
+        }
+
+        internal bool LoadRecording(string path)
+        {
+            try
+            {
+                RemoteFrameRecordingArchive archive = RemoteFrameRecordingStore.Load(path);
+                var decoder = new RemoteFrameRecorderClient(_session);
+                decoder.ImportRecording(archive);
+
+                ClearReplay();
+                Manifest = archive.Manifest;
+                _replayFrames.AddRange(decoder._replayFrames);
+                RecordingFilePath = Path.GetFullPath(path);
+                DownloadError = null;
+                _session.NotifyStateChanged();
+                return true;
+            }
+            catch (Exception exception)
+            {
+                DownloadError = "Could not open the frame recording. " + exception.Message;
+                _session.NotifyStateChanged();
+                return false;
+            }
+        }
+
         public void Handle(RemoteEnvelope envelope)
         {
             switch (envelope.MessageType)
@@ -126,7 +379,15 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
             _manifestRequestId = 0;
             _frameRequestId = 0;
             Status = new RemoteFrameRecorderControlResponse();
-            ClearReplay();
+            if (!string.IsNullOrEmpty(RecordingFilePath) && _replayFrames.Count > 0)
+            {
+                DownloadError = null;
+                ResetDecodeState();
+            }
+            else
+            {
+                ClearReplay();
+            }
         }
 
         private void HandleControl(RemoteEnvelope envelope)
@@ -223,22 +484,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
 
             try
             {
-                RemoteRecordedSceneGraph graph;
-                if (response.SceneGraphFormatVersion >=
-                    RemoteRecordedSceneGraphFormats.ContentAddressedObjects)
-                    graph = ResolveObjectSectionedSceneGraph(response);
-                else if (response.SceneGraphFormatVersion >=
-                         RemoteRecordedSceneGraphFormats.ContentAddressedSections)
-                    graph = ResolveSectionedSceneGraph(response);
-                else
-                    graph = ResolveLegacySceneGraph(response);
                 RemoteRecordedFrameInfo info = Manifest.Frames[_nextDownloadIndex];
-                _replayFrames.Add(new RemoteFrameReplayFrame
-                {
-                    Info = info,
-                    ImageBase64 = response.ImageBase64,
-                    SceneGraph = graph ?? new RemoteRecordedSceneGraph()
-                });
+                AddDecodedFrame(response, info);
                 _nextDownloadIndex++;
                 RequestNextFrame();
             }
@@ -256,6 +503,12 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
             _manifestRequestId = 0;
             _frameRequestId = 0;
             _replayFrames.Clear();
+            ResetDecodeState();
+            RecordingFilePath = null;
+        }
+
+        private void ResetDecodeState()
+        {
             _knownHierarchySnapshotId = null;
             _knownInspectorSnapshotId = null;
             _knownHierarchy = null;
@@ -264,6 +517,44 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
             _knownInspectorBlobs.Clear();
             _decodedInspectorBlobs.Clear();
             _knownInspectorObjects.Clear();
+        }
+
+        private void ImportRecording(RemoteFrameRecordingArchive archive)
+        {
+            ClearReplay();
+            Manifest = archive?.Manifest ??
+                       throw new InvalidDataException("The frame recording has no manifest.");
+            RemoteFrameRecorderFrameResponse[] responses = archive.FrameResponses ??
+                                                            Array.Empty<RemoteFrameRecorderFrameResponse>();
+            if (Manifest.Frames == null || Manifest.Frames.Length != responses.Length)
+                throw new InvalidDataException("The frame recording is incomplete.");
+            for (int i = 0; i < responses.Length; i++)
+                AddDecodedFrame(responses[i], Manifest.Frames[i]);
+        }
+
+        private void AddDecodedFrame(RemoteFrameRecorderFrameResponse response,
+            RemoteRecordedFrameInfo info)
+        {
+            if (response == null || info == null || response.RecordingId != Manifest.RecordingId ||
+                response.UnityFrame != info.UnityFrame)
+                throw new InvalidDataException("The recorded frame does not match its manifest entry.");
+
+            RemoteRecordedSceneGraph graph;
+            if (response.SceneGraphFormatVersion >=
+                RemoteRecordedSceneGraphFormats.ContentAddressedObjects)
+                graph = ResolveObjectSectionedSceneGraph(response);
+            else if (response.SceneGraphFormatVersion >=
+                     RemoteRecordedSceneGraphFormats.ContentAddressedSections)
+                graph = ResolveSectionedSceneGraph(response);
+            else
+                graph = ResolveLegacySceneGraph(response);
+            _replayFrames.Add(new RemoteFrameReplayFrame
+            {
+                Info = info,
+                ImageBase64 = response.ImageBase64,
+                SceneGraph = graph ?? new RemoteRecordedSceneGraph(),
+                SourceResponse = response
+            });
         }
 
         private RemoteRecordedSceneGraph ResolveSectionedSceneGraph(

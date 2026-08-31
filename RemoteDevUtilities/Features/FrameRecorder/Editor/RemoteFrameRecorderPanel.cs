@@ -73,16 +73,30 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
                 ResetReplayView();
             }
 
-            if (!connected)
+            DrawRecordingFileToolbar(recorder);
+            if (connected)
             {
-                EditorGUILayout.HelpBox("Connect to a development Player to use the Frame Recorder.",
+                DrawToolbar(recorder, liveInspector);
+                DrawStatus(recorder);
+            }
+            else if (!string.IsNullOrEmpty(recorder.DownloadError))
+            {
+                EditorGUILayout.HelpBox(recorder.DownloadError, MessageType.Error);
+            }
+            else if (recorder.ReplayFrames.Count > 0)
+            {
+                EditorGUILayout.HelpBox(
+                    "Offline replay. The recorded hierarchy and Inspector remain fully available without a running Player.",
                     MessageType.Info);
-                return false;
+            }
+            else
+            {
+                EditorGUILayout.HelpBox(
+                    "Connect to a development Player to record frames, or open a saved recording from disk.",
+                    MessageType.Info);
             }
 
-            DrawToolbar(recorder, liveInspector);
-            DrawStatus(recorder);
-            DrawReplay(recorder, liveInspector, windowRect);
+            DrawReplay(recorder, liveInspector, windowRect, connected);
             // The workspace-level return value requests forced outer-window scrolling.
             // Playback has its own repaint loop and must never move the workspace scroll.
             return false;
@@ -187,6 +201,44 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
             }
         }
 
+        private void DrawRecordingFileToolbar(RemoteFrameRecorderClient client)
+        {
+            EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
+            if (GUILayout.Button("Open Recording...", EditorStyles.toolbarButton,
+                    GUILayout.Width(112f)))
+            {
+                string path = EditorUtility.OpenFilePanel("Open Frame Recording", string.Empty,
+                    RemoteFrameRecordingStore.FileExtension);
+                if (!string.IsNullOrEmpty(path) && client.LoadRecording(path))
+                    ResetReplayView();
+            }
+
+            using (new EditorGUI.DisabledScope(!client.CanSaveRecording))
+            {
+                if (GUILayout.Button("Save Recording...", EditorStyles.toolbarButton,
+                        GUILayout.Width(112f)))
+                {
+                    long recordingId = client.Manifest?.RecordingId ?? 0;
+                    string defaultName = recordingId == 0
+                        ? "Frame Recording"
+                        : $"Frame Recording {recordingId}";
+                    string directory = string.IsNullOrEmpty(client.RecordingFilePath)
+                        ? string.Empty
+                        : System.IO.Path.GetDirectoryName(client.RecordingFilePath);
+                    string path = EditorUtility.SaveFilePanel("Save Frame Recording", directory,
+                        defaultName, RemoteFrameRecordingStore.FileExtension);
+                    if (!string.IsNullOrEmpty(path))
+                        client.SaveRecording(path);
+                }
+            }
+
+            GUILayout.FlexibleSpace();
+            if (!string.IsNullOrEmpty(client.RecordingFilePath))
+                GUILayout.Label("Local: " + System.IO.Path.GetFileName(client.RecordingFilePath),
+                    EditorStyles.miniLabel);
+            EditorGUILayout.EndHorizontal();
+        }
+
         private static void DrawStatus(RemoteFrameRecorderClient client)
         {
             if (!string.IsNullOrEmpty(client.DownloadError))
@@ -254,14 +306,15 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
         }
 
         private void DrawReplay(RemoteFrameRecorderClient client,
-            RemoteRuntimeSceneInspectorClient liveInspector, Rect windowRect)
+            RemoteRuntimeSceneInspectorClient liveInspector, Rect windowRect, bool connected)
         {
             IReadOnlyList<RemoteFrameReplayFrame> frames = client.ReplayFrames;
             if (frames == null || frames.Count == 0)
             {
                 _playbackFrames = null;
-                DrawLiveSelection(liveInspector, client.Status?.State ?? RemoteFrameRecorderState.Idle,
-                    windowRect);
+                if (connected)
+                    DrawLiveSelection(liveInspector,
+                        client.Status?.State ?? RemoteFrameRecorderState.Idle, windowRect);
                 return;
             }
 
