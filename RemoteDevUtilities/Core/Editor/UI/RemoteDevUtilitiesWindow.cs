@@ -12,9 +12,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI
     {
         public RemoteWorkspacePanelAttribute(string id, string displayName, int order)
         {
-            Id = string.IsNullOrWhiteSpace(id)
-                ? throw new ArgumentException("A workspace panel id is required.", nameof(id))
-                : id;
+            Id = string.IsNullOrWhiteSpace(id) ? throw new ArgumentException("A workspace panel id is required.", nameof(id)) : id;
             DisplayName = string.IsNullOrWhiteSpace(displayName) ? Id : displayName;
             Order = order;
         }
@@ -53,8 +51,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI
                 if (type == null || type.IsAbstract || !typeof(IRemoteWorkspacePanel).IsAssignableFrom(type))
                     continue;
 
-                RemoteWorkspacePanelAttribute attribute =
-                    (RemoteWorkspacePanelAttribute)Attribute.GetCustomAttribute(type, typeof(RemoteWorkspacePanelAttribute));
+                RemoteWorkspacePanelAttribute attribute = (RemoteWorkspacePanelAttribute)Attribute.GetCustomAttribute(type, typeof(RemoteWorkspacePanelAttribute));
                 if (attribute != null)
                     registrations.Add((attribute, type));
             }
@@ -76,14 +73,10 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI
             return panels;
         }
 
-        private static int Compare(
-            (RemoteWorkspacePanelAttribute Attribute, Type Type) left,
-            (RemoteWorkspacePanelAttribute Attribute, Type Type) right)
+        private static int Compare((RemoteWorkspacePanelAttribute Attribute, Type Type) left, (RemoteWorkspacePanelAttribute Attribute, Type Type) right)
         {
             int order = left.Attribute.Order.CompareTo(right.Attribute.Order);
-            return order != 0
-                ? order
-                : string.Compare(left.Type.FullName, right.Type.FullName, StringComparison.Ordinal);
+            return order != 0 ? order : string.Compare(left.Type.FullName, right.Type.FullName, StringComparison.Ordinal);
         }
     }
 
@@ -99,6 +92,38 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI
         bool Draw(RemoteDevUtilitiesClient client, bool showNativeWorkspace);
     }
 
+    internal static class RemoteWorkspaceToolbarStyles
+    {
+        internal const float RowHeight = 20f;
+        internal const float ControlHeight = 18f;
+
+        private static GUIStyle _heading;
+        private static GUIStyle _status;
+        private static GUIStyle _button;
+        private static GUIStyle _dropDown;
+
+        internal static GUIStyle Heading => _heading ??= Create(EditorStyles.miniBoldLabel, TextAnchor.MiddleLeft);
+
+        internal static GUIStyle Status => _status ??= Create(EditorStyles.miniLabel, TextAnchor.MiddleLeft);
+
+        internal static GUIStyle Button => _button ??= Create(EditorStyles.toolbarButton, TextAnchor.MiddleCenter);
+
+        internal static GUIStyle DropDown => _dropDown ??= Create(EditorStyles.toolbarDropDown, TextAnchor.MiddleCenter);
+
+        internal static GUIStyle Create(GUIStyle source, TextAnchor alignment)
+        {
+            var style = new GUIStyle(source)
+            {
+                alignment = alignment,
+                fixedHeight = ControlHeight,
+                margin = new RectOffset(source.margin.left, source.margin.right, 0, 0),
+                padding = new RectOffset(source.padding.left, source.padding.right, 0, 0),
+                contentOffset = new Vector2(source.contentOffset.x, 0f)
+            };
+            return style;
+        }
+    }
+
     internal static class RemoteWorkspaceHeaderRegistry
     {
         internal static IReadOnlyList<IRemoteWorkspaceHeader> CreateHeaders()
@@ -109,8 +134,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI
                 if (type == null || type.IsAbstract || !typeof(IRemoteWorkspaceHeader).IsAssignableFrom(type))
                     continue;
 
-                var attribute = (RemoteWorkspaceHeaderAttribute)Attribute.GetCustomAttribute(
-                    type, typeof(RemoteWorkspaceHeaderAttribute));
+                var attribute = (RemoteWorkspaceHeaderAttribute)Attribute.GetCustomAttribute(type, typeof(RemoteWorkspaceHeaderAttribute));
                 if (attribute != null)
                     registrations.Add((attribute.Order, type));
             }
@@ -118,9 +142,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI
             registrations.Sort((left, right) =>
             {
                 int order = left.Order.CompareTo(right.Order);
-                return order != 0
-                    ? order
-                    : string.Compare(left.Type.FullName, right.Type.FullName, StringComparison.Ordinal);
+                return order != 0 ? order : string.Compare(left.Type.FullName, right.Type.FullName, StringComparison.Ordinal);
             });
 
             var headers = new List<IRemoteWorkspaceHeader>(registrations.Count);
@@ -138,10 +160,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI
     {
         private RemoteDevUtilitiesClient _client;
         private RemoteConnectionPanel _connectionPanel;
-        private IReadOnlyList<IRemoteWorkspaceHeader> _workspaceHeaders =
-            Array.Empty<IRemoteWorkspaceHeader>();
-        private IReadOnlyList<RemoteWorkspacePanelInstance> _workspacePanels =
-            Array.Empty<RemoteWorkspacePanelInstance>();
+        private IReadOnlyList<IRemoteWorkspaceHeader> _workspaceHeaders = Array.Empty<IRemoteWorkspaceHeader>();
+        private IReadOnlyList<RemoteWorkspacePanelInstance> _workspacePanels = Array.Empty<RemoteWorkspacePanelInstance>();
         private string _initializationError;
         [SerializeField] private bool _showNativeWorkspace = true;
         [SerializeField] private string _selectedWorkspacePanelId = "commands";
@@ -225,8 +245,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI
             }
 
             EditorGUILayout.Space(3f);
-            _windowScroll = EditorGUILayout.BeginScrollView(_windowScroll,
-                GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
+            _windowScroll = EditorGUILayout.BeginScrollView(_windowScroll, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
             try
             {
                 if (_workspacePanels[selectedIndex].Panel.Draw(_client, _client.IsConnected, position))
@@ -240,8 +259,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI
 
         private void DrawWorkspaceVisibilityToolbar()
         {
-            EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
-            GUILayout.Label("Native Workspace", EditorStyles.miniBoldLabel);
+            EditorGUILayout.BeginHorizontal(EditorStyles.toolbar, GUILayout.Height(RemoteWorkspaceToolbarStyles.RowHeight));
+            GUILayout.Label("Native Workspace", RemoteWorkspaceToolbarStyles.Heading);
             GUILayout.FlexibleSpace();
 
             for (int i = 0; i < _workspaceHeaders.Count; i++)
@@ -251,7 +270,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI
             }
 
             string label = _showNativeWorkspace ? "Hide" : "Show";
-            if (GUILayout.Button(label, EditorStyles.toolbarButton, GUILayout.Width(48f)))
+            if (GUILayout.Button(label, RemoteWorkspaceToolbarStyles.Button, GUILayout.Width(48f)))
                 _showNativeWorkspace = !_showNativeWorkspace;
             EditorGUILayout.EndHorizontal();
         }
@@ -260,8 +279,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI
         {
             for (int i = 0; i < _workspacePanels.Count; i++)
             {
-                if (string.Equals(_workspacePanels[i].Registration.Id, _selectedWorkspacePanelId,
-                        StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(_workspacePanels[i].Registration.Id, _selectedWorkspacePanelId, StringComparison.OrdinalIgnoreCase))
                     return i;
             }
 
