@@ -8,6 +8,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Protocol.FrameRecorder
         public const int MinimumCapacity = 1;
         public const int MaximumCapacity = 300;
         public const int DefaultCapacity = 30;
+        public const int TransferChunkBytes = 512 * 1024;
+        public const int MaximumFrameTransferBytes = 64 * 1024 * 1024;
     }
 
     public static class RemoteRecordedSceneGraphFormats
@@ -25,6 +27,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Protocol.FrameRecorder
         public const string ManifestResponse = "frame-recorder.manifest.response";
         public const string FrameRequest = "frame-recorder.frame.request";
         public const string FrameResponse = "frame-recorder.frame.response";
+        public const string FrameChunkRequest = "frame-recorder.frame-chunk.request";
+        public const string FrameChunkResponse = "frame-recorder.frame-chunk.response";
     }
 
     public enum RemoteFrameRecorderAction
@@ -58,8 +62,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Protocol.FrameRecorder
         public int MaximumWidth = 640;
         public int JpegQuality = 60;
         public bool FreezePlayerWhenSealed;
-        public RemoteFrameRecorderInspectorScope InspectorScope =
-            RemoteFrameRecorderInspectorScope.SelectedObject;
+        public RemoteFrameRecorderInspectorScope InspectorScope = RemoteFrameRecorderInspectorScope.SelectedObject;
         public long InspectedObjectId;
     }
 
@@ -117,6 +120,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Protocol.FrameRecorder
         public long RecordingId;
         public int UnityFrame;
         public int SupportedSceneGraphFormatVersion;
+        public bool SupportsChunkedTransfer;
         public string KnownHierarchySnapshotId;
         public string KnownInspectorSnapshotId;
     }
@@ -133,10 +137,36 @@ namespace SAS.Utilities.RemoteDevUtilities.Protocol.FrameRecorder
         public string InspectorSnapshotId;
         public string InspectorGzipBase64;
         public string InspectorManifestGzipBase64;
-        public RemoteRecordedSceneGraphBlob[] InspectorBlobs =
-            Array.Empty<RemoteRecordedSceneGraphBlob>();
+        public RemoteRecordedSceneGraphBlob[] InspectorBlobs = Array.Empty<RemoteRecordedSceneGraphBlob>();
+        public string ChunkTransferId;
+        public int ChunkTransferBytes;
+
+        public string ChunkTransferSha256;
+
         // Retained so the current Editor can still read recordings produced by older Players.
         public string SceneGraphGzipBase64;
+        public string Error;
+    }
+
+    [Serializable]
+    public sealed class RemoteFrameRecorderFrameChunkRequest
+    {
+        public long RecordingId;
+        public int UnityFrame;
+        public string TransferId;
+        public int Offset;
+    }
+
+    [Serializable]
+    public sealed class RemoteFrameRecorderFrameChunkResponse
+    {
+        public long RecordingId;
+        public int UnityFrame;
+        public string TransferId;
+        public int Offset;
+        public int TotalBytes;
+        public string DataBase64;
+        public bool IsLast;
         public string Error;
     }
 
@@ -158,8 +188,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Protocol.FrameRecorder
     [Serializable]
     public sealed class RemoteRecordedInspectorManifest
     {
-        public RemoteRecordedObjectSnapshotReference[] Objects =
-            Array.Empty<RemoteRecordedObjectSnapshotReference>();
+        public RemoteRecordedObjectSnapshotReference[] Objects = Array.Empty<RemoteRecordedObjectSnapshotReference>();
         public string Error;
     }
 

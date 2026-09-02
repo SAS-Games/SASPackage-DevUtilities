@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
+using System.Security.Cryptography;
 using System.Text;
 using SAS.Utilities.RemoteDevUtilities.Editor.Client;
 using SAS.Utilities.RemoteDevUtilities.Protocol;
@@ -32,7 +33,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
     {
         internal const string FileExtension = "framerecording";
         private const int CurrentFormatVersion = 1;
-        private const int MaximumJsonEntryBytes = 64 * 1024 * 1024;
+        private const int MaximumJsonEntryBytes = RemoteFrameRecorderLimits.MaximumFrameTransferBytes;
         private const string HeaderEntryName = "recording.json";
 
         internal static void Save(string path, RemoteFrameRecorderManifestResponse manifest, IReadOnlyList<RemoteFrameReplayFrame> frames)
@@ -213,7 +214,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
         {
             RemoteFrameRecorderMessageTypes.ControlResponse,
             RemoteFrameRecorderMessageTypes.ManifestResponse,
-            RemoteFrameRecorderMessageTypes.FrameResponse
+            RemoteFrameRecorderMessageTypes.FrameResponse,
+            RemoteFrameRecorderMessageTypes.FrameChunkResponse
         };
 
         private readonly IRemoteEditorSession _session;
@@ -221,6 +223,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
         private long _controlRequestId;
         private long _manifestRequestId;
         private long _frameRequestId;
+        private long _frameChunkRequestId;
+        private PendingFrameTransfer _frameTransfer;
         private int _nextDownloadIndex;
         private string _knownHierarchySnapshotId;
         private string _knownInspectorSnapshotId;
@@ -240,9 +244,10 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
         internal string DownloadError { get; private set; }
         internal int SessionGeneration { get; private set; }
         internal bool IsControlPending => _controlRequestId != 0;
-        internal bool IsDownloading => _manifestRequestId != 0 || _frameRequestId != 0;
+        internal bool IsDownloading => _manifestRequestId != 0 || _frameRequestId != 0 || _frameChunkRequestId != 0 || _frameTransfer != null;
         internal int DownloadedFrameCount => _replayFrames.Count;
         internal int DownloadFrameCount => Manifest?.Frames?.Length ?? 0;
+        internal float CurrentFrameDownloadProgress => _frameTransfer?.Bytes?.Length > 0 ? _frameTransfer.ReceivedBytes / (float)_frameTransfer.Bytes.Length : 0f;
         internal bool CanSaveRecording => !IsDownloading && _replayFrames.Count > 0 && Manifest?.Frames?.Length == _replayFrames.Count;
         internal string RecordingFilePath { get; private set; }
 
@@ -339,6 +344,9 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
                 case RemoteFrameRecorderMessageTypes.FrameResponse:
                     HandleFrame(envelope);
                     break;
+                case RemoteFrameRecorderMessageTypes.FrameChunkResponse:
+                    HandleFrameChunk(envelope);
+                    break;
             }
 
             _session.NotifyStateChanged();
@@ -350,6 +358,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
             _controlRequestId = 0;
             _manifestRequestId = 0;
             _frameRequestId = 0;
+            _frameChunkRequestId = 0;
+            _frameTransfer = null;
             Status = new RemoteFrameRecorderControlResponse();
             if (!string.IsNullOrEmpty(RecordingFilePath) && _replayFrames.Count > 0)
             {
@@ -425,6 +435,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
                 RecordingId = Manifest.RecordingId,
                 UnityFrame = frames[_nextDownloadIndex].UnityFrame,
                 SupportedSceneGraphFormatVersion = RemoteRecordedSceneGraphFormats.ContentAddressedObjects,
+                SupportsChunkedTransfer = true,
                 KnownHierarchySnapshotId = _knownHierarchySnapshotId,
                 KnownInspectorSnapshotId = _knownInspectorSnapshotId
             });
@@ -447,17 +458,142 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
                 return;
             }
 
+            if (!string.IsNullOrEmpty(response.ChunkTransferId))
+            {
+                BeginFrameTransfer(response);
+                return;
+            }
+
+            CompleteFrame(response);
+        }
+
+        private void BeginFrameTransfer(RemoteFrameRecorderFrameResponse response)
+        {
             try
             {
-                RemoteRecordedFrameInfo info = Manifest.Frames[_nextDownloadIndex];
+                RemoteRecordedFrameInfo info = GetPendingFrameInfo();
+                if (response.RecordingId != Manifest.RecordingId || response.UnityFrame != info.UnityFrame)
+                    throw new InvalidDataException("The frame transfer does not match its manifest entry.");
+                if (response.ChunkTransferBytes <= 0 || response.ChunkTransferBytes > RemoteFrameRecorderLimits.MaximumFrameTransferBytes)
+                    throw new InvalidDataException("The frame transfer size is invalid.");
+                if (string.IsNullOrEmpty(response.ChunkTransferSha256) || response.ChunkTransferSha256.Length != 64)
+                    throw new InvalidDataException("The frame transfer checksum is invalid.");
+
+                _frameTransfer = new PendingFrameTransfer
+                {
+                    RecordingId = response.RecordingId,
+                    UnityFrame = response.UnityFrame,
+                    Id = response.ChunkTransferId,
+                    ExpectedSha256 = response.ChunkTransferSha256,
+                    Bytes = new byte[response.ChunkTransferBytes]
+                };
+                RequestNextFrameChunk();
+            }
+            catch (Exception exception)
+            {
+                FailFrameTransfer(exception.GetType().Name + ": " + exception.Message);
+            }
+        }
+
+        private void RequestNextFrameChunk()
+        {
+            if (_frameTransfer == null)
+                return;
+            _frameChunkRequestId = _session.Send(RemoteFrameRecorderMessageTypes.FrameChunkRequest, new RemoteFrameRecorderFrameChunkRequest
+            {
+                RecordingId = _frameTransfer.RecordingId,
+                UnityFrame = _frameTransfer.UnityFrame,
+                TransferId = _frameTransfer.Id,
+                Offset = _frameTransfer.ReceivedBytes
+            });
+        }
+
+        private void HandleFrameChunk(RemoteEnvelope envelope)
+        {
+            if (envelope.RequestId != _frameChunkRequestId)
+                return;
+            _frameChunkRequestId = 0;
+            if (!RemoteProtocolSerializer.TryDeserializePayload(envelope, out RemoteFrameRecorderFrameChunkResponse response, out string error))
+            {
+                FailFrameTransfer(error);
+                return;
+            }
+
+            if (!string.IsNullOrEmpty(response.Error))
+            {
+                FailFrameTransfer(response.Error);
+                return;
+            }
+
+            try
+            {
+                if (_frameTransfer == null || response.RecordingId != _frameTransfer.RecordingId || response.UnityFrame != _frameTransfer.UnityFrame || !string.Equals(response.TransferId, _frameTransfer.Id, StringComparison.Ordinal))
+                    throw new InvalidDataException("The received frame chunk belongs to a different transfer.");
+                if (response.TotalBytes != _frameTransfer.Bytes.Length || response.Offset != _frameTransfer.ReceivedBytes)
+                    throw new InvalidDataException("The received frame chunk is out of sequence.");
+
+                byte[] chunk = Convert.FromBase64String(response.DataBase64 ?? string.Empty);
+                if (chunk.Length <= 0 || chunk.Length > RemoteFrameRecorderLimits.TransferChunkBytes || response.Offset + chunk.Length > _frameTransfer.Bytes.Length)
+                    throw new InvalidDataException("The received frame chunk size is invalid.");
+
+                Buffer.BlockCopy(chunk, 0, _frameTransfer.Bytes, response.Offset, chunk.Length);
+                _frameTransfer.ReceivedBytes += chunk.Length;
+                bool complete = _frameTransfer.ReceivedBytes == _frameTransfer.Bytes.Length;
+                if (response.IsLast != complete)
+                    throw new InvalidDataException("The frame transfer ended unexpectedly.");
+                if (!complete)
+                {
+                    RequestNextFrameChunk();
+                    return;
+                }
+
+                CompleteFrameTransfer();
+            }
+            catch (Exception exception)
+            {
+                FailFrameTransfer(exception.GetType().Name + ": " + exception.Message);
+            }
+        }
+
+        private void CompleteFrameTransfer()
+        {
+            PendingFrameTransfer transfer = _frameTransfer ?? throw new InvalidDataException("The frame transfer is unavailable.");
+            string actualSha256 = ComputeSha256(transfer.Bytes);
+            if (!string.Equals(actualSha256, transfer.ExpectedSha256, StringComparison.OrdinalIgnoreCase))
+                throw new InvalidDataException("The frame transfer checksum did not match.");
+
+            RemoteFrameRecorderFrameResponse response = JsonUtility.FromJson<RemoteFrameRecorderFrameResponse>(Encoding.UTF8.GetString(transfer.Bytes));
+            _frameTransfer = null;
+            CompleteFrame(response);
+        }
+
+        private void CompleteFrame(RemoteFrameRecorderFrameResponse response)
+        {
+            try
+            {
+                RemoteRecordedFrameInfo info = GetPendingFrameInfo();
                 AddDecodedFrame(response, info);
                 _nextDownloadIndex++;
                 RequestNextFrame();
             }
             catch (Exception exception)
             {
-                DownloadError = exception.GetType().Name + ": " + exception.Message;
+                FailFrameTransfer(exception.GetType().Name + ": " + exception.Message);
             }
+        }
+
+        private RemoteRecordedFrameInfo GetPendingFrameInfo()
+        {
+            if (Manifest?.Frames == null || _nextDownloadIndex < 0 || _nextDownloadIndex >= Manifest.Frames.Length)
+                throw new InvalidDataException("The pending frame has no manifest entry.");
+            return Manifest.Frames[_nextDownloadIndex] ?? throw new InvalidDataException("The pending frame manifest entry is invalid.");
+        }
+
+        private void FailFrameTransfer(string error)
+        {
+            _frameChunkRequestId = 0;
+            _frameTransfer = null;
+            DownloadError = error ?? "The frame transfer failed.";
         }
 
         private void ClearReplay()
@@ -467,6 +603,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
             _nextDownloadIndex = 0;
             _manifestRequestId = 0;
             _frameRequestId = 0;
+            _frameChunkRequestId = 0;
+            _frameTransfer = null;
             _replayFrames.Clear();
             ResetDecodeState();
             RecordingFilePath = null;
@@ -711,6 +849,26 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
             using var output = new MemoryStream();
             gzip.CopyTo(output);
             return output.ToArray();
+        }
+
+        private static string ComputeSha256(byte[] bytes)
+        {
+            using SHA256 sha = SHA256.Create();
+            byte[] digest = sha.ComputeHash(bytes ?? Array.Empty<byte>());
+            var text = new StringBuilder(digest.Length * 2);
+            for (int i = 0; i < digest.Length; i++)
+                text.Append(digest[i].ToString("x2", CultureInfo.InvariantCulture));
+            return text.ToString();
+        }
+
+        private sealed class PendingFrameTransfer
+        {
+            internal long RecordingId;
+            internal int UnityFrame;
+            internal string Id;
+            internal string ExpectedSha256;
+            internal byte[] Bytes;
+            internal int ReceivedBytes;
         }
 
         private sealed class CachedRemoteObject

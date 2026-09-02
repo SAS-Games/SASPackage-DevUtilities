@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Security.Cryptography;
 using System.Text;
 using SAS.Utilities.RemoteDevUtilities.Agent;
 using SAS.Utilities.RemoteDevUtilities.Protocol;
@@ -23,13 +24,15 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
         {
             RemoteFrameRecorderMessageTypes.ControlRequest,
             RemoteFrameRecorderMessageTypes.ManifestRequest,
-            RemoteFrameRecorderMessageTypes.FrameRequest
+            RemoteFrameRecorderMessageTypes.FrameRequest,
+            RemoteFrameRecorderMessageTypes.FrameChunkRequest
         };
 
         private RuntimeRemoteEndpointContext _context;
         private RuntimeRemoteFrameRecorder _recorder;
         private long _nextRecordingId;
         private long _pendingSealRequestId;
+        private RuntimeFrameRecorderFrameTransfer _frameTransfer;
 
         public IEnumerable<string> MessageTypes => SupportedMessages;
 
@@ -58,6 +61,9 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
                 case RemoteFrameRecorderMessageTypes.FrameRequest:
                     HandleFrame(envelope);
                     break;
+                case RemoteFrameRecorderMessageTypes.FrameChunkRequest:
+                    HandleFrameChunk(envelope);
+                    break;
             }
         }
 
@@ -75,7 +81,10 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
             if (!active && _recorder != null && _recorder.IsRecording)
                 _recorder.Seal(_recorder.RecordingId, false);
             if (!active)
+            {
                 _pendingSealRequestId = 0;
+                _frameTransfer = null;
+            }
         }
 
         public void Dispose()
@@ -85,15 +94,16 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
                 _recorder.Release();
                 UnityEngine.Object.Destroy(_recorder);
             }
+
             _recorder = null;
             _context = null;
             _pendingSealRequestId = 0;
+            _frameTransfer = null;
         }
 
         private void HandleControl(RemoteEnvelope envelope)
         {
-            if (!RemoteProtocolSerializer.TryDeserializePayload(envelope,
-                out RemoteFrameRecorderControlRequest request, out string error))
+            if (!RemoteProtocolSerializer.TryDeserializePayload(envelope, out RemoteFrameRecorderControlRequest request, out string error))
             {
                 SendControlError(envelope.RequestId, RemoteFrameRecorderAction.Query, error);
                 return;
@@ -101,8 +111,7 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
 
             if (_recorder == null)
             {
-                SendControlError(envelope.RequestId, request.Action,
-                    "Frame recording is not available in this Player.");
+                SendControlError(envelope.RequestId, request.Action, "Frame recording is not available in this Player.");
                 return;
             }
 
@@ -113,18 +122,17 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
                     break;
                 case RemoteFrameRecorderAction.Start:
                     _pendingSealRequestId = 0;
-                    _recorder.StartRecording(++_nextRecordingId, request.Capacity,
-                        request.MaximumWidth, request.JpegQuality, request.InspectorScope,
-                        request.InspectedObjectId);
+                    _frameTransfer = null;
+                    _recorder.StartRecording(++_nextRecordingId, request.Capacity, request.MaximumWidth, request.JpegQuality, request.InspectorScope, request.InspectedObjectId);
                     SendControl(envelope.RequestId, request.Action);
                     break;
                 case RemoteFrameRecorderAction.Seal:
                     if (_recorder.RecordingId == 0)
                     {
-                        SendControlError(envelope.RequestId, request.Action,
-                            "There is no active frame recording to fetch.");
+                        SendControlError(envelope.RequestId, request.Action, "There is no active frame recording to fetch.");
                         return;
                     }
+
                     _recorder.Seal(_recorder.RecordingId, request.FreezePlayerWhenSealed);
                     if (_recorder.IsSealed)
                         SendControl(envelope.RequestId, request.Action);
@@ -133,20 +141,19 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
                     break;
                 case RemoteFrameRecorderAction.Release:
                     _pendingSealRequestId = 0;
+                    _frameTransfer = null;
                     _recorder.Release();
                     SendControl(envelope.RequestId, request.Action);
                     break;
                 default:
-                    SendControlError(envelope.RequestId, request.Action,
-                        "The requested frame-recorder action is not supported.");
+                    SendControlError(envelope.RequestId, request.Action, "The requested frame-recorder action is not supported.");
                     break;
             }
         }
 
         private void HandleManifest(RemoteEnvelope envelope)
         {
-            if (!RemoteProtocolSerializer.TryDeserializePayload(envelope,
-                out RemoteFrameRecorderManifestRequest request, out string error))
+            if (!RemoteProtocolSerializer.TryDeserializePayload(envelope, out RemoteFrameRecorderManifestRequest request, out string error))
             {
                 SendManifestError(envelope.RequestId, 0, error);
                 return;
@@ -154,164 +161,133 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
 
             if (_recorder == null || request.RecordingId != _recorder.RecordingId)
             {
-                SendManifestError(envelope.RequestId, request.RecordingId,
-                    "The requested frame recording is no longer available.");
+                SendManifestError(envelope.RequestId, request.RecordingId, "The requested frame recording is no longer available.");
                 return;
             }
 
             if (!_recorder.IsSealed)
             {
-                SendManifestError(envelope.RequestId, request.RecordingId,
-                    "The frame recording is still being finalized.");
+                SendManifestError(envelope.RequestId, request.RecordingId, "The frame recording is still being finalized.");
                 return;
             }
 
-            _context.Sender.Send(RemoteFrameRecorderMessageTypes.ManifestResponse, envelope.RequestId,
-                new RemoteFrameRecorderManifestResponse
-                {
-                    RecordingId = request.RecordingId,
-                    State = RemoteFrameRecorderState.Sealed,
-                    Frames = _recorder.GetManifest(request.RecordingId)
-                });
+            _context.Sender.Send(RemoteFrameRecorderMessageTypes.ManifestResponse, envelope.RequestId, new RemoteFrameRecorderManifestResponse
+            {
+                RecordingId = request.RecordingId,
+                State = RemoteFrameRecorderState.Sealed,
+                Frames = _recorder.GetManifest(request.RecordingId)
+            });
         }
 
         private void HandleFrame(RemoteEnvelope envelope)
         {
-            if (!RemoteProtocolSerializer.TryDeserializePayload(envelope,
-                out RemoteFrameRecorderFrameRequest request, out string error))
+            if (!RemoteProtocolSerializer.TryDeserializePayload(envelope, out RemoteFrameRecorderFrameRequest request, out string error))
             {
                 SendFrameError(envelope.RequestId, 0, 0, error);
                 return;
             }
 
-            if (_recorder == null || !_recorder.TryGetFrame(request.RecordingId, request.UnityFrame,
-                    out RuntimeRecordedFrameData frame))
+            if (_recorder == null || !_recorder.TryGetFrame(request.RecordingId, request.UnityFrame, out RuntimeRecordedFrameData frame))
             {
-                SendFrameError(envelope.RequestId, request.RecordingId, request.UnityFrame,
-                    "The requested recorded frame is no longer available.");
+                SendFrameError(envelope.RequestId, request.RecordingId, request.UnityFrame, "The requested recorded frame is no longer available.");
                 return;
             }
 
+            if (!TryBuildFrameResponse(request, frame, out RemoteFrameRecorderFrameResponse response, out error))
+            {
+                SendFrameError(envelope.RequestId, request.RecordingId, request.UnityFrame, error);
+                return;
+            }
+
+            SendFrameResponse(envelope.RequestId, request, response);
+        }
+
+        private bool TryBuildFrameResponse(RemoteFrameRecorderFrameRequest request, RuntimeRecordedFrameData frame, out RemoteFrameRecorderFrameResponse response, out string error)
+        {
+            response = null;
+            error = null;
             string imageBase64 = Convert.ToBase64String(frame.JpegBytes ?? Array.Empty<byte>());
-            if (request.SupportedSceneGraphFormatVersion <
-                RemoteRecordedSceneGraphFormats.ContentAddressedSections)
+            if (request.SupportedSceneGraphFormatVersion < RemoteRecordedSceneGraphFormats.ContentAddressedSections)
             {
-                if (!TryBuildLegacySceneGraph(frame, out string legacyGraphBase64, out string legacyError))
-                {
-                    SendFrameError(envelope.RequestId, request.RecordingId, request.UnityFrame,
-                        legacyError);
-                    return;
-                }
-                if (imageBase64.Length + legacyGraphBase64.Length >
-                    RemoteProtocolConstants.MaximumMessageBytes - 8192)
-                {
-                    SendFrameError(envelope.RequestId, request.RecordingId, request.UnityFrame,
-                        "The recorded frame exceeded the remote message limit. Use a smaller capture width.");
-                    return;
-                }
-                _context.Sender.Send(RemoteFrameRecorderMessageTypes.FrameResponse, envelope.RequestId,
-                    new RemoteFrameRecorderFrameResponse
-                    {
-                        RecordingId = request.RecordingId,
-                        UnityFrame = request.UnityFrame,
-                        ImageBase64 = imageBase64,
-                        SceneGraphGzipBase64 = legacyGraphBase64
-                    });
-                return;
-            }
-
-            if (request.SupportedSceneGraphFormatVersion >=
-                    RemoteRecordedSceneGraphFormats.ContentAddressedObjects &&
-                frame.InspectorManifest != null)
-            {
-                HandleGranularFrame(envelope.RequestId, request, frame, imageBase64);
-                return;
-            }
-
-            string hierarchyBase64 = string.Empty;
-            if (!string.Equals(request.KnownHierarchySnapshotId, frame.HierarchySnapshotId,
-                    StringComparison.Ordinal))
-            {
-                if (!_recorder.TryGetSceneGraphBlob(frame.HierarchySnapshotId, out byte[] hierarchyBytes))
-                {
-                    SendFrameError(envelope.RequestId, request.RecordingId, request.UnityFrame,
-                        "The recorded hierarchy snapshot is no longer available.");
-                    return;
-                }
-                hierarchyBase64 = Convert.ToBase64String(hierarchyBytes);
-            }
-
-            string inspectorBase64 = string.Empty;
-            if (!string.Equals(request.KnownInspectorSnapshotId, frame.InspectorSnapshotId,
-                    StringComparison.Ordinal))
-            {
-                if (!TryBuildInspectorSnapshot(frame, out byte[] inspectorBytes,
-                        out string inspectorError))
-                {
-                    SendFrameError(envelope.RequestId, request.RecordingId, request.UnityFrame,
-                        inspectorError);
-                    return;
-                }
-                inspectorBase64 = Convert.ToBase64String(inspectorBytes);
-            }
-
-            if (imageBase64.Length + hierarchyBase64.Length + inspectorBase64.Length >
-                RemoteProtocolConstants.MaximumMessageBytes - 8192)
-            {
-                SendFrameError(envelope.RequestId, request.RecordingId, request.UnityFrame,
-                    "The recorded frame exceeded the remote message limit. Use a smaller capture width.");
-                return;
-            }
-
-            _context.Sender.Send(RemoteFrameRecorderMessageTypes.FrameResponse, envelope.RequestId,
-                new RemoteFrameRecorderFrameResponse
+                if (!TryBuildLegacySceneGraph(frame, out string legacyGraphBase64, out error))
+                    return false;
+                response = new RemoteFrameRecorderFrameResponse
                 {
                     RecordingId = request.RecordingId,
                     UnityFrame = request.UnityFrame,
                     ImageBase64 = imageBase64,
-                    SceneGraphFormatVersion = RemoteRecordedSceneGraphFormats.ContentAddressedSections,
-                    HierarchySnapshotId = frame.HierarchySnapshotId,
-                    HierarchyGzipBase64 = hierarchyBase64,
-                    InspectorSnapshotId = frame.InspectorSnapshotId,
-                    InspectorGzipBase64 = inspectorBase64
-                });
+                    SceneGraphGzipBase64 = legacyGraphBase64
+                };
+                return true;
+            }
+
+            if (request.SupportedSceneGraphFormatVersion >= RemoteRecordedSceneGraphFormats.ContentAddressedObjects && frame.InspectorManifest != null)
+                return TryBuildGranularFrame(request, frame, imageBase64, out response, out error);
+
+            string hierarchyBase64 = string.Empty;
+            if (!string.Equals(request.KnownHierarchySnapshotId, frame.HierarchySnapshotId, StringComparison.Ordinal))
+            {
+                if (!_recorder.TryGetSceneGraphBlob(frame.HierarchySnapshotId, out byte[] hierarchyBytes))
+                {
+                    error = "The recorded hierarchy snapshot is no longer available.";
+                    return false;
+                }
+
+                hierarchyBase64 = Convert.ToBase64String(hierarchyBytes);
+            }
+
+            string inspectorBase64 = string.Empty;
+            if (!string.Equals(request.KnownInspectorSnapshotId, frame.InspectorSnapshotId, StringComparison.Ordinal))
+            {
+                if (!TryBuildInspectorSnapshot(frame, out byte[] inspectorBytes, out error))
+                    return false;
+                inspectorBase64 = Convert.ToBase64String(inspectorBytes);
+            }
+
+            response = new RemoteFrameRecorderFrameResponse
+            {
+                RecordingId = request.RecordingId,
+                UnityFrame = request.UnityFrame,
+                ImageBase64 = imageBase64,
+                SceneGraphFormatVersion = RemoteRecordedSceneGraphFormats.ContentAddressedSections,
+                HierarchySnapshotId = frame.HierarchySnapshotId,
+                HierarchyGzipBase64 = hierarchyBase64,
+                InspectorSnapshotId = frame.InspectorSnapshotId,
+                InspectorGzipBase64 = inspectorBase64
+            };
+            return true;
         }
 
-        private void HandleGranularFrame(long requestId,
-            RemoteFrameRecorderFrameRequest request, RuntimeRecordedFrameData frame,
-            string imageBase64)
+        private bool TryBuildGranularFrame(RemoteFrameRecorderFrameRequest request, RuntimeRecordedFrameData frame, string imageBase64, out RemoteFrameRecorderFrameResponse response, out string error)
         {
+            response = null;
+            error = null;
             string hierarchyBase64 = string.Empty;
-            if (!string.Equals(request.KnownHierarchySnapshotId, frame.HierarchySnapshotId,
-                    StringComparison.Ordinal))
+            if (!string.Equals(request.KnownHierarchySnapshotId, frame.HierarchySnapshotId, StringComparison.Ordinal))
             {
-                if (!_recorder.TryGetSceneGraphBlob(frame.HierarchySnapshotId,
-                        out byte[] hierarchyBytes))
+                if (!_recorder.TryGetSceneGraphBlob(frame.HierarchySnapshotId, out byte[] hierarchyBytes))
                 {
-                    SendFrameError(requestId, request.RecordingId, request.UnityFrame,
-                        "The recorded hierarchy snapshot is no longer available.");
-                    return;
+                    error = "The recorded hierarchy snapshot is no longer available.";
+                    return false;
                 }
+
                 hierarchyBase64 = Convert.ToBase64String(hierarchyBytes);
             }
 
             string inspectorManifestBase64 = string.Empty;
             var inspectorBlobs = new List<RemoteRecordedSceneGraphBlob>();
-            if (!string.Equals(request.KnownInspectorSnapshotId, frame.InspectorSnapshotId,
-                    StringComparison.Ordinal))
+            if (!string.Equals(request.KnownInspectorSnapshotId, frame.InspectorSnapshotId, StringComparison.Ordinal))
             {
-                if (!_recorder.TryGetSceneGraphBlob(frame.InspectorSnapshotId,
-                        out byte[] manifestBytes))
+                if (!_recorder.TryGetSceneGraphBlob(frame.InspectorSnapshotId, out byte[] manifestBytes))
                 {
-                    SendFrameError(requestId, request.RecordingId, request.UnityFrame,
-                        "The recorded inspector manifest is no longer available.");
-                    return;
+                    error = "The recorded inspector manifest is no longer available.";
+                    return false;
                 }
+
                 inspectorManifestBase64 = Convert.ToBase64String(manifestBytes);
 
                 var knownPayloads = new HashSet<string>(StringComparer.Ordinal);
-                if (_recorder.TryGetInspectorManifest(request.KnownInspectorSnapshotId,
-                        out RemoteRecordedInspectorManifest knownManifest))
+                if (_recorder.TryGetInspectorManifest(request.KnownInspectorSnapshotId, out RemoteRecordedInspectorManifest knownManifest))
                     CollectPayloadIds(knownManifest, knownPayloads);
 
                 var addedPayloads = new HashSet<string>(StringComparer.Ordinal);
@@ -319,15 +295,14 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
                 for (int i = 0; i < payloadIds.Length; i++)
                 {
                     string payloadId = payloadIds[i];
-                    if (string.IsNullOrEmpty(payloadId) || knownPayloads.Contains(payloadId) ||
-                        !addedPayloads.Add(payloadId))
+                    if (string.IsNullOrEmpty(payloadId) || knownPayloads.Contains(payloadId) || !addedPayloads.Add(payloadId))
                         continue;
                     if (!_recorder.TryGetSceneGraphBlob(payloadId, out byte[] payloadBytes))
                     {
-                        SendFrameError(requestId, request.RecordingId, request.UnityFrame,
-                            "A recorded inspector object snapshot is no longer available.");
-                        return;
+                        error = "A recorded inspector object snapshot is no longer available.";
+                        return false;
                     }
+
                     inspectorBlobs.Add(new RemoteRecordedSceneGraphBlob
                     {
                         SnapshotId = payloadId,
@@ -336,42 +311,90 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
                 }
             }
 
-            long messageCharacters = imageBase64.Length + hierarchyBase64.Length +
-                                     inspectorManifestBase64.Length;
-            for (int i = 0; i < inspectorBlobs.Count; i++)
+            response = new RemoteFrameRecorderFrameResponse
             {
-                messageCharacters += inspectorBlobs[i].GzipBase64?.Length ?? 0;
-                messageCharacters += inspectorBlobs[i].SnapshotId?.Length ?? 0;
-                messageCharacters += 64;
-            }
-            if (messageCharacters > RemoteProtocolConstants.MaximumMessageBytes - 8192)
-            {
-                SendFrameError(requestId, request.RecordingId, request.UnityFrame,
-                    "The recorded frame exceeded the remote message limit. Use a smaller capture width.");
-                return;
-            }
+                RecordingId = request.RecordingId,
+                UnityFrame = request.UnityFrame,
+                ImageBase64 = imageBase64,
+                SceneGraphFormatVersion = RemoteRecordedSceneGraphFormats.ContentAddressedObjects,
+                HierarchySnapshotId = frame.HierarchySnapshotId,
+                HierarchyGzipBase64 = hierarchyBase64,
+                InspectorSnapshotId = frame.InspectorSnapshotId,
+                InspectorManifestGzipBase64 = inspectorManifestBase64,
+                InspectorBlobs = inspectorBlobs.ToArray()
+            };
+            return true;
+        }
 
-            _context.Sender.Send(RemoteFrameRecorderMessageTypes.FrameResponse, requestId,
-                new RemoteFrameRecorderFrameResponse
+        private void SendFrameResponse(long requestId, RemoteFrameRecorderFrameRequest request, RemoteFrameRecorderFrameResponse response)
+        {
+            _frameTransfer = null;
+            try
+            {
+                byte[] envelopeBytes = RemoteProtocolSerializer.Serialize(RemoteFrameRecorderMessageTypes.FrameResponse, requestId, _context?.RuntimeSessionId, response);
+                if (envelopeBytes.Length <= RemoteProtocolConstants.MaximumMessageBytes)
+                {
+                    _context?.Sender.Send(RemoteFrameRecorderMessageTypes.FrameResponse, requestId, response);
+                    return;
+                }
+
+                if (!request.SupportsChunkedTransfer)
+                {
+                    SendFrameError(requestId, request.RecordingId, request.UnityFrame, "The recorded frame is too large for one remote message. Enable chunked frame transfer or reduce the inspector scope.");
+                    return;
+                }
+
+                byte[] payloadBytes = Encoding.UTF8.GetBytes(JsonUtility.ToJson(response));
+                if (payloadBytes.Length > RemoteFrameRecorderLimits.MaximumFrameTransferBytes)
+                {
+                    SendFrameError(requestId, request.RecordingId, request.UnityFrame, $"The recorded frame exceeded the {RemoteFrameRecorderLimits.MaximumFrameTransferBytes / (1024 * 1024)} MiB Frame Recorder safety limit. Reduce the inspector scope or image size.");
+                    return;
+                }
+
+                _frameTransfer = new RuntimeFrameRecorderFrameTransfer(request.RecordingId, request.UnityFrame, payloadBytes);
+                _context?.Sender.Send(RemoteFrameRecorderMessageTypes.FrameResponse, requestId, new RemoteFrameRecorderFrameResponse
                 {
                     RecordingId = request.RecordingId,
                     UnityFrame = request.UnityFrame,
-                    ImageBase64 = imageBase64,
-                    SceneGraphFormatVersion =
-                        RemoteRecordedSceneGraphFormats.ContentAddressedObjects,
-                    HierarchySnapshotId = frame.HierarchySnapshotId,
-                    HierarchyGzipBase64 = hierarchyBase64,
-                    InspectorSnapshotId = frame.InspectorSnapshotId,
-                    InspectorManifestGzipBase64 = inspectorManifestBase64,
-                    InspectorBlobs = inspectorBlobs.ToArray()
+                    ChunkTransferId = _frameTransfer.Id,
+                    ChunkTransferBytes = _frameTransfer.Bytes.Length,
+                    ChunkTransferSha256 = _frameTransfer.Sha256
                 });
+            }
+            catch (Exception exception)
+            {
+                _frameTransfer = null;
+                SendFrameError(requestId, request.RecordingId, request.UnityFrame, exception.GetType().Name + ": " + exception.Message);
+            }
         }
 
-        private static void CollectPayloadIds(RemoteRecordedInspectorManifest manifest,
-            ISet<string> destination)
+        private void HandleFrameChunk(RemoteEnvelope envelope)
         {
-            RemoteRecordedObjectSnapshotReference[] objects = manifest?.Objects ??
-                                                               Array.Empty<RemoteRecordedObjectSnapshotReference>();
+            if (!RemoteProtocolSerializer.TryDeserializePayload(envelope, out RemoteFrameRecorderFrameChunkRequest request, out string error))
+            {
+                SendFrameChunkError(envelope.RequestId, null, error);
+                return;
+            }
+
+            if (_frameTransfer == null || !string.Equals(request.TransferId, _frameTransfer.Id, StringComparison.Ordinal) || request.RecordingId != _frameTransfer.RecordingId || request.UnityFrame != _frameTransfer.UnityFrame)
+            {
+                SendFrameChunkError(envelope.RequestId, request, "The requested frame transfer is no longer available.");
+                return;
+            }
+
+            if (request.Offset < 0 || request.Offset >= _frameTransfer.Bytes.Length)
+            {
+                SendFrameChunkError(envelope.RequestId, request, "The requested frame chunk offset is invalid.");
+                return;
+            }
+
+            int count = Math.Min(RemoteFrameRecorderLimits.TransferChunkBytes, _frameTransfer.Bytes.Length - request.Offset);
+            _context?.Sender.Send(RemoteFrameRecorderMessageTypes.FrameChunkResponse, envelope.RequestId, _frameTransfer.CreateChunk(request.Offset, count));
+        }
+
+        private static void CollectPayloadIds(RemoteRecordedInspectorManifest manifest, ISet<string> destination)
+        {
+            RemoteRecordedObjectSnapshotReference[] objects = manifest?.Objects ?? Array.Empty<RemoteRecordedObjectSnapshotReference>();
             for (int i = 0; i < objects.Length; i++)
             {
                 RemoteRecordedObjectSnapshotReference reference = objects[i];
@@ -382,8 +405,7 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
                 if (!string.IsNullOrEmpty(reference.MaterialSnapshotId))
                     destination.Add(reference.MaterialSnapshotId);
                 string[] componentIds = reference.ComponentSnapshotIds ?? Array.Empty<string>();
-                for (int componentIndex = 0; componentIndex < componentIds.Length;
-                     componentIndex++)
+                for (int componentIndex = 0; componentIndex < componentIds.Length; componentIndex++)
                 {
                     if (!string.IsNullOrEmpty(componentIds[componentIndex]))
                         destination.Add(componentIds[componentIndex]);
@@ -391,31 +413,26 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
             }
         }
 
-        private bool TryBuildLegacySceneGraph(RuntimeRecordedFrameData frame, out string base64,
-            out string error)
+        private bool TryBuildLegacySceneGraph(RuntimeRecordedFrameData frame, out string base64, out string error)
         {
             base64 = null;
             error = null;
             try
             {
-                if (!_recorder.TryGetSceneGraphBlob(frame.HierarchySnapshotId,
-                        out byte[] hierarchyBytes))
+                if (!_recorder.TryGetSceneGraphBlob(frame.HierarchySnapshotId, out byte[] hierarchyBytes))
                 {
                     error = "The recorded scene graph is no longer available.";
                     return false;
                 }
 
-                RemoteSceneInspectorHierarchyResponse hierarchy =
-                    JsonUtility.FromJson<RemoteSceneInspectorHierarchyResponse>(
-                        Encoding.UTF8.GetString(Decompress(hierarchyBytes)));
-                if (!TryBuildInspectorSnapshot(frame, out byte[] inspectorBytes,
-                        out string inspectorError))
+                RemoteSceneInspectorHierarchyResponse hierarchy = JsonUtility.FromJson<RemoteSceneInspectorHierarchyResponse>(Encoding.UTF8.GetString(Decompress(hierarchyBytes)));
+                if (!TryBuildInspectorSnapshot(frame, out byte[] inspectorBytes, out string inspectorError))
                 {
                     error = inspectorError;
                     return false;
                 }
-                RemoteRecordedInspectorSnapshot inspector = DeserializeCompressed<
-                    RemoteRecordedInspectorSnapshot>(inspectorBytes);
+
+                RemoteRecordedInspectorSnapshot inspector = DeserializeCompressed<RemoteRecordedInspectorSnapshot>(inspectorBytes);
                 var graph = new RemoteRecordedSceneGraph
                 {
                     Hierarchy = hierarchy ?? new RemoteSceneInspectorHierarchyResponse(),
@@ -433,8 +450,7 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
             }
         }
 
-        private bool TryBuildInspectorSnapshot(RuntimeRecordedFrameData frame, out byte[] bytes,
-            out string error)
+        private bool TryBuildInspectorSnapshot(RuntimeRecordedFrameData frame, out byte[] bytes, out string error)
         {
             bytes = null;
             error = null;
@@ -448,19 +464,14 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
                     return false;
                 }
 
-                RemoteRecordedObjectSnapshotReference[] references =
-                    frame.InspectorManifest.Objects ??
-                    Array.Empty<RemoteRecordedObjectSnapshotReference>();
+                RemoteRecordedObjectSnapshotReference[] references = frame.InspectorManifest.Objects ?? Array.Empty<RemoteRecordedObjectSnapshotReference>();
                 var inspections = new RemoteObjectDetails[references.Length];
                 for (int i = 0; i < references.Length; i++)
                 {
                     RemoteRecordedObjectSnapshotReference reference = references[i];
                     if (reference == null || reference.IsNull)
                         continue;
-                    if (!TryReadBlob(reference.HeaderSnapshotId,
-                            out RemoteRecordedObjectHeader header) ||
-                        !TryReadBlob(reference.MaterialSnapshotId,
-                            out RemoteRecordedMaterialSnapshot material))
+                    if (!TryReadBlob(reference.HeaderSnapshotId, out RemoteRecordedObjectHeader header) || !TryReadBlob(reference.MaterialSnapshotId, out RemoteRecordedMaterialSnapshot material))
                     {
                         error = "A recorded inspector object snapshot is no longer available.";
                         return false;
@@ -468,15 +479,14 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
 
                     string[] componentIds = reference.ComponentSnapshotIds ?? Array.Empty<string>();
                     var components = new RemoteComponentDescriptor[componentIds.Length];
-                    for (int componentIndex = 0; componentIndex < componentIds.Length;
-                         componentIndex++)
+                    for (int componentIndex = 0; componentIndex < componentIds.Length; componentIndex++)
                     {
-                        if (!TryReadBlob(componentIds[componentIndex],
-                                out RemoteComponentDescriptor component))
+                        if (!TryReadBlob(componentIds[componentIndex], out RemoteComponentDescriptor component))
                         {
                             error = "A recorded inspector component snapshot is no longer available.";
                             return false;
                         }
+
                         components[componentIndex] = component;
                     }
 
@@ -494,12 +504,11 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
                     };
                 }
 
-                bytes = Compress(Encoding.UTF8.GetBytes(JsonUtility.ToJson(
-                    new RemoteRecordedInspectorSnapshot
-                    {
-                        Inspections = inspections,
-                        Error = frame.InspectorManifest.Error
-                    })));
+                bytes = Compress(Encoding.UTF8.GetBytes(JsonUtility.ToJson(new RemoteRecordedInspectorSnapshot
+                {
+                    Inspections = inspections,
+                    Error = frame.InspectorManifest.Error
+                })));
                 return true;
             }
             catch (Exception exception)
@@ -526,8 +535,7 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
         private static byte[] Compress(byte[] bytes)
         {
             using var output = new MemoryStream();
-            using (var gzip = new GZipStream(output,
-                       System.IO.Compression.CompressionLevel.Fastest, true))
+            using (var gzip = new GZipStream(output, System.IO.Compression.CompressionLevel.Fastest, true))
                 gzip.Write(bytes, 0, bytes.Length);
             return output.ToArray();
         }
@@ -543,32 +551,29 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
 
         private void SendControl(long requestId, RemoteFrameRecorderAction action)
         {
-            RemoteRecordedFrameInfo[] manifest = _recorder?.GetManifest(_recorder.RecordingId) ??
-                                                 Array.Empty<RemoteRecordedFrameInfo>();
+            RemoteRecordedFrameInfo[] manifest = _recorder?.GetManifest(_recorder.RecordingId) ?? Array.Empty<RemoteRecordedFrameInfo>();
             int firstFrame = manifest.Length > 0 ? manifest[0].UnityFrame : 0;
             int lastFrame = manifest.Length > 0 ? manifest[manifest.Length - 1].UnityFrame : 0;
             RemoteFrameRecorderState state = GetState();
-            _context?.Sender.Send(RemoteFrameRecorderMessageTypes.ControlResponse, requestId,
-                new RemoteFrameRecorderControlResponse
-                {
-                    Action = action,
-                    State = state,
-                    RecordingId = _recorder?.RecordingId ?? 0,
-                    Capacity = _recorder?.Capacity ?? 0,
-                    CapturedFrameCount = _recorder?.CapturedFrameCount ?? 0,
-                    PendingFrameCount = _recorder?.PendingFrameCount ?? 0,
-                    MissedFrameCount = _recorder?.MissedFrameCount ?? 0,
-                    FirstUnityFrame = firstFrame,
-                    LastUnityFrame = lastFrame,
-                    StoredBytes = _recorder?.StoredBytes ?? 0,
-                    SceneGraphBytesSaved = _recorder?.SceneGraphBytesSaved ?? 0,
-                    UsesAsyncGpuReadback = _recorder?.UsesAsyncGpuReadback == true,
-                    PlayerFrozen = _recorder?.PlayerFrozen == true,
-                    InspectorScope = _recorder?.InspectorScope ??
-                                     RemoteFrameRecorderInspectorScope.HierarchyOnly,
-                    InspectedObjectId = _recorder?.InspectedObjectId ?? 0,
-                    Warning = _recorder?.LastError ?? string.Empty
-                });
+            _context?.Sender.Send(RemoteFrameRecorderMessageTypes.ControlResponse, requestId, new RemoteFrameRecorderControlResponse
+            {
+                Action = action,
+                State = state,
+                RecordingId = _recorder?.RecordingId ?? 0,
+                Capacity = _recorder?.Capacity ?? 0,
+                CapturedFrameCount = _recorder?.CapturedFrameCount ?? 0,
+                PendingFrameCount = _recorder?.PendingFrameCount ?? 0,
+                MissedFrameCount = _recorder?.MissedFrameCount ?? 0,
+                FirstUnityFrame = firstFrame,
+                LastUnityFrame = lastFrame,
+                StoredBytes = _recorder?.StoredBytes ?? 0,
+                SceneGraphBytesSaved = _recorder?.SceneGraphBytesSaved ?? 0,
+                UsesAsyncGpuReadback = _recorder?.UsesAsyncGpuReadback == true,
+                PlayerFrozen = _recorder?.PlayerFrozen == true,
+                InspectorScope = _recorder?.InspectorScope ?? RemoteFrameRecorderInspectorScope.HierarchyOnly,
+                InspectedObjectId = _recorder?.InspectedObjectId ?? 0,
+                Warning = _recorder?.LastError ?? string.Empty
+            });
         }
 
         private RemoteFrameRecorderState GetState()
@@ -584,36 +589,84 @@ namespace SAS.Utilities.RemoteDevUtilities.FrameRecorder
 
         private void SendControlError(long requestId, RemoteFrameRecorderAction action, string error)
         {
-            _context?.Sender.Send(RemoteFrameRecorderMessageTypes.ControlResponse, requestId,
-                new RemoteFrameRecorderControlResponse
-                {
-                    Action = action,
-                    State = GetState(),
-                    RecordingId = _recorder?.RecordingId ?? 0,
-                    Error = error ?? "The frame-recorder request failed."
-                });
+            _context?.Sender.Send(RemoteFrameRecorderMessageTypes.ControlResponse, requestId, new RemoteFrameRecorderControlResponse
+            {
+                Action = action,
+                State = GetState(),
+                RecordingId = _recorder?.RecordingId ?? 0,
+                Error = error ?? "The frame-recorder request failed."
+            });
         }
 
         private void SendManifestError(long requestId, long recordingId, string error)
         {
-            _context?.Sender.Send(RemoteFrameRecorderMessageTypes.ManifestResponse, requestId,
-                new RemoteFrameRecorderManifestResponse
-                {
-                    RecordingId = recordingId,
-                    State = GetState(),
-                    Error = error ?? "The frame-recorder manifest request failed."
-                });
+            _context?.Sender.Send(RemoteFrameRecorderMessageTypes.ManifestResponse, requestId, new RemoteFrameRecorderManifestResponse
+            {
+                RecordingId = recordingId,
+                State = GetState(),
+                Error = error ?? "The frame-recorder manifest request failed."
+            });
         }
 
         private void SendFrameError(long requestId, long recordingId, int unityFrame, string error)
         {
-            _context?.Sender.Send(RemoteFrameRecorderMessageTypes.FrameResponse, requestId,
-                new RemoteFrameRecorderFrameResponse
-                {
-                    RecordingId = recordingId,
-                    UnityFrame = unityFrame,
-                    Error = error ?? "The recorded frame request failed."
-                });
+            _context?.Sender.Send(RemoteFrameRecorderMessageTypes.FrameResponse, requestId, new RemoteFrameRecorderFrameResponse
+            {
+                RecordingId = recordingId,
+                UnityFrame = unityFrame,
+                Error = error ?? "The recorded frame request failed."
+            });
+        }
+
+        private void SendFrameChunkError(long requestId, RemoteFrameRecorderFrameChunkRequest request, string error)
+        {
+            _context?.Sender.Send(RemoteFrameRecorderMessageTypes.FrameChunkResponse, requestId, new RemoteFrameRecorderFrameChunkResponse
+            {
+                RecordingId = request?.RecordingId ?? 0,
+                UnityFrame = request?.UnityFrame ?? 0,
+                TransferId = request?.TransferId,
+                Offset = request?.Offset ?? 0,
+                Error = error ?? "The recorded frame chunk request failed."
+            });
+        }
+    }
+
+    internal sealed class RuntimeFrameRecorderFrameTransfer
+    {
+        internal RuntimeFrameRecorderFrameTransfer(long recordingId, int unityFrame, byte[] bytes)
+        {
+            RecordingId = recordingId;
+            UnityFrame = unityFrame;
+            Bytes = bytes ?? throw new ArgumentNullException(nameof(bytes));
+            Id = Guid.NewGuid().ToString("N");
+            using SHA256 sha = SHA256.Create();
+            byte[] digest = sha.ComputeHash(Bytes);
+            var text = new StringBuilder(digest.Length * 2);
+            for (int i = 0; i < digest.Length; i++)
+                text.Append(digest[i].ToString("x2"));
+            Sha256 = text.ToString();
+        }
+
+        internal string Id { get; }
+        internal long RecordingId { get; }
+        internal int UnityFrame { get; }
+        internal byte[] Bytes { get; }
+        internal string Sha256 { get; }
+
+        internal RemoteFrameRecorderFrameChunkResponse CreateChunk(int offset, int count)
+        {
+            var chunk = new byte[count];
+            Buffer.BlockCopy(Bytes, offset, chunk, 0, count);
+            return new RemoteFrameRecorderFrameChunkResponse
+            {
+                RecordingId = RecordingId,
+                UnityFrame = UnityFrame,
+                TransferId = Id,
+                Offset = offset,
+                TotalBytes = Bytes.Length,
+                DataBase64 = Convert.ToBase64String(chunk),
+                IsLast = offset + count == Bytes.Length
+            };
         }
     }
 }
