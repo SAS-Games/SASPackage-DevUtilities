@@ -101,6 +101,9 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
 
             switch (state.Kind)
             {
+                case RemoteEditorConnectionKind.LocalEditor:
+                    client.ConnectLocalEditor();
+                    break;
                 case RemoteEditorConnectionKind.PlayerConnection:
                     client.Connect(state.PlayerId);
                     break;

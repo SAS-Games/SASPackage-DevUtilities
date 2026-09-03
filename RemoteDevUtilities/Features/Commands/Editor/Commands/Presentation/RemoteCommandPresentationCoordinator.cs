@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using SAS.Utilities.RemoteDevUtilities.Editor.Client;
+using SAS.Utilities.RemoteDevUtilities.Editor.Connection;
 using SAS.Utilities.RemoteDevUtilities.Protocol.Commands;
 
 namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
@@ -26,6 +27,9 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
                 return Complete(false, "Enter a command to execute.");
             }
 
+            if (!ShouldUseEditorPresentation(_client.ConnectionKind))
+                return _commands.Execute(commandLine);
+
             for (int i = 0; i < _handlers.Count; i++)
             {
                 if (!_handlers[i].TryExecute(_client, commandName, arguments, out RemoteCommandPresentationResult result))
@@ -36,6 +40,11 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Commands.Presentation
             }
 
             return _commands.Execute(commandLine);
+        }
+
+        internal static bool ShouldUseEditorPresentation(RemoteEditorConnectionKind connectionKind)
+        {
+            return connectionKind != RemoteEditorConnectionKind.LocalEditor;
         }
 
         private long Complete(bool success, string message)

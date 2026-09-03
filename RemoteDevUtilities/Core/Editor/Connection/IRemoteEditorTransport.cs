@@ -8,6 +8,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
 {
     internal static class RemoteEditorTransportIds
     {
+        public const string LocalEditor = "editor-loopback";
         public const string PlayerConnection = "player-connection";
         public const string Tcp = "tcp";
     }

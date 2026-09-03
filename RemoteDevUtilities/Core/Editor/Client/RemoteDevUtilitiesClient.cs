@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using SAS.Utilities.RemoteDevUtilities.Editor.Connection;
 using SAS.Utilities.RemoteDevUtilities.Editor.Configuration;
+using SAS.Utilities.RemoteDevUtilities.Editor.Connection;
 using SAS.Utilities.RemoteDevUtilities.Protocol;
 using SAS.Utilities.RemoteDevUtilities.Protocol.Connection;
 using SAS.Utilities.RemoteDevUtilities.Protocol.Serialization;
@@ -31,9 +31,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
 
         public RemoteDevUtilitiesClient()
         {
-            foreach (IRemoteEditorFeatureClient feature in RemoteEditorFeatureRegistry.CreateFeatures(
-                         this, RemoteDevUtilitiesProjectSettings.instance.Runtime
-                             .EnableExperimentalFrameRecorder))
+            foreach (IRemoteEditorFeatureClient feature in RemoteEditorFeatureRegistry.CreateFeatures(this, RemoteDevUtilitiesProjectSettings.instance.Runtime.EnableExperimentalFrameRecorder))
                 AddFeature(feature);
 
             foreach (IRemoteEditorTransport transport in RemoteEditorTransportRegistry.CreateTransports())
@@ -63,6 +61,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
         public IReadOnlyList<RemoteEditorPlayerDescriptor> ConnectedPlayers => _connectedPlayers;
         public IReadOnlyList<RemoteLanPlayerDescriptor> LanPlayers => FindConnectionService<IRemoteLanDiscoveryService>()?.Players ?? Array.Empty<RemoteLanPlayerDescriptor>();
         public string LanDiscoveryError => FindConnectionService<IRemoteLanDiscoveryService>()?.Error;
+        internal bool IsLocalEditorAvailable => _transportsById.TryGetValue(RemoteEditorTransportIds.LocalEditor, out IRemoteEditorTransport transport) && transport is EditorLoopbackTransport localTransport && localTransport.IsRuntimeAvailable;
         internal bool HasTransport(string transportId) => !string.IsNullOrWhiteSpace(transportId) && _transportsById.ContainsKey(transportId);
         internal bool HasConnectionService<T>() where T : class, IRemoteEditorConnectionService => FindConnectionService<T>() != null;
 
@@ -114,6 +113,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
                 for (int playerIndex = 0; playerIndex < players.Count; playerIndex++)
                     _connectedPlayers.Add(players[playerIndex]);
             }
+
             NotifyStateChanged();
         }
 
@@ -130,6 +130,14 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
                 PlayerId = playerId,
                 TargetName = $"Player {playerId}",
                 AccessToken = accessToken
+            });
+        }
+
+        public void ConnectLocalEditor()
+        {
+            ConnectTransport(RemoteEditorTransportIds.LocalEditor, new RemoteEditorTransportConnectRequest
+            {
+                TargetName = "This Editor (Play Mode)"
             });
         }
 
@@ -305,6 +313,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
                 if (_connectionServices[i] is T match)
                     return match;
             }
+
             return null;
         }
 
@@ -324,8 +333,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
                 HandleHandshake(envelope);
                 return;
             }
-            if (!IsConnected || envelope.ProtocolVersion != RemoteProtocolConstants.Version ||
-                (!string.IsNullOrEmpty(RuntimeSessionId) && !string.Equals(envelope.SessionId, RuntimeSessionId, StringComparison.Ordinal)))
+
+            if (!IsConnected || envelope.ProtocolVersion != RemoteProtocolConstants.Version || (!string.IsNullOrEmpty(RuntimeSessionId) && !string.Equals(envelope.SessionId, RuntimeSessionId, StringComparison.Ordinal)))
                 return;
             if (_routes.TryGetValue(envelope.MessageType, out IRemoteEditorFeatureClient feature))
                 feature.Handle(envelope);
@@ -341,16 +350,19 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Client
                 FailConnection(error);
                 return;
             }
+
             if (!response.Accepted)
             {
                 FailConnection(response.Error ?? "The runtime rejected the connection.");
                 return;
             }
+
             if (envelope.ProtocolVersion != RemoteProtocolConstants.Version || response.ProtocolVersion != RemoteProtocolConstants.Version)
             {
                 FailConnection($"Protocol mismatch. Editor={RemoteProtocolConstants.Version}, Runtime={response.ProtocolVersion}.");
                 return;
             }
+
             if (string.IsNullOrWhiteSpace(response.RuntimeSessionId))
             {
                 FailConnection("The runtime handshake did not include a session identifier.");

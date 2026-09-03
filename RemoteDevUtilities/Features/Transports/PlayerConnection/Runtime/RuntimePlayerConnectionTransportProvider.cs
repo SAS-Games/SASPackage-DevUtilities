@@ -21,7 +21,9 @@ namespace SAS.Utilities.RemoteDevUtilities.Transport
 
         public IRuntimeRemoteTransport Create(string runtimeSessionId, RemoteDevUtilitiesRuntimeSettings settings)
         {
-#if ENABLE_DEBUG && !DEVELOPMENT_BUILD && !UNITY_EDITOR && !UNITY_WEBGL
+#if UNITY_EDITOR || (ENABLE_DEBUG && !DEVELOPMENT_BUILD && !UNITY_WEBGL)
+            // Editor Play Mode uses the in-process loopback transport. Unity's
+            // target picker is reserved for its profiling and Console streams.
             return null;
 #else
             return new RuntimePlayerConnectionTransport(runtimeSessionId);

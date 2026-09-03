@@ -20,13 +20,15 @@ namespace SAS.Utilities.RemoteDevUtilities.Agent
         private RuntimeConnectionEndpoint _connectionEndpoint;
         private RuntimeBackgroundExecutionLease _backgroundExecution;
         private string _runtimeSessionId;
+        private bool _preserveLocalPresentation;
 
         public static RuntimeDevUtilitiesAgent Instance { get; private set; }
         public bool IsInitialized => _transport != null;
 
-        internal void Initialize(RemoteDevUtilitiesRuntimeSettings settings)
+        internal void Initialize(RemoteDevUtilitiesRuntimeSettings settings, bool preserveLocalPresentation = false)
         {
             _settings = settings;
+            _preserveLocalPresentation = preserveLocalPresentation;
         }
 
         private void Awake()
@@ -40,7 +42,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Agent
             Instance = this;
             DontDestroyOnLoad(gameObject);
             _settings ??= RemoteDevUtilitiesRuntimeSettings.LoadOrCreateDefaults();
-            ApplyPresentationPolicy(_settings, false);
+            ApplyPresentationPolicy(_settings, false, _preserveLocalPresentation);
             StartSubsystem();
         }
 
@@ -83,8 +85,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Agent
             _connectionEndpoint.SessionStateChanged += OnSessionStateChanged;
 
             AddEndpoint(_connectionEndpoint, context);
-            foreach (IRuntimeRemoteEndpoint endpoint in RuntimeRemoteEndpointRegistry.CreateEndpoints(
-                         _settings.EnableExperimentalFrameRecorder))
+            foreach (IRuntimeRemoteEndpoint endpoint in RuntimeRemoteEndpointRegistry.CreateEndpoints(_settings.EnableExperimentalFrameRecorder))
                 AddEndpoint(endpoint, context);
             _transport.Start();
             var serviceContext = new RuntimeRemoteConnectionServiceContext
@@ -102,7 +103,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Agent
 
         private void StopSubsystem()
         {
-            ApplyPresentationPolicy(_settings, false);
+            ApplyPresentationPolicy(_settings, false, _preserveLocalPresentation);
 
             if (_connectionEndpoint != null)
                 _connectionEndpoint.SessionStateChanged -= OnSessionStateChanged;
@@ -157,7 +158,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Agent
 
         private void OnSessionStateChanged(bool active)
         {
-            ApplyPresentationPolicy(_settings, active);
+            ApplyPresentationPolicy(_settings, active, _preserveLocalPresentation);
             for (int i = 0; i < _endpoints.Count; i++)
             {
                 if (_endpoints[i] is IRuntimeRemoteSessionListener listener)
@@ -170,12 +171,17 @@ namespace SAS.Utilities.RemoteDevUtilities.Agent
             if (_connectionEndpoint != null)
                 _connectionEndpoint.NotifyDisconnected();
             else
-                ApplyPresentationPolicy(_settings, false);
+                ApplyPresentationPolicy(_settings, false, _preserveLocalPresentation);
         }
 
-        internal static void ApplyPresentationPolicy(RemoteDevUtilitiesRuntimeSettings settings, bool remoteSessionActive)
+        internal static void ApplyPresentationPolicy(RemoteDevUtilitiesRuntimeSettings settings, bool remoteSessionActive, bool preserveLocalPresentation = false)
         {
             BuildDebugUiVisibility visibility = settings != null ? settings.BuildUiVisibility : BuildDebugUiVisibility.ShowWhenEnabled;
+            if (preserveLocalPresentation && remoteSessionActive && visibility == BuildDebugUiVisibility.HiddenWhileEditorConnected)
+            {
+                visibility = BuildDebugUiVisibility.ShowWhenEnabled;
+            }
+
             RemoteDevUtilitiesPresentation.Configure(visibility);
             RemoteDevUtilitiesPresentation.SetRemoteSessionActive(remoteSessionActive);
         }

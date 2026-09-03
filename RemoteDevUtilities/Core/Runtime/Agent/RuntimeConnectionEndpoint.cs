@@ -154,7 +154,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Agent
 
         private static bool IsDevUtilitiesEnabled()
         {
-#if ENABLE_DEBUG
+#if ENABLE_DEBUG || UNITY_EDITOR
             return true;
 #else
             return false;

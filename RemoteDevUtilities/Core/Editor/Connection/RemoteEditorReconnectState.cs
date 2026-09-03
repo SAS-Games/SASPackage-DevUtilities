@@ -19,6 +19,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
             {
                 if (!string.IsNullOrWhiteSpace(TransportId))
                 {
+                    if (string.Equals(TransportId, RemoteEditorTransportIds.LocalEditor, StringComparison.OrdinalIgnoreCase))
+                        return true;
                     if (string.Equals(TransportId, RemoteEditorTransportIds.PlayerConnection, StringComparison.OrdinalIgnoreCase))
                         return true;
                     if (string.Equals(TransportId, RemoteEditorTransportIds.Tcp, StringComparison.OrdinalIgnoreCase))
@@ -27,6 +29,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
 
                 switch (Kind)
                 {
+                    case RemoteEditorConnectionKind.LocalEditor:
+                        return true;
                     case RemoteEditorConnectionKind.PlayerConnection:
                         return true;
                     case RemoteEditorConnectionKind.DirectTcp:

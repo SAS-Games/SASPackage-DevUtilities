@@ -167,8 +167,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Configuration
             string details = !hasSelectedTarget
                 ? "Select a build target before configuring debug build inclusion."
                 : debugEnabled
-                    ? "Remote Dev Utilities can be included in the next build. Changes below are applied at build time."
-                    : "Remote Dev Utilities runtime features are excluded for this target. Open Debug Settings to enable them.";
+                    ? "Remote Dev Utilities can be included in the next build. Changes also apply the next time Editor Play Mode starts."
+                    : "Remote Dev Utilities are excluded from builds for this target. Editor Play Mode remains available when the Remote Agent is enabled.";
 
             using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
             {
@@ -210,7 +210,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Configuration
         {
             SerializedProperty enableAgent = Property(runtime, "_enableRemoteAgent");
             DrawSection("Runtime Agent",
-                "Controls whether the Player starts the remote diagnostics agent and how its in-game UI behaves.",
+                "Controls whether Editor Play Mode and ENABLE_DEBUG Players start the remote diagnostics agent.",
                 () =>
                 {
                     EditorGUILayout.PropertyField(enableAgent, new GUIContent("Enable Remote Agent"));
@@ -226,7 +226,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Configuration
                 });
 
             DrawSection("Capabilities",
-                "Choose which remote tools are compiled into and exposed by ENABLE_DEBUG Players.",
+                "Choose which remote tools are exposed by Editor Play Mode and ENABLE_DEBUG Players.",
                 () =>
                 {
                     using (new EditorGUI.DisabledScope(!enableAgent.boolValue))

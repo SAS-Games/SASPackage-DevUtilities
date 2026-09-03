@@ -4,6 +4,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
     {
         None,
         PlayerConnection,
-        DirectTcp
+        DirectTcp,
+        LocalEditor
     }
 }

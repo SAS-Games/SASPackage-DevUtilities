@@ -1,47 +1,40 @@
 using System;
 using System.Collections.Generic;
 using SAS.Utilities.RemoteDevUtilities.Editor.Client;
+using SAS.Utilities.RemoteDevUtilities.Editor.Configuration;
 using SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels;
 using UnityEditor;
-using UnityEditor.Networking.PlayerConnection;
 using UnityEngine;
-using UnityEngine.Networking.PlayerConnection;
 
 namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
 {
-    [RemoteConnectionPanelContribution(RemoteEditorTransportIds.PlayerConnection, "Unity Players", 100)]
+    [RemoteConnectionPanelContribution(RemoteEditorTransportIds.PlayerConnection, "Unity Targets", 100)]
     internal sealed class PlayerConnectionPanelContribution : IRemoteConnectionPanelContribution
     {
-        private IConnectionState _connectionState;
-        private Action _repaint;
         private int _selectedIndex;
-        private string _selectedTargetName;
-        private bool _refreshRequested;
 
         public void Initialize(EditorWindow owner, Action repaint)
         {
-            _repaint = repaint;
-#if UNITY_6000_0_OR_NEWER
-            _connectionState = PlayerConnectionGUIUtility.GetConnectionState(owner, OnUnityTargetConnected);
-#else
-            _connectionState = PlayerConnectionGUIUtility.GetAttachToPlayerState(owner, OnUnityTargetConnected);
-#endif
         }
 
         public void Draw(RemoteDevUtilitiesClient client)
         {
-            if (!client.HasTransport(RemoteEditorTransportIds.PlayerConnection))
+            bool hasLocalEditor = client.HasTransport(RemoteEditorTransportIds.LocalEditor);
+            bool hasPlayerConnection = client.HasTransport(RemoteEditorTransportIds.PlayerConnection);
+            if (!hasLocalEditor && !hasPlayerConnection)
                 return;
-            if (_refreshRequested)
-            {
-                _refreshRequested = false;
-                client.RefreshConnectedPlayers();
-            }
 
-            EditorGUILayout.LabelField(
-                "Connect to a Development Player detected by Unity Player Connection.",
-                EditorStyles.wordWrappedMiniLabel);
+            EditorGUILayout.LabelField("Inspect this Editor's Play Mode or a Development Player connected through Unity.", EditorStyles.wordWrappedMiniLabel);
             EditorGUILayout.Space(4f);
+
+            if (hasLocalEditor)
+                DrawLocalEditor(client);
+
+            if (!hasPlayerConnection)
+                return;
+
+            EditorGUILayout.Space(6f);
+            EditorGUILayout.LabelField("Connected Development Players", EditorStyles.miniBoldLabel);
             IReadOnlyList<RemoteEditorPlayerDescriptor> players = client.ConnectedPlayers;
             if (players.Count > 0)
             {
@@ -50,10 +43,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
                     labels[i] = players[i].Name;
 
                 EditorGUILayout.BeginHorizontal();
-                _selectedIndex = EditorGUILayout.Popup(
-                    "Target",
-                    Mathf.Clamp(_selectedIndex, 0, players.Count - 1),
-                    labels);
+                _selectedIndex = EditorGUILayout.Popup("Target", Mathf.Clamp(_selectedIndex, 0, players.Count - 1), labels);
                 if (GUILayout.Button("Refresh", GUILayout.Width(68f)))
                     client.RefreshConnectedPlayers();
                 EditorGUILayout.EndHorizontal();
@@ -62,62 +52,55 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Connection
                 GUILayout.FlexibleSpace();
                 if (GUILayout.Button("Connect", GUILayout.Width(120f), GUILayout.Height(26f)))
                 {
-                    RemoteEditorPlayerDescriptor player =
-                        players[Mathf.Clamp(_selectedIndex, 0, players.Count - 1)];
+                    RemoteEditorPlayerDescriptor player = players[Mathf.Clamp(_selectedIndex, 0, players.Count - 1)];
                     client.Connect(player.PlayerId);
                 }
+
                 EditorGUILayout.EndHorizontal();
             }
             else
             {
-                EditorGUILayout.HelpBox(
-                    "No Development Players were detected. Start a Development Build, then refresh the list.",
-                    MessageType.Info);
                 EditorGUILayout.BeginHorizontal();
-                GUILayout.FlexibleSpace();
-                if (GUILayout.Button("Refresh Players", GUILayout.Width(120f)))
+                EditorGUILayout.LabelField("No connected Development Players.", EditorStyles.miniLabel);
+                if (GUILayout.Button("Refresh", GUILayout.Width(68f)))
                     client.RefreshConnectedPlayers();
                 EditorGUILayout.EndHorizontal();
             }
-
-            EditorGUILayout.Space(6f);
-            EditorGUILayout.LabelField("Player not listed?", EditorStyles.miniBoldLabel);
-            EditorGUILayout.BeginHorizontal();
-            DrawAttachControl();
-            if (GUILayout.Button("Refresh List", GUILayout.Width(90f)))
-                client.RefreshConnectedPlayers();
-            EditorGUILayout.EndHorizontal();
-
-            if (!string.IsNullOrWhiteSpace(_selectedTargetName))
-                EditorGUILayout.LabelField($"Unity attach target: {_selectedTargetName}", EditorStyles.miniLabel);
         }
 
         public void Dispose()
         {
-            _connectionState?.Dispose();
-            _connectionState = null;
-            _repaint = null;
         }
 
-        private void DrawAttachControl()
+        private static void DrawLocalEditor(RemoteDevUtilitiesClient client)
         {
-            if (_connectionState == null)
+            bool isPlaying = EditorApplication.isPlaying;
+            bool agentEnabled = RemoteDevUtilitiesProjectSettings.instance.Runtime.EnableRemoteAgent;
+            bool isAvailable = client.IsLocalEditorAvailable;
+            string status;
+            if (isAvailable)
+                status = "Ready";
+            else if (!agentEnabled)
+                status = "Agent Disabled";
+            else if (!isPlaying)
+                status = "Enter Play Mode";
+            else
+                status = "Starting";
+
+            using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
             {
-                using (new EditorGUI.DisabledScope(true))
-                    GUILayout.Button("Select Unity Target...", GUILayout.Width(160f));
-                return;
+                using (new EditorGUILayout.VerticalScope())
+                {
+                    EditorGUILayout.LabelField("This Editor (Play Mode)", EditorStyles.boldLabel);
+                    EditorGUILayout.LabelField(status, EditorStyles.miniLabel);
+                }
+
+                using (new EditorGUI.DisabledScope(!isAvailable))
+                {
+                    if (GUILayout.Button("Connect", GUILayout.Width(90f), GUILayout.Height(24f)))
+                        client.ConnectLocalEditor();
+                }
             }
-
-            Rect rect = GUILayoutUtility.GetRect(160f, EditorGUIUtility.singleLineHeight,
-                EditorStyles.popup, GUILayout.Width(160f));
-            PlayerConnectionGUI.ConnectionTargetSelectionDropdown(rect, _connectionState, EditorStyles.popup);
-        }
-
-        private void OnUnityTargetConnected(string targetName)
-        {
-            _selectedTargetName = targetName;
-            _refreshRequested = true;
-            _repaint?.Invoke();
         }
     }
 }

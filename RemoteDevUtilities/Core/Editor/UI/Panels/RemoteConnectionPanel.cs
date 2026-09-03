@@ -162,7 +162,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
         private void DrawConnectionMethods(RemoteDevUtilitiesClient client)
         {
             EditorGUILayout.LabelField(
-                "Choose how this Editor should connect to a Remote Dev Utilities Player.",
+                "Choose the Editor Play Mode or Player target to inspect.",
                 EditorStyles.wordWrappedMiniLabel);
             EditorGUILayout.Space(4f);
 
@@ -223,6 +223,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
         {
             return transportId switch
             {
+                RemoteEditorTransportIds.LocalEditor => "Editor Loopback",
                 RemoteEditorTransportIds.PlayerConnection => "Unity Player Connection",
                 RemoteEditorTransportIds.Tcp => "Direct TCP",
                 _ => string.IsNullOrWhiteSpace(transportId) ? "Unknown" : transportId
