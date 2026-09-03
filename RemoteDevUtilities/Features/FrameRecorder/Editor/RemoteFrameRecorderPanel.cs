@@ -282,8 +282,9 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
             _breadcrumb.Draw(_replayClient, "FRAME REPLAY");
             _layout.Draw(windowRect, 310f, "Hierarchy", "Recorded Frame", "Inspector", (_, _) =>
             {
+                _hierarchy.DrawToolbar(_replayClient);
                 _hierarchyScroll = EditorGUILayout.BeginScrollView(_hierarchyScroll);
-                _hierarchy.Draw(_replayClient, _layout.ShowInspector);
+                _hierarchy.DrawContents(_replayClient, _layout.ShowInspector);
                 EditorGUILayout.EndScrollView();
             }, (width, _) =>
             {
@@ -303,8 +304,9 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.FrameRecorder
             _breadcrumb.Draw(liveInspector, "RECORDING SETUP");
             _layout.Draw(windowRect, 290f, "Hierarchy", "Recorder Setup", "Inspector", (_, _) =>
             {
+                _liveHierarchy.DrawToolbar(liveInspector);
                 _hierarchyScroll = EditorGUILayout.BeginScrollView(_hierarchyScroll);
-                _liveHierarchy.Draw(liveInspector, _layout.ShowInspector);
+                _liveHierarchy.DrawContents(liveInspector, _layout.ShowInspector);
                 EditorGUILayout.EndScrollView();
             }, (_, _) =>
             {

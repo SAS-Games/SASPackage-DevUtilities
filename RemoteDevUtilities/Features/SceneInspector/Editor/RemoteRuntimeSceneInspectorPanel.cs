@@ -100,8 +100,9 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
                 "Hierarchy", "Captured Frame", "Inspector",
                 (width, _) =>
                 {
+                    _hierarchy.DrawToolbar(client);
                     _hierarchyScroll = EditorGUILayout.BeginScrollView(_hierarchyScroll);
-                    _hierarchy.Draw(client, _layout.ShowInspector);
+                    _hierarchy.DrawContents(client, _layout.ShowInspector);
                     EditorGUILayout.EndScrollView();
                 },
                 (width, _) =>

@@ -36,7 +36,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
             return true;
         }
 
-        public void Draw(RemoteRuntimeSceneInspectorClient client, Action selectionChanged = null)
+        public void DrawToolbar(RemoteRuntimeSceneInspectorClient client)
         {
             SynchronizeSession(client.SessionGeneration);
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
@@ -47,7 +47,12 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
                     client.Refresh(SelectedObjectId);
             }
             EditorGUILayout.EndHorizontal();
+        }
 
+        public void DrawContents(RemoteRuntimeSceneInspectorClient client,
+            Action selectionChanged = null)
+        {
+            SynchronizeSession(client.SessionGeneration);
             RemoteSceneInspectorHierarchyResponse hierarchy = client.Hierarchy;
             EnsureLookup(hierarchy);
 
