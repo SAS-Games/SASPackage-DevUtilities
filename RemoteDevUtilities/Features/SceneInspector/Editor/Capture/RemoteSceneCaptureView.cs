@@ -19,18 +19,15 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector.Capture
         private Vector2 _lastPickUv = new(-1f, -1f);
         private int _sessionGeneration = int.MinValue;
 
-        internal void Draw(RemoteRuntimeSceneInspectorClient client, float availableWidth)
+        internal void DrawToolbar(RemoteRuntimeSceneInspectorClient client, float availableWidth)
         {
-            if (_sessionGeneration != client.SessionGeneration)
-            {
-                _sessionGeneration = client.SessionGeneration;
-                DestroyTexture();
-                _decodeError = null;
-                _lastPickUv = new Vector2(-1f, -1f);
-            }
-            _client = client;
-            DrawToolbar(client, availableWidth);
+            SynchronizeClient(client);
+            DrawCaptureControls(client, availableWidth);
+        }
 
+        internal void DrawContents(RemoteRuntimeSceneInspectorClient client, float availableWidth)
+        {
+            SynchronizeClient(client);
             RemoteSceneCaptureResponse capture = client.Capture;
             if (client.IsCapturePending)
             {
@@ -76,7 +73,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector.Capture
             _client?.ReleaseCapture();
         }
 
-        private void DrawToolbar(RemoteRuntimeSceneInspectorClient client, float availableWidth)
+        private void DrawCaptureControls(RemoteRuntimeSceneInspectorClient client,
+            float availableWidth)
         {
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
             using (new EditorGUI.DisabledScope(client.IsCapturePending || client.IsPickPending ||
@@ -108,6 +106,18 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector.Capture
                 availableWidth < 520f ? EditorStyles.toolbarPopup : EditorStyles.popup,
                 GUILayout.Width(58f));
             EditorGUILayout.EndHorizontal();
+        }
+
+        private void SynchronizeClient(RemoteRuntimeSceneInspectorClient client)
+        {
+            if (_sessionGeneration != client.SessionGeneration)
+            {
+                _sessionGeneration = client.SessionGeneration;
+                DestroyTexture();
+                _decodeError = null;
+                _lastPickUv = new Vector2(-1f, -1f);
+            }
+            _client = client;
         }
 
         private void DrawPreview(RemoteRuntimeSceneInspectorClient client, RemoteSceneCaptureResponse capture, float availableWidth)

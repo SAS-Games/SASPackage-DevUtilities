@@ -107,8 +107,9 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.RuntimeSceneInspector
                 },
                 (width, _) =>
                 {
+                    _capture.DrawToolbar(client, width);
                     _captureScroll = EditorGUILayout.BeginScrollView(_captureScroll);
-                    _capture.Draw(client, width);
+                    _capture.DrawContents(client, width);
                     EditorGUILayout.EndScrollView();
                 },
                 (_, _) =>
