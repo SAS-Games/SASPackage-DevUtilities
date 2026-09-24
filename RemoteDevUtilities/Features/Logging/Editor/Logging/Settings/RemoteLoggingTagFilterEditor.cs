@@ -12,7 +12,6 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Logging.Settings
 
         internal void Draw(bool canExecute, Action<string> execute)
         {
-            EditorGUILayout.Space(3f);
             EditorGUILayout.LabelField("Tag Filters", EditorStyles.boldLabel);
             EditorGUILayout.LabelField("Target tags apply to tagged debug logs. An empty list allows every tag.", EditorStyles.wordWrappedMiniLabel);
 
@@ -20,7 +19,8 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Logging.Settings
             for (int i = 0; i < _tags.Count; i++)
             {
                 EditorGUILayout.BeginHorizontal();
-                string updated = EditorGUILayout.TextField($"Tag {i + 1}", _tags[i]);
+                GUILayout.Label($"Tag {i + 1}", GUILayout.Width(42f));
+                string updated = EditorGUILayout.TextField(_tags[i]);
                 if (!string.Equals(updated, _tags[i], StringComparison.Ordinal))
                 {
                     _tags[i] = updated;
@@ -42,7 +42,7 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Logging.Settings
                 EditorGUILayout.LabelField("No tag filters.", EditorStyles.centeredGreyMiniLabel);
 
             EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("Add Filter", GUILayout.Width(90f)))
+            if (GUILayout.Button("Add Filter", EditorStyles.miniButton, GUILayout.Width(72f)))
             {
                 _tags.Add(string.Empty);
                 _validationError = null;
@@ -51,10 +51,10 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Logging.Settings
             GUILayout.FlexibleSpace();
             using (new EditorGUI.DisabledScope(!canExecute))
             {
-                if (GUILayout.Button("Apply Filters", GUILayout.Width(95f)))
+                if (GUILayout.Button(new GUIContent("Apply", "Apply these tag filters to the target."), EditorStyles.miniButton, GUILayout.Width(58f)))
                     Apply(execute);
 
-                if (GUILayout.Button("Clear Target Tags", GUILayout.Width(120f)))
+                if (GUILayout.Button(new GUIContent("Clear Tags", "Clear all tag filters on the target."), EditorStyles.miniButton, GUILayout.Width(76f)))
                 {
                     _tags.Clear();
                     _validationError = null;

@@ -29,6 +29,10 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI
         void Deactivate();
     }
 
+    internal interface IRemoteWorkspacePanelWithCustomScrolling
+    {
+    }
+
     internal sealed class RemoteWorkspacePanelInstance
     {
         public RemoteWorkspacePanelInstance(RemoteWorkspacePanelAttribute registration, IRemoteWorkspacePanel panel)
@@ -245,10 +249,17 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI
             }
 
             EditorGUILayout.Space(3f);
+            IRemoteWorkspacePanel selectedPanel = _workspacePanels[selectedIndex].Panel;
+            if (selectedPanel is IRemoteWorkspacePanelWithCustomScrolling)
+            {
+                selectedPanel.Draw(_client, _client.IsConnected, position);
+                return;
+            }
+
             _windowScroll = EditorGUILayout.BeginScrollView(_windowScroll, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
             try
             {
-                if (_workspacePanels[selectedIndex].Panel.Draw(_client, _client.IsConnected, position))
+                if (selectedPanel.Draw(_client, _client.IsConnected, position))
                     _windowScroll.y = float.MaxValue;
             }
             finally

@@ -54,34 +54,60 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.Logging.Settings
                     commandClient.RequestCatalog();
             }
 
+            EditorGUILayout.BeginHorizontal();
+            DrawLogLevelsColumn(logClient, commandClient, commandAvailable, connected);
+            GUILayout.Space(6f);
+            DrawStackTraceColumn(commandClient, commandAvailable);
+            GUILayout.Space(6f);
+
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox, GUILayout.MinWidth(240f), GUILayout.ExpandWidth(true));
+            _tagFilterEditor.Draw(commandAvailable, command => Execute(commandClient, command));
+            EditorGUILayout.EndVertical();
+            EditorGUILayout.EndHorizontal();
+
+            if (!string.IsNullOrWhiteSpace(_resultMessage))
+                EditorGUILayout.HelpBox(_resultMessage, _resultType);
+
+            EditorGUILayout.EndVertical();
+        }
+
+        private void DrawLogLevelsColumn(RemoteLogClient logClient, IRemoteCommandExecutor commandClient, bool commandAvailable, bool connected)
+        {
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox, GUILayout.Width(190f));
             EditorGUILayout.LabelField("Debug Log Levels", EditorStyles.boldLabel);
             if (connected && !logClient.HasTargetSettings)
             {
-                EditorGUILayout.HelpBox("The current Player log-level state has not been received.", MessageType.Info);
-                if (GUILayout.Button("Refresh Status", GUILayout.Width(110f)))
+                EditorGUILayout.HelpBox("Waiting for the Player's current log-level state.", MessageType.Info);
+                if (GUILayout.Button("Refresh Status"))
                     logClient.RequestSettings();
             }
 
             DrawLogLevel(logClient, commandClient, commandAvailable, RemoteLoggingLevel.Info);
             DrawLogLevel(logClient, commandClient, commandAvailable, RemoteLoggingLevel.Warning);
             DrawLogLevel(logClient, commandClient, commandAvailable, RemoteLoggingLevel.Error);
+            EditorGUILayout.EndVertical();
+        }
 
-            EditorGUILayout.Space(3f);
+        private void DrawStackTraceColumn(IRemoteCommandExecutor commandClient, bool commandAvailable)
+        {
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox, GUILayout.Width(230f));
             EditorGUILayout.LabelField("Stack Traces", EditorStyles.boldLabel);
-            _stackTraceTarget = (RemoteStackTraceTarget)EditorGUILayout.EnumPopup("Log Type", _stackTraceTarget);
-            _stackTraceMode = (StackTraceLogType)EditorGUILayout.EnumPopup("Mode", _stackTraceMode);
+
+            EditorGUILayout.BeginHorizontal();
+            GUILayout.Label("Log Type", GUILayout.Width(58f));
+            _stackTraceTarget = (RemoteStackTraceTarget)EditorGUILayout.EnumPopup(_stackTraceTarget);
+            EditorGUILayout.EndHorizontal();
+
+            EditorGUILayout.BeginHorizontal();
+            GUILayout.Label("Mode", GUILayout.Width(58f));
+            _stackTraceMode = (StackTraceLogType)EditorGUILayout.EnumPopup(_stackTraceMode);
+            EditorGUILayout.EndHorizontal();
+
             using (new EditorGUI.DisabledScope(!commandAvailable))
             {
-                if (GUILayout.Button("Apply Stack Trace", GUILayout.Width(135f)))
-                {
+                if (GUILayout.Button("Apply Stack Trace"))
                     Execute(commandClient, RemoteLoggingCommandBuilder.SetStackTrace(_stackTraceTarget, _stackTraceMode));
-                }
             }
-
-            _tagFilterEditor.Draw(commandAvailable, command => Execute(commandClient, command));
-
-            if (!string.IsNullOrWhiteSpace(_resultMessage))
-                EditorGUILayout.HelpBox(_resultMessage, _resultType);
 
             EditorGUILayout.EndVertical();
         }

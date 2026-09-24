@@ -11,11 +11,12 @@ using UnityEngine;
 namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
 {
     [RemoteWorkspacePanel("logging", "Logs", 200)]
-    internal sealed class RemoteLogPanel : IRemoteWorkspacePanel
+    internal sealed class RemoteLogPanel : IRemoteWorkspacePanel, IRemoteWorkspacePanelWithCustomScrolling
     {
         private readonly RemoteLoggingTargetSettingsView _targetSettings = new RemoteLoggingTargetSettingsView();
 
         private string _filter = string.Empty;
+        private Vector2 _logScroll;
         private bool _showLogs = true;
         private bool _showWarnings = true;
         private bool _showErrors = true;
@@ -64,24 +65,35 @@ namespace SAS.Utilities.RemoteDevUtilities.Editor.UI.Panels
                 return false;
             }
 
-            IReadOnlyList<RemoteLogEntry> entries = client.Entries;
-            int first = Mathf.Max(0, entries.Count - 600);
-            for (int i = first; i < entries.Count; i++)
+            _logScroll = EditorGUILayout.BeginScrollView(_logScroll, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
+            try
             {
-                RemoteLogEntry entry = entries[i];
-                if (!ShouldShow(entry))
-                    continue;
+                IReadOnlyList<RemoteLogEntry> entries = client.Entries;
+                int first = Mathf.Max(0, entries.Count - 600);
+                for (int i = first; i < entries.Count; i++)
+                {
+                    RemoteLogEntry entry = entries[i];
+                    if (!ShouldShow(entry))
+                        continue;
 
-                MessageType type = ToMessageType(entry.LogType);
-                EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-                EditorGUILayout.LabelField($"#{entry.Sequence}  frame {entry.Frame}  {((LogType)entry.LogType)}", EditorStyles.miniBoldLabel);
-                EditorGUILayout.LabelField(entry.Message ?? string.Empty, EditorStyles.wordWrappedLabel);
-                if (_showStackTrace && !string.IsNullOrWhiteSpace(entry.StackTrace))
-                    EditorGUILayout.HelpBox(entry.StackTrace, type);
-                EditorGUILayout.EndVertical();
+                    MessageType type = ToMessageType(entry.LogType);
+                    EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                    EditorGUILayout.LabelField($"#{entry.Sequence}  frame {entry.Frame}  {((LogType)entry.LogType)}", EditorStyles.miniBoldLabel);
+                    EditorGUILayout.LabelField(entry.Message ?? string.Empty, EditorStyles.wordWrappedLabel);
+                    if (_showStackTrace && !string.IsNullOrWhiteSpace(entry.StackTrace))
+                        EditorGUILayout.HelpBox(entry.StackTrace, type);
+                    EditorGUILayout.EndVertical();
+                }
+
+                if (_autoScroll && Event.current.type == EventType.Repaint)
+                    _logScroll.y = float.MaxValue;
+            }
+            finally
+            {
+                EditorGUILayout.EndScrollView();
             }
 
-            return _autoScroll && Event.current.type == EventType.Repaint;
+            return false;
         }
 
         private bool ShouldShow(RemoteLogEntry entry)
