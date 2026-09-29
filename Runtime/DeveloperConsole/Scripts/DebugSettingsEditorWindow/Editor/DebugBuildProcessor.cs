@@ -177,6 +177,7 @@ namespace SAS.Utilities.DeveloperConsole.Editor
                 editorSettings.pauseOnEnable,
                 editorSettings.logLevel,
                 editorSettings.allowedTags,
+                editorSettings.consoleInput,
                 true);
             runtimeConfig.name = "DebugRuntimeConfig";
             runtimeConfig.hideFlags = HideFlags.HideInHierarchy | HideFlags.NotEditable;

@@ -58,6 +58,7 @@ namespace SAS.Utilities.DeveloperConsole
         private DeveloperConsole _developerConsole;
         private IDeveloperConsoleCommandGateway _commandGateway;
         private ConsoleInputActions _inputActions;
+        private DeveloperConsoleToggleInput _toggleInput;
         public bool IsTreeViewSuggestion => m_TreeViewSuggestionToggle.isOn;
         private GameObject _lastSelectedGameObject;
         public static DeveloperConsoleBehaviour Instance { get; private set; }
@@ -146,7 +147,7 @@ namespace SAS.Utilities.DeveloperConsole
             _consoleVisibilityRequested = m_UiCanvas != null && m_UiCanvas.activeSelf;
             _pausedTimeScale = Time.timeScale;
             _inputActions = new ConsoleInputActions();
-            _inputActions.Developer.ToggleConsole.performed += Toggle;
+            _toggleInput = new DeveloperConsoleToggleInput();
             _inputActions.Developer.Submit.performed += OnSubmit;
             _inputActions.Developer.HighlightInput.canceled += FocusInput;
             _inputActions.Developer.HistoryNavigationUp.performed += GetNextCommandHistory;
@@ -174,7 +175,6 @@ namespace SAS.Utilities.DeveloperConsole
             SetDeveloperConsole(null, false);
             if (_inputActions != null)
             {
-                _inputActions.Developer.ToggleConsole.performed -= Toggle;
                 _inputActions.Developer.Submit.performed -= OnSubmit;
                 _inputActions.Developer.HighlightInput.canceled -= FocusInput;
                 _inputActions.Developer.HistoryNavigationUp.performed -= GetNextCommandHistory;
@@ -182,6 +182,8 @@ namespace SAS.Utilities.DeveloperConsole
                 _inputActions.Dispose();
                 _inputActions = null;
             }
+
+            _toggleInput = null;
 
             if (Instance == this)
                 Instance = null;
@@ -206,7 +208,20 @@ namespace SAS.Utilities.DeveloperConsole
         private void OnDisable()
         {
             DevUtilityPresentationRegistry.SuppressionChanged -= OnPresentationSuppressionChanged;
+            _toggleInput?.Reset();
             _inputActions?.Developer.Disable();
+        }
+
+        private void Update()
+        {
+            if (!DevUtilityPresentationRegistry.CanShowLocalUi)
+            {
+                _toggleInput?.Reset();
+                return;
+            }
+
+            if (_toggleInput != null && _toggleInput.WasTriggered(DebugSettings.ConsoleInput, Time.unscaledTime))
+                Toggle(default);
         }
 
         private void Toggle(CallbackContext context)
@@ -529,7 +544,6 @@ namespace SAS.Utilities.DeveloperConsole
             bool canToggle = isActiveAndEnabled && DevUtilityPresentationRegistry.CanShowLocalUi;
             bool canInteract = canToggle && m_UiCanvas != null && m_UiCanvas.activeInHierarchy;
 
-            SetActionEnabled(_inputActions.Developer.ToggleConsole, canToggle);
             SetActionEnabled(_inputActions.Developer.Submit, canInteract);
             SetActionEnabled(_inputActions.Developer.HighlightInput, canInteract);
             SetActionEnabled(_inputActions.Developer.HistoryNavigationUp, canInteract);

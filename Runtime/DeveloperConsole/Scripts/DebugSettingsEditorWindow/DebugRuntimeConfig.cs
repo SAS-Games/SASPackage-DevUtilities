@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using SAS;
+using SAS.Utilities.DeveloperConsole;
 using UnityEngine;
 
 public class DebugRuntimeConfig : ScriptableObject
@@ -7,6 +8,7 @@ public class DebugRuntimeConfig : ScriptableObject
     private static DebugRuntimeConfig s_BuildSnapshot;
 
     public bool pauseOnEnable;
+    public DeveloperConsoleInputSettings consoleInput = new();
     public LogLevel logLevel;
     public List<string> allowedTags;
 
@@ -16,7 +18,18 @@ public class DebugRuntimeConfig : ScriptableObject
 
     internal void Apply(bool pause, LogLevel level, IEnumerable<string> tags, bool isBuildSnapshot)
     {
+        Apply(pause, level, tags, null, isBuildSnapshot);
+    }
+
+    internal void Apply(bool pause, LogLevel level, IEnumerable<string> tags,
+        DeveloperConsoleInputSettings inputSettings, bool isBuildSnapshot)
+    {
         pauseOnEnable = pause;
+        consoleInput ??= new DeveloperConsoleInputSettings();
+        if (inputSettings == null)
+            consoleInput.ResetToDefaults();
+        else
+            consoleInput.CopyFrom(inputSettings);
         logLevel = level;
         allowedTags = tags == null ? new List<string>() : new List<string>(tags);
         m_IsBuildSnapshot = isBuildSnapshot;
@@ -49,6 +62,7 @@ public class DebugRuntimeConfig : ScriptableObject
 
     private void OnEnable()
     {
+        consoleInput ??= new DeveloperConsoleInputSettings();
         allowedTags ??= new List<string>();
         if (m_IsBuildSnapshot)
             s_BuildSnapshot = this;

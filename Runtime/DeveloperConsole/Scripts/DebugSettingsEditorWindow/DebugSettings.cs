@@ -10,6 +10,7 @@ namespace SAS.Utilities.DeveloperConsole
     public static class DebugSettings
     {
         public static bool PauseOnEnable { get; private set; }
+        public static DeveloperConsoleInputSettings ConsoleInput { get; private set; } = new();
         public static LogLevel LogLevel { get; private set; }
         public static IReadOnlyList<string> AllowedTags => _allowedTags;
 
@@ -32,6 +33,7 @@ namespace SAS.Utilities.DeveloperConsole
             var settings = DebugEditorSettings.instance;
 
             PauseOnEnable = settings.pauseOnEnable;
+            ConsoleInput = settings.consoleInput?.Clone() ?? new DeveloperConsoleInputSettings();
             LogLevel = settings.logLevel;
             _allowedTags = settings.allowedTags == null
                 ? new List<string>()
@@ -44,6 +46,7 @@ namespace SAS.Utilities.DeveloperConsole
             DebugRuntimeConfig config = DebugRuntimeConfig.LoadOrCreateDefaults();
 
             PauseOnEnable = config.pauseOnEnable;
+            ConsoleInput = config.consoleInput?.Clone() ?? new DeveloperConsoleInputSettings();
             LogLevel = config.logLevel;
             _allowedTags = config.allowedTags == null
                 ? new List<string>()
