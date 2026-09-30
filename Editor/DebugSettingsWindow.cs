@@ -33,6 +33,17 @@ namespace SAS.Utilities.DeveloperConsole.Editor
                     "Log Level",
                     "Allowed Tags",
                     "Developer Console",
+                    "Console Toggle",
+                    "Keyboard",
+                    "Gamepad",
+                    "DualShock",
+                    "DualSense",
+                    "Touchpad",
+                    "Touchscreen",
+                    "Mobile",
+                    "Multi-touch",
+                    "Key Combination",
+                    "Hold Duration",
                     "Pause"
                 }
             };
@@ -63,6 +74,7 @@ namespace SAS.Utilities.DeveloperConsole.Editor
                     new GUIContent(
                         "Pause When Developer Console Opens",
                         "Pauses the Player while the Developer Console is open.")));
+            DrawConsoleInputSettings(serializedSettings.FindProperty("consoleInput"));
             DrawSection("Logging",
                 "Choose the log levels and optional tags accepted by the Dev Utilities logger.",
                 () =>
@@ -86,6 +98,55 @@ namespace SAS.Utilities.DeveloperConsole.Editor
 
             if (Application.isPlaying)
                 DebugSettings.ApplyFromEditor();
+        }
+
+        private static void DrawConsoleInputSettings(SerializedProperty inputSettings)
+        {
+            DrawSection("Console Toggle Input",
+                "Every item in a combination must be held together. Set a hold duration to 0 for an immediate toggle.",
+                () =>
+                {
+                    if (inputSettings == null)
+                    {
+                        EditorGUILayout.HelpBox("Console input settings could not be loaded.", MessageType.Error);
+                        return;
+                    }
+
+                    EditorGUILayout.PropertyField(
+                        inputSettings.FindPropertyRelative("m_KeyboardKeys"),
+                        new GUIContent("Keyboard Combination"),
+                        true);
+                    EditorGUILayout.PropertyField(
+                        inputSettings.FindPropertyRelative("m_KeyboardHoldDuration"),
+                        new GUIContent("Keyboard Hold Time", "Seconds the full keyboard combination must remain held."));
+                    GUILayout.Space(3f);
+                    EditorGUILayout.PropertyField(
+                        inputSettings.FindPropertyRelative("m_GamepadButtons"),
+                        new GUIContent("Controller Combination"),
+                        true);
+                    EditorGUILayout.PropertyField(
+                        inputSettings.FindPropertyRelative("m_RequireGamepadTouchpad"),
+                        new GUIContent("Require Touchpad Click", "Adds the DualShock/DualSense touchpad click to the controller combination. An empty button list makes touchpad click the complete shortcut."));
+                    EditorGUILayout.PropertyField(
+                        inputSettings.FindPropertyRelative("m_GamepadHoldDuration"),
+                        new GUIContent("Controller Hold Time", "Seconds the full controller combination must remain held."));
+
+                    GUILayout.Space(3f);
+                    SerializedProperty enableTouchscreen =
+                        inputSettings.FindPropertyRelative("m_EnableTouchscreenGesture");
+                    EditorGUILayout.PropertyField(
+                        enableTouchscreen,
+                        new GUIContent("Enable Touchscreen Gesture", "Allows a multi-finger hold to toggle the console on mobile or other touchscreen devices."));
+                    using (new EditorGUI.DisabledScope(!enableTouchscreen.boolValue))
+                    {
+                        EditorGUILayout.PropertyField(
+                            inputSettings.FindPropertyRelative("m_TouchscreenTouchCount"),
+                            new GUIContent("Minimum Touch Count", "Minimum number of fingers that must remain on the screen."));
+                        EditorGUILayout.PropertyField(
+                            inputSettings.FindPropertyRelative("m_TouchscreenHoldDuration"),
+                            new GUIContent("Touchscreen Hold Time", "Seconds the multi-finger gesture must remain held."));
+                    }
+                });
         }
 
         private static void DrawEnableDebugSetting()

@@ -15,18 +15,9 @@ namespace SAS.Utilities.DeveloperConsole
         {
             settings ??= new DeveloperConsoleInputSettings();
 
-            bool keyboardTriggered = _keyboardState.Update(
-                AreKeyboardKeysPressed(settings.KeyboardKeys),
-                settings.KeyboardHoldDuration,
-                unscaledTime);
-            bool gamepadTriggered = _gamepadState.Update(
-                AreGamepadControlsPressed(settings.GamepadButtons, settings.RequireGamepadTouchpad),
-                settings.GamepadHoldDuration,
-                unscaledTime);
-            bool touchscreenTriggered = _touchscreenState.Update(
-                HasRequiredTouches(settings.EnableTouchscreenGesture, settings.TouchscreenTouchCount),
-                settings.TouchscreenHoldDuration,
-                unscaledTime);
+            bool keyboardTriggered = _keyboardState.Update(AreKeyboardKeysPressed(settings.KeyboardKeys), settings.KeyboardHoldDuration, unscaledTime);
+            bool gamepadTriggered = _gamepadState.Update(AreGamepadControlsPressed(settings.GamepadButtons, settings.RequireGamepadTouchpad), settings.GamepadHoldDuration, unscaledTime);
+            bool touchscreenTriggered = _touchscreenState.Update(HasRequiredTouches(settings.EnableTouchscreenGesture, settings.TouchscreenTouchCount), settings.TouchscreenHoldDuration, unscaledTime);
 
             return keyboardTriggered || gamepadTriggered || touchscreenTriggered;
         }
@@ -67,8 +58,7 @@ namespace SAS.Utilities.DeveloperConsole
                     return false;
             }
 
-            return !requireTouchpad ||
-                   gamepad is DualShockGamepad dualShock && dualShock.touchpadButton.isPressed;
+            return !requireTouchpad || gamepad is DualShockGamepad dualShock && dualShock.touchpadButton.isPressed;
         }
 
         private static bool HasRequiredTouches(bool enabled, int requiredTouchCount)

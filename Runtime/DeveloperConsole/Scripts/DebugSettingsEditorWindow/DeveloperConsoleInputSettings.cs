@@ -16,12 +16,14 @@ namespace SAS.Utilities.DeveloperConsole
 
         [SerializeField] private List<Key> m_KeyboardKeys = new() { Key.Backquote };
         [SerializeField, Min(0f)] private float m_KeyboardHoldDuration = DefaultKeyboardHoldDuration;
+
         [SerializeField] private List<GamepadButton> m_GamepadButtons = new()
         {
             GamepadButton.DpadDown,
             GamepadButton.LeftShoulder,
             GamepadButton.South
         };
+
         [SerializeField] private bool m_RequireGamepadTouchpad;
         [SerializeField, Min(0f)] private float m_GamepadHoldDuration = DefaultGamepadHoldDuration;
         [SerializeField] private bool m_EnableTouchscreenGesture;
@@ -52,13 +54,9 @@ namespace SAS.Utilities.DeveloperConsole
                 return;
             }
 
-            m_KeyboardKeys = source.m_KeyboardKeys == null
-                ? new List<Key>()
-                : new List<Key>(source.m_KeyboardKeys);
+            m_KeyboardKeys = source.m_KeyboardKeys == null ? new List<Key>() : new List<Key>(source.m_KeyboardKeys);
             m_KeyboardHoldDuration = Mathf.Max(0f, source.m_KeyboardHoldDuration);
-            m_GamepadButtons = source.m_GamepadButtons == null
-                ? new List<GamepadButton>()
-                : new List<GamepadButton>(source.m_GamepadButtons);
+            m_GamepadButtons = source.m_GamepadButtons == null ? new List<GamepadButton>() : new List<GamepadButton>(source.m_GamepadButtons);
             m_RequireGamepadTouchpad = source.m_RequireGamepadTouchpad;
             m_GamepadHoldDuration = Mathf.Max(0f, source.m_GamepadHoldDuration);
             m_EnableTouchscreenGesture = source.m_EnableTouchscreenGesture;
