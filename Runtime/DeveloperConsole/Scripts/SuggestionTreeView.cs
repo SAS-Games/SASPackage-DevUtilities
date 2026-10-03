@@ -48,7 +48,7 @@ namespace SAS.Utilities.DeveloperConsole
         {
             ClearSuggestions();
             gameObject.SetActive(true);
-            foreach (var command in _developerConsoleUI.DeveloperConsole.ConsoleCommands)
+            foreach (var command in _developerConsoleUI.DeveloperConsole.GetLocalConsoleCommands())
                 CreateBaseCommandUI(command.Name);
             RebuildNavigableList();
         }

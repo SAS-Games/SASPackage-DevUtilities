@@ -10,6 +10,7 @@ namespace SAS.Utilities.DeveloperConsole.Editor
     {
         public bool pauseOnEnable = false;
         public DeveloperConsoleInputSettings consoleInput = new();
+        public List<string> hiddenConsoleCommands = new();
         public LogLevel logLevel = LogLevel.Info | LogLevel.Warning | LogLevel.Error;
         public List<string> allowedTags = new();
 
@@ -21,6 +22,7 @@ namespace SAS.Utilities.DeveloperConsole.Editor
         private void OnEnable()
         {
             consoleInput ??= new DeveloperConsoleInputSettings();
+            hiddenConsoleCommands ??= new List<string>();
             allowedTags ??= new List<string>();
         }
     }

@@ -101,7 +101,10 @@ namespace SAS.Utilities.DeveloperConsole
                     }
                 }
 
-                SetDeveloperConsole(new DeveloperConsole(m_Prefix, allCommands), false);
+                SetDeveloperConsole(new DeveloperConsole(
+                    m_Prefix,
+                    allCommands,
+                    command => DebugSettings.IsConsoleCommandVisible(command?.Name)), false);
                 return _developerConsole;
             }
         }
@@ -202,12 +205,16 @@ namespace SAS.Utilities.DeveloperConsole
         {
             DevUtilityPresentationRegistry.SuppressionChanged -= OnPresentationSuppressionChanged;
             DevUtilityPresentationRegistry.SuppressionChanged += OnPresentationSuppressionChanged;
+            DebugSettings.ConsoleCommandVisibilityChanged -= OnConsoleCommandVisibilityChanged;
+            DebugSettings.ConsoleCommandVisibilityChanged += OnConsoleCommandVisibilityChanged;
+            OnConsoleCommandVisibilityChanged();
             OnPresentationSuppressionChanged();
         }
 
         private void OnDisable()
         {
             DevUtilityPresentationRegistry.SuppressionChanged -= OnPresentationSuppressionChanged;
+            DebugSettings.ConsoleCommandVisibilityChanged -= OnConsoleCommandVisibilityChanged;
             _toggleInput?.Reset();
             _inputActions?.Developer.Disable();
         }
@@ -619,6 +626,11 @@ namespace SAS.Utilities.DeveloperConsole
         private void OnCommandsChanged()
         {
             CommandsChanged?.Invoke();
+        }
+
+        private void OnConsoleCommandVisibilityChanged()
+        {
+            _developerConsole?.NotifyLocalCommandVisibilityChanged();
         }
 
         private void OnGatewayCommandCompleted(DeveloperConsoleCommandResult response)

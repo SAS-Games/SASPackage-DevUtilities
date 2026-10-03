@@ -9,6 +9,7 @@ public class DebugRuntimeConfig : ScriptableObject
 
     public bool pauseOnEnable;
     public DeveloperConsoleInputSettings consoleInput = new();
+    public List<string> hiddenConsoleCommands = new();
     public LogLevel logLevel;
     public List<string> allowedTags;
 
@@ -18,11 +19,18 @@ public class DebugRuntimeConfig : ScriptableObject
 
     internal void Apply(bool pause, LogLevel level, IEnumerable<string> tags, bool isBuildSnapshot)
     {
-        Apply(pause, level, tags, null, isBuildSnapshot);
+        Apply(pause, level, tags, null, null, isBuildSnapshot);
     }
 
     internal void Apply(bool pause, LogLevel level, IEnumerable<string> tags,
         DeveloperConsoleInputSettings inputSettings, bool isBuildSnapshot)
+    {
+        Apply(pause, level, tags, inputSettings, null, isBuildSnapshot);
+    }
+
+    internal void Apply(bool pause, LogLevel level, IEnumerable<string> tags,
+        DeveloperConsoleInputSettings inputSettings, IEnumerable<string> hiddenCommands,
+        bool isBuildSnapshot)
     {
         pauseOnEnable = pause;
         consoleInput ??= new DeveloperConsoleInputSettings();
@@ -30,6 +38,9 @@ public class DebugRuntimeConfig : ScriptableObject
             consoleInput.ResetToDefaults();
         else
             consoleInput.CopyFrom(inputSettings);
+        hiddenConsoleCommands = hiddenCommands == null
+            ? new List<string>()
+            : new List<string>(hiddenCommands);
         logLevel = level;
         allowedTags = tags == null ? new List<string>() : new List<string>(tags);
         m_IsBuildSnapshot = isBuildSnapshot;
@@ -63,6 +74,7 @@ public class DebugRuntimeConfig : ScriptableObject
     private void OnEnable()
     {
         consoleInput ??= new DeveloperConsoleInputSettings();
+        hiddenConsoleCommands ??= new List<string>();
         allowedTags ??= new List<string>();
         if (m_IsBuildSnapshot)
             s_BuildSnapshot = this;

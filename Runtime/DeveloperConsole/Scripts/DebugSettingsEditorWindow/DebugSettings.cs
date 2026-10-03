@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 #if UNITY_EDITOR
 using SAS.Utilities.DeveloperConsole.Editor;
@@ -13,8 +14,11 @@ namespace SAS.Utilities.DeveloperConsole
         public static DeveloperConsoleInputSettings ConsoleInput { get; private set; } = new();
         public static LogLevel LogLevel { get; private set; }
         public static IReadOnlyList<string> AllowedTags => _allowedTags;
+        public static IReadOnlyCollection<string> HiddenConsoleCommands => _hiddenConsoleCommands;
+        public static event Action ConsoleCommandVisibilityChanged;
 
         private static List<string> _allowedTags = new();
+        private static HashSet<string> _hiddenConsoleCommands = new(StringComparer.OrdinalIgnoreCase);
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Initialize()
@@ -38,6 +42,7 @@ namespace SAS.Utilities.DeveloperConsole
             _allowedTags = settings.allowedTags == null
                 ? new List<string>()
                 : new List<string>(settings.allowedTags);
+            SetHiddenConsoleCommands(settings.hiddenConsoleCommands);
         }
 #endif
 
@@ -51,12 +56,33 @@ namespace SAS.Utilities.DeveloperConsole
             _allowedTags = config.allowedTags == null
                 ? new List<string>()
                 : new List<string>(config.allowedTags);
+            SetHiddenConsoleCommands(config.hiddenConsoleCommands);
+        }
+
+        public static bool IsConsoleCommandVisible(string commandName)
+        {
+            return string.IsNullOrWhiteSpace(commandName) ||
+                   !_hiddenConsoleCommands.Contains(commandName);
+        }
+
+        private static void SetHiddenConsoleCommands(IEnumerable<string> commandNames)
+        {
+            _hiddenConsoleCommands = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            if (commandNames == null)
+                return;
+
+            foreach (string commandName in commandNames)
+            {
+                if (!string.IsNullOrWhiteSpace(commandName))
+                    _hiddenConsoleCommands.Add(commandName.Trim());
+            }
         }
 
         private static void Apply()
         {
             Debug.SetLogLevel((int)LogLevel);
             Debug.SetAllowedTags(_allowedTags);
+            ConsoleCommandVisibilityChanged?.Invoke();
         }
 
 #if UNITY_EDITOR

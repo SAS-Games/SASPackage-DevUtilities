@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using PackageManagerPackageInfo = UnityEditor.PackageManager.PackageInfo;
 
 namespace SAS.Utilities.DeveloperConsole.Editor
 {
@@ -11,6 +13,10 @@ namespace SAS.Utilities.DeveloperConsole.Editor
     public class DebugSettingsWindow : EditorWindow
     {
         internal const string SettingsPath = "Project/Dev Utilities/Debug";
+        private const string ConsolePrefabRelativePath =
+            "Runtime/DeveloperConsole/Assets/Resources/ConsoleCommandsSystem.prefab";
+
+        private static string[] s_BuiltInCommandNames;
 
         [MenuItem("Tools/Dev Utilities/Debug Settings")]
         public static void ShowWindow()
@@ -44,7 +50,10 @@ namespace SAS.Utilities.DeveloperConsole.Editor
                     "Multi-touch",
                     "Key Combination",
                     "Hold Duration",
-                    "Pause"
+                    "Pause",
+                    "Command Visibility",
+                    "Package Commands",
+                    "Remote Commands"
                 }
             };
         }
@@ -75,6 +84,8 @@ namespace SAS.Utilities.DeveloperConsole.Editor
                         "Pause When Developer Console Opens",
                         "Pauses the Player while the Developer Console is open.")));
             DrawConsoleInputSettings(serializedSettings.FindProperty("consoleInput"));
+            DrawBuiltInCommandVisibility(
+                serializedSettings.FindProperty("hiddenConsoleCommands"));
             DrawSection("Logging",
                 "Choose the log levels and optional tags accepted by the Dev Utilities logger.",
                 () =>
@@ -98,6 +109,165 @@ namespace SAS.Utilities.DeveloperConsole.Editor
 
             if (Application.isPlaying)
                 DebugSettings.ApplyFromEditor();
+        }
+
+        private static void DrawBuiltInCommandVisibility(SerializedProperty hiddenCommands)
+        {
+            DrawSection("Built-In Command Visibility",
+                "Choose which package commands are discoverable in the local in-game console. " +
+                "Hidden commands stay registered and remain available to Remote Dev Utilities.",
+                () =>
+                {
+                    if (hiddenCommands == null)
+                    {
+                        EditorGUILayout.HelpBox(
+                            "Command visibility settings could not be loaded.",
+                            MessageType.Error);
+                        return;
+                    }
+
+                    string[] commandNames = GetBuiltInCommandNames();
+                    if (commandNames.Length == 0)
+                    {
+                        EditorGUILayout.HelpBox(
+                            "The built-in Developer Console commands could not be discovered. " +
+                            "Hidden command names can still be edited manually.",
+                            MessageType.Warning);
+                        EditorGUILayout.PropertyField(
+                            hiddenCommands,
+                            new GUIContent("Hidden Command Names"),
+                            true);
+                        return;
+                    }
+
+                    EditorGUILayout.LabelField("Show in Local Console", EditorStyles.miniBoldLabel);
+                    foreach (string commandName in commandNames)
+                    {
+                        bool isVisible = !Contains(hiddenCommands, commandName);
+                        bool nextVisible = EditorGUILayout.ToggleLeft(commandName, isVisible);
+                        if (nextVisible != isVisible)
+                            SetHidden(hiddenCommands, commandName, !nextVisible);
+                    }
+
+                    GUILayout.Space(3f);
+                    EditorGUILayout.BeginHorizontal();
+                    if (GUILayout.Button("Show All"))
+                    {
+                        hiddenCommands.arraySize = 0;
+                        GUI.changed = true;
+                    }
+
+                    if (GUILayout.Button("Hide All"))
+                    {
+                        hiddenCommands.arraySize = commandNames.Length;
+                        for (int i = 0; i < commandNames.Length; i++)
+                            hiddenCommands.GetArrayElementAtIndex(i).stringValue = commandNames[i];
+                        GUI.changed = true;
+                    }
+                    EditorGUILayout.EndHorizontal();
+                });
+        }
+
+        private static string[] GetBuiltInCommandNames()
+        {
+            if (s_BuiltInCommandNames != null)
+                return s_BuiltInCommandNames;
+
+            var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            PackageManagerPackageInfo package =
+                PackageManagerPackageInfo.FindForAssembly(typeof(DebugSettingsWindow).Assembly);
+            if (package == null || string.IsNullOrWhiteSpace(package.assetPath))
+                return s_BuiltInCommandNames = Array.Empty<string>();
+
+            string prefabPath = $"{package.assetPath}/{ConsolePrefabRelativePath}";
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+            DeveloperConsoleBehaviour console = prefab != null
+                ? prefab.GetComponentInChildren<DeveloperConsoleBehaviour>(true)
+                : null;
+            if (console == null)
+                return s_BuiltInCommandNames = Array.Empty<string>();
+
+            var serializedConsole = new SerializedObject(console);
+            AddCommandNames(serializedConsole.FindProperty("m_Commands"), names);
+
+            SerializedProperty platformCommands =
+                serializedConsole.FindProperty("m_PlatformCommands");
+            if (platformCommands != null && platformCommands.isArray)
+            {
+                for (int i = 0; i < platformCommands.arraySize; i++)
+                {
+                    AddCommandNames(
+                        platformCommands.GetArrayElementAtIndex(i)
+                            .FindPropertyRelative("commands"),
+                        names);
+                }
+            }
+
+            var result = new List<string>(names);
+            result.Sort(StringComparer.OrdinalIgnoreCase);
+            return s_BuiltInCommandNames = result.ToArray();
+        }
+
+        private static void AddCommandNames(
+            SerializedProperty commands,
+            HashSet<string> names)
+        {
+            if (commands == null || !commands.isArray)
+                return;
+
+            for (int i = 0; i < commands.arraySize; i++)
+            {
+                var command = commands.GetArrayElementAtIndex(i).objectReferenceValue
+                    as ConsoleCommand;
+                if (command != null && !string.IsNullOrWhiteSpace(command.Name))
+                    names.Add(command.Name.Trim());
+            }
+        }
+
+        private static bool Contains(SerializedProperty values, string value)
+        {
+            for (int i = 0; i < values.arraySize; i++)
+            {
+                if (string.Equals(
+                    values.GetArrayElementAtIndex(i).stringValue,
+                    value,
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static void SetHidden(
+            SerializedProperty hiddenCommands,
+            string commandName,
+            bool hidden)
+        {
+            for (int i = 0; i < hiddenCommands.arraySize; i++)
+            {
+                if (!string.Equals(
+                    hiddenCommands.GetArrayElementAtIndex(i).stringValue,
+                    commandName,
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (hidden)
+                    return;
+
+                hiddenCommands.DeleteArrayElementAtIndex(i);
+                return;
+            }
+
+            if (!hidden)
+                return;
+
+            int index = hiddenCommands.arraySize;
+            hiddenCommands.InsertArrayElementAtIndex(index);
+            hiddenCommands.GetArrayElementAtIndex(index).stringValue = commandName;
         }
 
         private static void DrawConsoleInputSettings(SerializedProperty inputSettings)

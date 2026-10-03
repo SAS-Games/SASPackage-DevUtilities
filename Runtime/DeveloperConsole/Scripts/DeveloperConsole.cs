@@ -11,13 +11,16 @@ namespace SAS.Utilities.DeveloperConsole
         public readonly string _prefix;
         private readonly CommandSuggester _commandSuggester = new();
         private readonly CommandHistory _commandHistory = new();
+        private readonly Func<IConsoleCommand, bool> _isCommandVisibleLocally;
         public readonly List<IConsoleCommand> ConsoleCommands = new List<IConsoleCommand>();
         public CommandHistory CommandHistory => _commandHistory;
         public event Action CommandsChanged;
 
-        public DeveloperConsole(string prefix, IEnumerable<IConsoleCommand> consoleCommands)
+        public DeveloperConsole(string prefix, IEnumerable<IConsoleCommand> consoleCommands,
+            Func<IConsoleCommand, bool> isCommandVisibleLocally = null)
         {
             this._prefix = prefix;
+            _isCommandVisibleLocally = isCommandVisibleLocally;
             foreach (var consoleCommand in consoleCommands)
                 AddCommand(consoleCommand);
         }
@@ -93,7 +96,53 @@ namespace SAS.Utilities.DeveloperConsole
 
         public List<string> GetCommandSuggestions(string input)
         {
-            return _commandSuggester.GetAllWithPrefix(input);
+            List<string> suggestions = _commandSuggester.GetAllWithPrefix(input);
+            if (_isCommandVisibleLocally == null)
+                return suggestions;
+
+            suggestions.RemoveAll(suggestion => !IsSuggestionVisibleLocally(suggestion));
+            return suggestions;
+        }
+
+        public IEnumerable<IConsoleCommand> GetLocalConsoleCommands()
+        {
+            foreach (IConsoleCommand command in ConsoleCommands)
+            {
+                if (IsCommandVisibleLocally(command))
+                    yield return command;
+            }
+        }
+
+        internal void NotifyLocalCommandVisibilityChanged()
+        {
+            CommandsChanged?.Invoke();
+        }
+
+        private bool IsCommandVisibleLocally(IConsoleCommand command)
+        {
+            return command != null &&
+                   (_isCommandVisibleLocally == null || _isCommandVisibleLocally(command));
+        }
+
+        private bool IsSuggestionVisibleLocally(string suggestion)
+        {
+            foreach (IConsoleCommand command in GetLocalConsoleCommands())
+            {
+                if (string.Equals(suggestion, $"{_prefix}{command.Name}", StringComparison.OrdinalIgnoreCase))
+                    return true;
+
+                string[] presets = command.Presets;
+                if (presets == null)
+                    continue;
+
+                foreach (string preset in presets)
+                {
+                    if (string.Equals(suggestion, $"{_prefix}{preset}", StringComparison.OrdinalIgnoreCase))
+                        return true;
+                }
+            }
+
+            return false;
         }
 
         public void AddCommand(IConsoleCommand cmd)
